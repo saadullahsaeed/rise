@@ -1,4 +1,5 @@
 # nfx
 
 - - -
-Copyright (c) 2016 Nitrous, Inc. This software is licensed under the MIT License.
+This software is licensed under [the ISC
+License](https://raw.githubusercontent.com/nitrousfx/nfx/master/LICENSE.txt).
