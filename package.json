@@ -1,0 +1,23 @@
+{
+  "name": "nfx",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=4.0"
+  },
+  "description": "nfx",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nitrous-io/nfx.git"
+  },
+  "author": "Nitrous, Inc.",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nitrous-io/nfx/issues"
+  },
+  "homepage": "https://github.com/nitrous-io/nfx#readme",
+  "dependencies": {
+    "commander": "^2.9.0"
+  }
+}

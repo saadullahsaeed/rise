@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+
+const path = require('path'),
+      app = require('commander');
+
+const pkgJson = require(path.join(__dirname, '..', 'package.json'));
+
+app
+  .version(pkgJson.version)
+  .parse(process.argv);
+
+app.outputHelp();
