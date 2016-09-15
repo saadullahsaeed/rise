@@ -1,0 +1,9 @@
+{
+  "name": "nfx_todo",
+  "version": "1.0.0",
+  "description": "test nfx serverless app project",
+  "scripts": {
+  },
+  "author": "nfx",
+  "license": "ISC"
+}

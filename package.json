@@ -1,17 +1,21 @@
 {
   "name": "nfx",
   "version": "0.0.1",
+  "description": "nfx",
   "engines": {
     "node": ">=4.0"
   },
-  "description": "nfx",
   "scripts": {
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nitrous-io/nfx.git"
   },
-  "author": "Nitrous, Inc.",
+  "author": {
+    "name": "Peter Jihoon Kim",
+    "email": "raingrove@gmail.com",
+    "web": "https://pete.kim.cloud/"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/nitrous-io/nfx/issues"
