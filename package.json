@@ -1,0 +1,21 @@
+{
+  "name": "nfx-framework",
+  "version": "0.0.1",
+  "description": "nfx-framework",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nitrous-io/nfx-framework.git"
+  },
+  "author": {
+    "name": "Peter Jihoon Kim",
+    "email": "raingrove@gmail.com",
+    "web": "https://pete.kim.cloud/"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nitrous-io/nfx-framework/issues"
+  },
+  "homepage": "https://github.com/nitrous-io/nfx-framework#readme"
+}
