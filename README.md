@@ -1,5 +1,5 @@
-Nitrous f(x) Framework
-======================
+# nfx-framework
 
 - - -
-Copyright (c) 2016 Nitrous, Inc. All Rights Reserved.
+This software is licensed under [the ISC
+License](https://raw.githubusercontent.com/nitrousfx/nfx/master/LICENSE.txt).
