@@ -1,12 +1,33 @@
 #!/usr/bin/env node
 
 const path = require('path'),
-      app = require('commander');
+      program = require('commander');
+      app = require('../src');
 
 const pkgJson = require(path.join(__dirname, '..', 'package.json'));
 
-app
+program
   .version(pkgJson.version)
-  .parse(process.argv);
+  .usage('[command]');
 
-app.outputHelp();
+program
+  .command('deploy')
+  .description('deploy a project')
+  .action( () => {
+    app.deploy();
+  });
+
+program
+  .command('new [stackName]')
+  .description('setup provider credential')
+  .option('-r, --region [region]', 'AWS region')
+  .option('-b, --bucket-name [bucketName]', 'AWS bucket name')
+  .action( (stackName, options) => {
+    app.newProject(stackName, options);
+  });
+
+program.parse(process.argv);
+
+if (program.args.length === 0) {
+  program.outputHelp();
+}
