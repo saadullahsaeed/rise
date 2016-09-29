@@ -18,6 +18,13 @@ program
   });
 
 program
+  .command('destroy')
+  .description('destroy a project')
+  .action( () => {
+    app.destroy();
+  });
+
+program
   .command('new [stackName]')
   .description('setup provider credential')
   .option('-r, --region [region]', 'AWS region')
