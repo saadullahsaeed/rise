@@ -2,8 +2,12 @@
   "name": "nfx-framework",
   "version": "0.0.1",
   "description": "nfx-framework",
-  "main": "index.js",
-  "scripts": {},
+  "main": "src/index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha --reporter=dot test/**/*_test.js",
+    "lint": "./node_modules/.bin/eslint src/**/*.js test/**/*.js",
+    "jsdoc": "./node_modules/.bin/jsdoc -c .jsdoc.conf.json -t ./node_modules/ink-docstrap/template -R README.md -r ./src"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nitrous-io/nfx-framework.git"
@@ -17,5 +21,14 @@
   "bugs": {
     "url": "https://github.com/nitrous-io/nfx-framework/issues"
   },
-  "homepage": "https://github.com/nitrous-io/nfx-framework#readme"
+  "homepage": "https://github.com/nitrous-io/nfx-framework#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "eslint": "^3.6.1",
+    "ink-docstrap": "^1.3.0",
+    "jsdoc": "^3.4.1",
+    "mocha": "^3.1.0",
+    "sinon": "^1.17.6",
+    "sinon-chai": "^2.8.0"
+  }
 }
