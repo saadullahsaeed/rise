@@ -21,10 +21,11 @@
   },
   "homepage": "https://github.com/nitrous-io/nfx#readme",
   "dependencies": {
+    "archiver": "^1.1.0",
     "aws-sdk": "^2.6.4",
-    "commander": "^2.9.0",
-    "readline-sync": "^1.4.4",
     "chalk": "^1.1.1",
-    "js-yaml": "^3.6.1"
+    "commander": "^2.9.0",
+    "js-yaml": "^3.6.1",
+    "readline-sync": "^1.4.4"
   }
 }
