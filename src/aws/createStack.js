@@ -4,16 +4,31 @@ const fs         = require('fs'),
       path       = require('path'),
       ConsoleLog = require('../utils/consoleLog').ConsoleLog;
 
-module.exports.CreateStack = function(cf, stackName, bucketName) {
+module.exports.CreateStack = (cf, stackName) => {
   return new Promise((resolve, reject) => {
-    const content = fsReadFile(path.join(__dirname, 'cf-create-stack.json'));
+    cf.describeStacks({
+      StackName: stackName
+    }, (err, data) => {
+      if (err && err.message.indexOf('does not exist') > -1) {
+        create(cf, stackName)
+          .then(resolve)
+          .catch((err) => reject(err));
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
+function create(cf, stackName) {
+  return new Promise((resolve, reject) => {
+    const content = fsReadFile(path.join(__dirname, 'cf-base.json'));
     if (!content) {
       reject('CreateStack error.');
     }
 
     let cfJSON = JSON.parse(content);
     cfJSON.Description = `${stackName} NFX stack.`;
-    cfJSON.Resources.NFXDeploymentBucket.Properties.BucketName = bucketName;
 
     const req = cf.createStack({
       StackName: stackName,
@@ -27,7 +42,7 @@ module.exports.CreateStack = function(cf, stackName, bucketName) {
     });
 
     req.on('success', function(resp) {
-      ConsoleLog('note', `Creating stack [${stackName}]...`);
+      ConsoleLog('info', `Creating stack [${stackName}]...`);
       cf.waitFor('stackCreateComplete', { StackName: stackName }, function(err, data) {
         if (err) {
           reject(err);

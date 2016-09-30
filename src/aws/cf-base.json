@@ -3,10 +3,7 @@
   "Description": "NFX stack",
   "Resources": {
     "NFXDeploymentBucket": {
-      "Type": "AWS::S3::Bucket",
-      "Properties": {
-        "BucketName": "NFX Bucket"
-      }
+      "Type": "AWS::S3::Bucket"
     },
     "NFXRole": {
       "Type": "AWS::IAM::Role",
@@ -39,36 +36,6 @@
           }]
         },
         "Roles": [ { "Ref": "NFXRole" } ]
-      }
-    },
-    "NFXLambda": {
-      "Type" : "AWS::Lambda::Function",
-      "Properties" : {
-        "Code" : {
-          "S3Bucket" : { "Ref": "NFXDeploymentBucket" },
-          "S3Key" : "$S3KEY"
-        },
-        "Role" : {
-          "Fn::GetAtt" : [
-            "NFXRole",
-            "Arn"
-          ]
-        }
-,
-        "Handler" : "handler.hello",
-        "Runtime" : "nodejs4.3",
-        "Timeout" : "25"
-      }
-    },
-    "NFXLambdaVersion" : {
-      "Type" : "AWS::Lambda::Version",
-      "Properties" : {
-        "FunctionName" : {
-          "Fn::GetAtt" : [
-            "NFXLambda",
-            "Arn"
-          ]
-        }
       }
     }
   }

@@ -1,0 +1,11 @@
+{
+ "Type" : "AWS::Lambda::Version",
+ "Properties" : {
+   "FunctionName" : {
+     "Fn::GetAtt" : [
+       "$FUNCTION_NAME",
+       "Arn"
+     ]
+   }
+ }
+}

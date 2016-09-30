@@ -5,9 +5,11 @@ module.exports.DescribeStackResource = function(cf, stackName, resourseId) {
   return new Promise((resolve, reject) => {
     cf.describeStackResource({
       StackName: stackName,
-      LogicalResourceId: 'NFXDeploymentBucket'
+      LogicalResourceId: 'NFXDeploymentBucket' //FIXME
     }, (err, data) => {
       if (err) {
+        // FIXME create bucket here if it doesn't exist
+        console.log(err.message);
         reject(err.message);
       } else {
         resolve(data.StackResourceDetail);

@@ -2,8 +2,7 @@
 
 const AWS                   = require('aws-sdk'),
       ConsoleLog            = require('../utils/consoleLog').ConsoleLog,
-      LoadYAML              = require('../utils/yaml').LoadYAML,
-      CreateLambda          = require('../aws/createLambda').CreateLambda;
+      LoadYAML              = require('../utils/yaml').LoadYAML;
 
 module.exports = function() {
   const project   = LoadYAML('project.yaml'),

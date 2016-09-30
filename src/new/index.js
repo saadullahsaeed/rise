@@ -77,7 +77,7 @@ module.exports = function(stackName, options) {
   if (!awsCredStat &&
       process.env.AWS_ACCESS_KEY_ID === undefined &&
       process.env.AWS_SECRET_ACCESS_KEY === undefined) {
-    ConsoleLog('note', 'Please setup your provider credentials.');
+    ConsoleLog('info', 'Please setup your provider credentials.');
   }
 }
 

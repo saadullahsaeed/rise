@@ -1,0 +1,18 @@
+{
+  "Type" : "AWS::Lambda::Function",
+  "Properties" : {
+    "Handler" : "$HANDLER.handler",
+    "Role" : {
+      "Fn::GetAtt" : [
+        "NFXRole",
+        "Arn"
+      ]
+    },
+    "Code" : {
+      "S3Bucket" : { "Ref": "NFXDeploymentBucket" },
+      "S3Key" : "$S3KEY"
+    },
+    "Runtime" : "nodejs4.3",
+    "Timeout" : "$TIMEOUT"
+  }
+}
