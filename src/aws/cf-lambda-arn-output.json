@@ -1,0 +1,22 @@
+{
+  "Description": "Lambda Arn",
+  "Value": {
+    "Fn::Join": [
+      "",
+      [
+        "arn:aws:apigateway:",
+        {
+          "Ref": "AWS::Region"
+        },
+        ":lambda:path/2015-03-31/functions/",
+        {
+          "Fn::GetAtt": [
+            "$FUNCTION_NAME",
+            "Arn"
+          ]
+        },
+        "/invocations"
+      ]
+    ]
+  }
+}

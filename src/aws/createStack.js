@@ -37,7 +37,7 @@ function create(cf, stackName) {
       NotificationARNs: [],
       OnFailure: 'ROLLBACK',
       Tags: [
-      { Key: 'environment', Value: 'test' }
+        { Key: 'environment', Value: 'test' }
       ]
     });
 

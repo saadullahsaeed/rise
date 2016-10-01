@@ -38,5 +38,6 @@
         "Roles": [ { "Ref": "NFXRole" } ]
       }
     }
-  }
+  },
+  "Outputs": {}
 }

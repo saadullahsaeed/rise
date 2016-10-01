@@ -13,7 +13,7 @@ module.exports.CompressAndUpload = function(functions, bucketName) {
     const compressAndUploadPromises = []
     for ( var i = 0; i < funcPaths.length; ++i) {
       const funcPath = funcPaths[i];
-      const funcName = path.basename(funcPath);
+      const funcName = funcPath.replace(path.sep, '');
       const func = functions[funcPath];
 
       if (funcPath === 'default') {
@@ -23,19 +23,19 @@ module.exports.CompressAndUpload = function(functions, bucketName) {
       compressAndUploadPromises.push(
         compressAndUpload(bucketName, version, funcPath, funcName, func)
       );
-
-      Promise.all(compressAndUploadPromises).then(() => {
-        resolve();
-      }, (err) => {
-        reject(err);
-      });
     }
+
+    Promise.all(compressAndUploadPromises).then(() => {
+      resolve(bucketName);
+    }, (err) => {
+      reject(err);
+    });
   });
 }
 
 function compressAndUpload(bucketName, version, funcPath, funcName, func) {
   return new Promise((resolve, reject) => {
-    ConsoleLog('info', `Uploading ${funcName}`);
+    ConsoleLog('info', `Uploading ${funcName} to bucket ${bucketName}`);
 
     // Compress files
     const zipArchive = archiver.create('zip');

@@ -1,0 +1,8 @@
+{
+  "Type": "AWS::ApiGateway::Deployment",
+  "Properties": {
+    "RestApiId": { "Ref": "NFXApi" },
+    "Description": "API Deployment",
+    "StageName": "$STAGENAME"
+  }
+}

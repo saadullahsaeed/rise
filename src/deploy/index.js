@@ -9,7 +9,10 @@ const path                  = require('path'),
       CompressAndUpload     = require('../aws/compressAndUpload').CompressAndUpload,
       CreateStack           = require('../aws/createStack').CreateStack,
       DescribeStackResource = require('../aws/describeStackResource').DescribeStackResource,
-      DeployFunctions       = require('../aws/deployFunctions').DeployFunctions;
+      DeployFunctions       = require('../aws/deployFunctions').DeployFunctions,
+      UploadAPITemplate     = require('../aws/uploadAPITemplate').UploadAPITemplate,
+      updateAPIs            = require('../aws/updateAPIs').updateAPIs,
+      deployAPIs            = require('../aws/deployAPIs').deployAPIs;
 
 module.exports = function() {
   const project   = LoadYAML('project.yaml'),
@@ -38,54 +41,28 @@ module.exports = function() {
     .then((stackResourceDetail) => {
       return CompressAndUpload(functions.functions, stackResourceDetail.PhysicalResourceId);
     })
-    .then(() => {
-      return DeployFunctions(cf, stackName, functions.functions);
+    .then((bucketName) => {
+      return DeployFunctions(cf, stackName, functions.functions, bucketName);
     })
-    .then(() => {
-      // YC STOP HERE, sunjin can continue here
-      // return DeployAPI();
+    .then((result) => {
+      return UploadAPITemplate(result.cfTemplate, result.bucketName, result.outputs);
+    })
+    .then((cfContent) => {
+      return updateAPIs(cf, stackName, cfContent);
+    })
+    .then((cfContent) => {
+      return deployAPIs(cf, stackName, cfContent);
     })
     .catch((err) => {
       ConsoleLog('err', err);
     });
 }
 
-// Update api.yaml to s3
-/*
-const s3 = new AWS.S3();
-const apiS3Key = 'api-' + version + '.yaml';
-const params = {
-  Bucket: bucketName,
-  Key: apiS3Key,
-  ACL: 'private',
-  Body: fs.createReadStream('api.yaml'),
-  ContentType: 'text/yaml'
-};
-
-s3.upload(params, function(err, data) {
-  if (err) {
-    ConsoleLog('err', `Error on uploading api.yaml ${err}`);
-    return
-  }
-  ConsoleLog('info', `Successfully uploaded api.yaml`);
-
-  tmpl.Resources.NFXApi = {
-    "Type" : "AWS::ApiGateway::RestApi",
-    "Properties" : {
-      "BodyS3Location" : {
-        "Bucket" : bucketName,
-        "Key": apiS3Key
-      }
-    }
-  }
-});
-*/
-
 function fsReadFile(path) {
   try {
-    return fs.readFileSync(path);
+    return fs.readFileSync(path, {encoding: 'utf8'});
   } catch (err) {
-    console.log(err);
+    ConsoleLog('err', err);
     return false;
   }
 }
