@@ -4,25 +4,25 @@ const path                  = require('path'),
       fs                    = require('fs'),
       archiver              = require('archiver'),
       AWS                   = require('aws-sdk'),
-      ConsoleLog            = require('../utils/consoleLog').ConsoleLog,
-      LoadYAML              = require('../utils/yaml').LoadYAML,
-      CompressAndUpload     = require('../aws/compressAndUpload').CompressAndUpload,
-      CreateStack           = require('../aws/createStack').CreateStack,
-      DescribeStackResource = require('../aws/describeStackResource').DescribeStackResource,
-      DeployFunctions       = require('../aws/deployFunctions').DeployFunctions,
-      UploadAPITemplate     = require('../aws/uploadAPITemplate').UploadAPITemplate,
+      consoleLog            = require('../utils/consoleLog').consoleLog,
+      loadYAML              = require('../utils/yaml').loadYAML,
+      compressAndUpload     = require('../aws/compressAndUpload').compressAndUpload,
+      createStack           = require('../aws/createStack').createStack,
+      describeStackResource = require('../aws/describeStackResource').describeStackResource,
+      deployFunctions       = require('../aws/deployFunctions').deployFunctions,
+      uploadAPITemplate     = require('../aws/uploadAPITemplate').uploadAPITemplate,
       updateAPIs            = require('../aws/updateAPIs').updateAPIs,
       deployAPIs            = require('../aws/deployAPIs').deployAPIs;
 
 module.exports = function() {
-  const project   = LoadYAML('project.yaml'),
-        functions = LoadYAML('functions.yaml');
+  const project   = loadYAML('project.yaml'),
+        functions = loadYAML('functions.yaml');
   if (!project) {
-    ConsoleLog('err', 'Invalid project.yaml.');
+    consoleLog('err', 'Invalid project.yaml.');
     process.exit(1);
   }
   if (!functions) {
-    ConsoleLog('err', 'Invalid functions.yaml.');
+    consoleLog('err', 'Invalid functions.yaml.');
     process.exit(1);
   }
 
@@ -33,19 +33,19 @@ module.exports = function() {
   const stackName = functions.stack;
   const bucketName = project.profiles.default.bucket;
 
-  ConsoleLog('info', 'Checking stack...');
-  CreateStack(cf, stackName)
+  consoleLog('info', 'Checking stack...');
+  createStack(cf, stackName)
     .then(() => {
-      return DescribeStackResource(cf, stackName, bucketName);
+      return describeStackResource(cf, stackName, bucketName);
     })
     .then((stackResourceDetail) => {
-      return CompressAndUpload(functions.functions, stackResourceDetail.PhysicalResourceId);
+      return compressAndUpload(functions.functions, stackResourceDetail.PhysicalResourceId);
     })
     .then((bucketName) => {
-      return DeployFunctions(cf, stackName, functions.functions, bucketName);
+      return deployFunctions(cf, stackName, functions.functions, bucketName);
     })
     .then((result) => {
-      return UploadAPITemplate(result.cfTemplate, result.bucketName, result.outputs);
+      return uploadAPITemplate(result.cfTemplate, result.bucketName, result.outputs);
     })
     .then((cfContent) => {
       return updateAPIs(cf, stackName, cfContent);
@@ -54,7 +54,7 @@ module.exports = function() {
       return deployAPIs(cf, stackName, cfContent);
     })
     .catch((err) => {
-      ConsoleLog('err', err);
+      consoleLog('err', err);
     });
 }
 
@@ -62,7 +62,7 @@ function fsReadFile(path) {
   try {
     return fs.readFileSync(path, {encoding: 'utf8'});
   } catch (err) {
-    ConsoleLog('err', err);
+    consoleLog('err', err);
     return false;
   }
 }

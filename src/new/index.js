@@ -5,7 +5,7 @@ const fs           = require('fs'),
       os           = require('os'),
       path         = require('path'),
       readlineSync = require('readline-sync'),
-      ConsoleLog   = require('../utils/consoleLog').ConsoleLog;
+      consoleLog   = require('../utils/consoleLog').consoleLog;
 
 const DEFAULT_PROVIDER = 'aws';
 
@@ -21,14 +21,14 @@ module.exports = function(stackName, options) {
   let folderExists = false;
   if (dirStat) {
     if (!dirStat.isDirectory) {
-      ConsoleLog('err', 'Project directory exist.');
+      consoleLog('err', 'Project directory exist.');
       process.exit(1);
     }
 
     const projectStat   = fsStat(projectPath),
           functionsStat = fsStat(functionsPath);
     if (projectStat || functionsStat) {
-      ConsoleLog('err', 'Project directory exist.');
+      consoleLog('err', 'Project directory exist.');
       process.exit(1);
     }
 
@@ -41,7 +41,7 @@ module.exports = function(stackName, options) {
     if (regionIndex === 4) {
       region = readlineSync.question('Region: ');
     } else if (regionIndex === -1) {
-      ConsoleLog('err', 'Invalid region.');
+      consoleLog('err', 'Invalid region.');
       process.exit(1);
     } else {
       region = regions[regionIndex];
@@ -77,7 +77,7 @@ module.exports = function(stackName, options) {
   if (!awsCredStat &&
       process.env.AWS_ACCESS_KEY_ID === undefined &&
       process.env.AWS_SECRET_ACCESS_KEY === undefined) {
-    ConsoleLog('info', 'Please setup your provider credentials.');
+    consoleLog('info', 'Please setup your provider credentials.');
   }
 }
 

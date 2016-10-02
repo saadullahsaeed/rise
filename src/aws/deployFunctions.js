@@ -2,9 +2,9 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      ConsoleLog = require('../utils/consoleLog').ConsoleLog;
+      consoleLog = require('../utils/consoleLog').consoleLog;
 
-module.exports.DeployFunctions = function(cf, stackName, functions, bucketName) {
+module.exports.deployFunctions = function(cf, stackName, functions, bucketName) {
   return new Promise((resolve, reject) => {
     const cfBaseContent = fsReadFile(path.join(__dirname, 'cf-base.json'));
     const cfBaseContentJSON = JSON.parse(cfBaseContent);
@@ -44,14 +44,14 @@ module.exports.DeployFunctions = function(cf, stackName, functions, bucketName) 
     });
 
     req.on('success', function(resp) {
-      ConsoleLog('info', `Deploying functions...`);
+      consoleLog('info', `Deploying functions...`);
       cf.waitFor('stackUpdateComplete', { StackName: stackName }, function(err, data) {
         if (err) {
           reject(err);
           return;
         }
 
-        ConsoleLog('info', `Successfully deployed functions.`);
+        consoleLog('info', `Successfully deployed functions.`);
         resolve({
           cfTemplate: cfBaseContentJSON,
           bucketName: bucketName,

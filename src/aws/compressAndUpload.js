@@ -4,9 +4,9 @@ const fs         = require('fs'),
       path       = require('path'),
       archiver   = require('archiver'),
       AWS        = require('aws-sdk'),
-      ConsoleLog = require('../utils/consoleLog').ConsoleLog;
+      consoleLog = require('../utils/consoleLog').consoleLog;
 
-module.exports.CompressAndUpload = function(functions, bucketName) {
+module.exports.compressAndUpload = function(functions, bucketName) {
   return new Promise((resolve, reject) => {
     const funcPaths = Object.keys(functions);
     const version = '0.0.2' // FIXME: hardcode it for now.
@@ -35,7 +35,7 @@ module.exports.CompressAndUpload = function(functions, bucketName) {
 
 function compressAndUpload(bucketName, version, funcPath, funcName, func) {
   return new Promise((resolve, reject) => {
-    ConsoleLog('info', `Uploading ${funcName} to bucket ${bucketName}`);
+    consoleLog('info', `Uploading ${funcName} to bucket ${bucketName}`);
 
     // Compress files
     const zipArchive = archiver.create('zip');
@@ -58,11 +58,11 @@ function compressAndUpload(bucketName, version, funcPath, funcName, func) {
         fs.unlinkSync(tempFileName);
 
         if (err) {
-          ConsoleLog('err', `Error on uploading function ${err}`);
+          consoleLog('err', `Error on uploading function ${err}`);
           reject(err);
         }
 
-        ConsoleLog('info', `Successfully uploaded ${s3Key}`);
+        consoleLog('info', `Successfully uploaded ${s3Key}`);
         resolve();
       });
     });

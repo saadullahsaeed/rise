@@ -2,9 +2,9 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      ConsoleLog = require('../utils/consoleLog').ConsoleLog;
+      consoleLog = require('../utils/consoleLog').consoleLog;
 
-module.exports.CreateStack = (cf, stackName) => {
+module.exports.createStack = (cf, stackName) => {
   return new Promise((resolve, reject) => {
     cf.describeStacks({
       StackName: stackName
@@ -42,7 +42,7 @@ function create(cf, stackName) {
     });
 
     req.on('success', function(resp) {
-      ConsoleLog('info', `Creating stack [${stackName}]...`);
+      consoleLog('info', `Creating stack [${stackName}]...`);
       cf.waitFor('stackCreateComplete', { StackName: stackName }, function(err, data) {
         if (err) {
           reject(err);

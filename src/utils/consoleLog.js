@@ -1,7 +1,7 @@
 'use strict';
 const chalk = require('chalk');
 
-module.exports.ConsoleLog = function(type, msg) {
+module.exports.consoleLog = function(type, msg) {
   let log = chalk.white.bgBlack('nfx');
   switch(type) {
     case 'err':

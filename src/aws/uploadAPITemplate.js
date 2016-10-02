@@ -3,11 +3,11 @@
 const fs         = require('fs'),
       path       = require('path'),
       AWS        = require('aws-sdk'),
-      ConsoleLog = require('../utils/consoleLog').ConsoleLog,
-      LoadYAML   = require('../utils/yaml').LoadYAML,
-      YAML       = require('js-yaml');
+      consoleLog = require('../utils/consoleLog').consoleLog,
+      loadYAML   = require('../utils/yaml').loadYAML,
+      yaml       = require('js-yaml');
 
-module.exports.UploadAPITemplate = function(cfTemplate, bucketName, lambdaARNs) {
+module.exports.uploadAPITemplate = function(cfTemplate, bucketName, lambdaARNs) {
   return new Promise((resolve, reject) => {
     const version = '0.0.2' // FIXME: hardcode it for now.
     const lambdaARNMap = {};
@@ -21,7 +21,7 @@ module.exports.UploadAPITemplate = function(cfTemplate, bucketName, lambdaARNs) 
 
     console.log('lambdaARNMap', lambdaARNMap);
 
-    let cfAPI = LoadYAML('api.yaml');
+    let cfAPI = loadYAML('api.yaml');
     for ( let p in cfAPI.paths ) {
       const urlPath = cfAPI.paths[p];
       for ( let m in urlPath ) {
@@ -39,18 +39,18 @@ module.exports.UploadAPITemplate = function(cfTemplate, bucketName, lambdaARNs) 
       Bucket: bucketName,
       Key: s3Key,
       ACL: 'private',
-      Body: YAML.safeDump(cfAPI),
+      Body: yaml.safeDump(cfAPI),
       ContentType: 'text/yaml'
     };
 
-    ConsoleLog('info', 'Uploading api template...');
+    consoleLog('info', 'Uploading api template...');
     s3.upload(params, function(err, data) {
       if (err) {
-        ConsoleLog('err', `Error on uploading function ${err}`);
+        consoleLog('err', `Error on uploading function ${err}`);
         reject(err);
       }
 
-      ConsoleLog('info', `Successfully uploaded ${s3Key}`);
+      consoleLog('info', `Successfully uploaded ${s3Key}`);
       resolve(cfTemplate, bucketName);
     });
   });

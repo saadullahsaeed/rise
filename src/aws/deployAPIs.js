@@ -3,7 +3,7 @@
 const fs         = require('fs'),
       path       = require('path'),
       AWS        = require('aws-sdk'),
-      ConsoleLog = require('../utils/consoleLog').ConsoleLog,
+      consoleLog = require('../utils/consoleLog').consoleLog,
       LoadYAML   = require('../utils/yaml').LoadYAML,
       YAML       = require('js-yaml');
 
@@ -25,14 +25,14 @@ module.exports.deployAPIs = function(cf, stackName, cfTemplate) {
     });
 
     req.on('success', function(resp) {
-      ConsoleLog('info', `Deploying API...`);
+      consoleLog('info', `Deploying API...`);
       cf.waitFor('stackUpdateComplete', { StackName: stackName }, function(err, data) {
         if (err) {
           reject(err);
           return;
         }
 
-        ConsoleLog('info', "Successfully deployed API.");
+        consoleLog('info', "Successfully deployed API.");
         resolve();
       });
     });

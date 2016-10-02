@@ -3,9 +3,8 @@
 const fs         = require('fs'),
       path       = require('path'),
       AWS        = require('aws-sdk'),
-      ConsoleLog = require('../utils/consoleLog').ConsoleLog,
-      LoadYAML   = require('../utils/yaml').LoadYAML,
-      YAML       = require('js-yaml');
+      consoleLog = require('../utils/consoleLog').consoleLog,
+      loadYAML   = require('../utils/yaml').loadYAML;
 
 module.exports.updateAPIs = function(cf, stackName, cfTemplate) {
   return new Promise((resolve, reject) => {
@@ -17,23 +16,22 @@ module.exports.updateAPIs = function(cf, stackName, cfTemplate) {
     const cfRestAPIJSON = JSON.parse(cfRestAPIContent);
     cfTemplate.Resources.NFXApi = cfRestAPIJSON;
 
-    console.log(cfRestAPIJSON);
     const req = cf.updateStack({
       StackName: stackName,
       TemplateBody: JSON.stringify(cfTemplate),
       Capabilities: ['CAPABILITY_IAM'],
     });
 
-    ConsoleLog('info', 'Updating api template...');
+    consoleLog('info', 'Updating api template...');
     req.on('success', function(resp) {
-      ConsoleLog('info', `Deploying functions...`);
+      consoleLog('info', `Deploying functions...`);
       cf.waitFor('stackUpdateComplete', { StackName: stackName }, function(err, data) {
         if (err) {
           reject(err);
           return;
         }
 
-        ConsoleLog('info', "Successfully updated API.");
+        consoleLog('info', "Successfully updated API.");
         resolve(cfTemplate);
       });
     });
