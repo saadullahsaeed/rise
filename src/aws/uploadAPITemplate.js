@@ -30,7 +30,13 @@ module.exports.uploadAPITemplate = function(nfx) {
       for ( let m in urlPath ) {
         const method = urlPath[m];
         const funcName = method['x-nfx'].handler.replace(path.sep, '');
-        method["x-amazon-apigateway-integration"].uri = lambdaARNMap[funcName];
+        method["x-amazon-apigateway-integration"] = {
+          uri: lambdaARNMap[funcName],
+          passthroughBehavior: 'when_no_match',
+          httpMethod: 'POST',
+          type: 'aws_proxy'
+        };
+
         const cors = !!method['x-nfx'].cors;
         if (cors) {
           corsMethods.push(m);
