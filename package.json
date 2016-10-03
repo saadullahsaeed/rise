@@ -4,8 +4,8 @@
   "description": "nfx-framework",
   "main": "src/index.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha --reporter=dot test/**/*_test.js",
-    "lint": "./node_modules/.bin/eslint src/**/*.js test/**/*.js",
+    "test": "./node_modules/.bin/mocha 'test/**/*_test.js'",
+    "lint": "./node_modules/.bin/eslint 'src/**/*.js' 'test/**/*.js'",
     "jsdoc": "./node_modules/.bin/jsdoc -c .jsdoc.conf.json -t ./node_modules/ink-docstrap/template -R README.md -r ./src"
   },
   "repository": {

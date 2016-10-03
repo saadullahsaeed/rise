@@ -2,6 +2,9 @@ env:
   es6: true
   node: true
   mocha: true
+globals:
+  sinon: true
+  expect: true
 extends: 'eslint:recommended'
 rules:
   indent:
@@ -30,7 +33,7 @@ rules:
   object-shorthand:
     - warn
   semi:
-    - error
+    - warn
     - always
   eqeqeq:
     - error
@@ -41,7 +44,7 @@ rules:
       requireParamDescription: false
       requireReturnDescription: false
   comma-dangle:
-    - error
+    - warn
     - never
   prefer-const:
     - error
