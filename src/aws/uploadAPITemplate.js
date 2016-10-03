@@ -3,10 +3,13 @@
 const fs         = require('fs'),
       path       = require('path'),
       consoleLog = require('../utils/consoleLog').consoleLog,
-      yaml       = require('js-yaml');
+      yaml       = require('js-yaml'),
+      fsReadFile = require('../utils/fs').fsReadFile;
+
 
 module.exports.uploadAPITemplate = function(nfx) {
   return new Promise((resolve, reject) => {
+    const cfCorsContent = fsReadFile(path.join(__dirname, 'cf-api-cors.json'));
     const lambdaARNMap = {};
 
     for ( let i = 0; i < nfx.lambdaARNs.length; ++i ) {
@@ -23,10 +26,24 @@ module.exports.uploadAPITemplate = function(nfx) {
 
     for ( let p in cfAPI.paths ) {
       const urlPath = cfAPI.paths[p];
+      const corsMethods = [];
       for ( let m in urlPath ) {
         const method = urlPath[m];
         const funcName = method['x-nfx'].handler.replace(path.sep, '');
         method["x-amazon-apigateway-integration"].uri = lambdaARNMap[funcName];
+        const cors = !!method['x-nfx'].cors;
+        if (cors) {
+          corsMethods.push(m);
+        }
+      }
+
+      if (corsMethods.length > 0) {
+        const allowMethods = ['OPTIONS'];
+        for (let i = 0; i < corsMethods.length; i++) {
+          allowMethods.push(corsMethods[i].toUpperCase());
+        }
+        const cfCorsJSON = JSON.parse(cfCorsContent.replace('$CORS_METHODS', allowMethods.join(',')));
+        urlPath.options = cfCorsJSON;
       }
     }
 

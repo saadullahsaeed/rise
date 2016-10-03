@@ -9,9 +9,9 @@ module.exports.deployFunctions = function(nfx) {
   return new Promise((resolve, reject) => {
     const cfBaseContent = fsReadFile(path.join(__dirname, 'cf-base.json'));
     const cfBaseContentJSON = JSON.parse(cfBaseContent);
-    let cfFunctionContent = fsReadFile(path.join(__dirname, 'cf-lambda-function.json'));
-    let cfFunctionVersionContent = fsReadFile(path.join(__dirname, 'cf-lambda-version.json'));
-    let cfFunctionArnOutputContent = fsReadFile(path.join(__dirname, 'cf-lambda-arn-output.json'));
+    const cfFunctionContent = fsReadFile(path.join(__dirname, 'cf-lambda-function.json'));
+    const cfFunctionVersionContent = fsReadFile(path.join(__dirname, 'cf-lambda-version.json'));
+    const cfFunctionArnOutputContent = fsReadFile(path.join(__dirname, 'cf-lambda-arn-output.json'));
 
     for (let funcPath in nfx.functions) {
       if (funcPath === 'default') {
@@ -22,17 +22,14 @@ module.exports.deployFunctions = function(nfx) {
       const funcName = funcPath.replace(path.sep, '');
       const s3Key = funcName + '-' + nfx.version + '.zip';
 
-      cfFunctionContent = cfFunctionContent.replace('$HANDLER', func.handler);
-      cfFunctionContent = cfFunctionContent.replace('$S3KEY', s3Key);
-      cfFunctionContent = cfFunctionContent.replace('$TIMEOUT', func.timeout);
-      cfBaseContentJSON.Resources[funcName] = JSON.parse(cfFunctionContent);
+      cfBaseContentJSON.Resources[funcName] = JSON.parse(cfFunctionContent
+                  .replace('$HANDLER', func.handler)
+                  .replace('$S3KEY', s3Key)
+                  .replace('$TIMEOUT', func.timeout));
 
       // FIXME: VERSION is not update, update ${funcName}Version to create a new version
-      cfFunctionVersionContent = cfFunctionVersionContent.replace('$FUNCTION_NAME', funcName);
-      cfBaseContentJSON.Resources[`${funcName}Version`] = JSON.parse(cfFunctionVersionContent);
-
-      cfFunctionArnOutputContent = cfFunctionArnOutputContent.replace('$FUNCTION_NAME', funcName);
-      cfBaseContentJSON.Outputs[funcName] = JSON.parse(cfFunctionArnOutputContent);
+      cfBaseContentJSON.Resources[`${funcName}Version`] = JSON.parse(cfFunctionVersionContent.replace('$FUNCTION_NAME', funcName));
+      cfBaseContentJSON.Outputs[funcName] = JSON.parse(cfFunctionArnOutputContent.replace('$FUNCTION_NAME', funcName));
     }
 
     const req = nfx.awsSDK.cf.updateStack({
