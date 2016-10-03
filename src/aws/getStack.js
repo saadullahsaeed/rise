@@ -4,13 +4,13 @@ const fs         = require('fs'),
       path       = require('path'),
       consoleLog = require('../utils/consoleLog').consoleLog;
 
-module.exports.createStack = (cf, stackName) => {
+module.exports.getStack = (nfx) => {
   return new Promise((resolve, reject) => {
-    cf.describeStacks({
-      StackName: stackName
+    nfx.awsSDK.cf.describeStacks({
+      StackName: nfx.stackName
     }, (err, data) => {
       if (err && err.message.indexOf('does not exist') > -1) {
-        create(cf, stackName)
+        create(nfx)
           .then(resolve)
           .catch((err) => reject(err));
       } else {
@@ -20,18 +20,16 @@ module.exports.createStack = (cf, stackName) => {
   });
 }
 
-function create(cf, stackName) {
+function create(nfx) {
   return new Promise((resolve, reject) => {
     const content = fsReadFile(path.join(__dirname, 'cf-base.json'));
     if (!content) {
-      reject('CreateStack error.');
+      reject('getStack error.');
     }
 
-    let cfJSON = JSON.parse(content);
-    cfJSON.Description = `${stackName} NFX stack.`;
-
-    const req = cf.createStack({
-      StackName: stackName,
+    const cfJSON = JSON.parse(content);
+    const req = nfx.awsSDK.cf.createStack({
+      StackName: nfx.stackName,
       TemplateBody: JSON.stringify(cfJSON),
       Capabilities: ['CAPABILITY_IAM'],
       NotificationARNs: [],
@@ -42,8 +40,10 @@ function create(cf, stackName) {
     });
 
     req.on('success', function(resp) {
-      consoleLog('info', `Creating stack [${stackName}]...`);
-      cf.waitFor('stackCreateComplete', { StackName: stackName }, function(err, data) {
+      consoleLog('info', `Creating stack [${nfx.stackName}]...`);
+      nfx.awsSDK.cf.waitFor('stackCreateComplete',
+        { StackName: nfx.stackName },
+        function(err, data) {
         if (err) {
           reject(err);
         }

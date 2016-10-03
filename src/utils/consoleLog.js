@@ -13,9 +13,6 @@ module.exports.consoleLog = function(type, msg) {
     case 'info':
       log = `${log} ${chalk.magenta.bgBlack('INFO')} ${msg}`;
       break;
-    case 'note':
-      log = `${log} ${chalk.magenta.bgBlack('NOTE')} ${msg}`;
-      break;
     default:
       log = `${log} ${msg}`;
       break;

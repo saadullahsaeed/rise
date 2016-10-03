@@ -3,37 +3,36 @@
 const fs         = require('fs'),
       path       = require('path'),
       archiver   = require('archiver'),
-      AWS        = require('aws-sdk'),
       consoleLog = require('../utils/consoleLog').consoleLog;
 
-module.exports.compressAndUpload = function(functions, bucketName) {
+module.exports.compressAndUpload = function(nfx, bucketName) {
   return new Promise((resolve, reject) => {
-    const funcPaths = Object.keys(functions);
+    const funcPaths = Object.keys(nfx.functions);
     const version = '0.0.2' // FIXME: hardcode it for now.
     const compressAndUploadPromises = []
-    for ( var i = 0; i < funcPaths.length; ++i) {
+    for (let i = 0; i < funcPaths.length; ++i) {
       const funcPath = funcPaths[i];
       const funcName = funcPath.replace(path.sep, '');
-      const func = functions[funcPath];
+      const func = nfx.functions[funcPath];
 
       if (funcPath === 'default') {
         continue;
       }
 
       compressAndUploadPromises.push(
-        compressAndUpload(bucketName, version, funcPath, funcName, func)
+        compressAndUpload(nfx, bucketName, version, funcPath, funcName, func)
       );
     }
 
     Promise.all(compressAndUploadPromises).then(() => {
-      resolve(bucketName);
+      resolve();
     }, (err) => {
       reject(err);
     });
   });
 }
 
-function compressAndUpload(bucketName, version, funcPath, funcName, func) {
+function compressAndUpload(nfx, bucketName, version, funcPath, funcName, func) {
   return new Promise((resolve, reject) => {
     consoleLog('info', `Uploading ${funcName} to bucket ${bucketName}`);
 
@@ -44,7 +43,6 @@ function compressAndUpload(bucketName, version, funcPath, funcName, func) {
     const s3Key = funcName + '-' + version + '.zip';
 
     output.on('close', function() {
-      const s3 = new AWS.S3();
       const params = {
         Bucket: bucketName,
         Key: s3Key,
@@ -54,7 +52,7 @@ function compressAndUpload(bucketName, version, funcPath, funcName, func) {
       };
 
       // Uplaod to S3
-      s3.upload(params, function(err, data) {
+      nfx.awsSDK.s3.upload(params, function(err, data) {
         fs.unlinkSync(tempFileName);
 
         if (err) {

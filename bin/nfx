@@ -1,40 +1,7 @@
 #!/usr/bin/env node
 
-const path = require('path'),
-      program = require('commander');
-      app = require('../src');
+'use strict';
 
-const pkgJson = require(path.join(__dirname, '..', 'package.json'));
-
-program
-  .version(pkgJson.version)
-  .usage('[command]');
-
-program
-  .command('deploy')
-  .description('deploy a project')
-  .action( () => {
-    app.deploy();
-  });
-
-program
-  .command('destroy')
-  .description('destroy a project')
-  .action( () => {
-    app.destroy();
-  });
-
-program
-  .command('new [stackName]')
-  .description('setup provider credential')
-  .option('-r, --region [region]', 'AWS region')
-  .option('-b, --bucket-name [bucketName]', 'AWS bucket name')
-  .action( (stackName, options) => {
-    app.newProject(stackName, options);
-  });
-
-program.parse(process.argv);
-
-if (program.args.length === 0) {
-  program.outputHelp();
-}
+const NFX = require('../src/nfx');
+const nfx = new NFX();
+nfx.init();

@@ -2,11 +2,10 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      AWS        = require('aws-sdk'),
       consoleLog = require('../utils/consoleLog').consoleLog,
       loadYAML   = require('../utils/yaml').loadYAML;
 
-module.exports.updateAPIs = function(cf, stackName, cfTemplate) {
+module.exports.updateAPIs = function(nfx, cfTemplate) {
   return new Promise((resolve, reject) => {
     const version = '0.0.2' // FIXME: hardcode it for now.
     let cfRestAPIContent = fsReadFile(path.join(__dirname, 'cf-restapi.json'));
@@ -16,8 +15,8 @@ module.exports.updateAPIs = function(cf, stackName, cfTemplate) {
     const cfRestAPIJSON = JSON.parse(cfRestAPIContent);
     cfTemplate.Resources.NFXApi = cfRestAPIJSON;
 
-    const req = cf.updateStack({
-      StackName: stackName,
+    const req = nfx.awsSDK.cf.updateStack({
+      StackName: nfx.stackName,
       TemplateBody: JSON.stringify(cfTemplate),
       Capabilities: ['CAPABILITY_IAM'],
     });
@@ -25,7 +24,9 @@ module.exports.updateAPIs = function(cf, stackName, cfTemplate) {
     consoleLog('info', 'Updating api template...');
     req.on('success', function(resp) {
       consoleLog('info', `Deploying functions...`);
-      cf.waitFor('stackUpdateComplete', { StackName: stackName }, function(err, data) {
+      nfx.awsSDK.cf.waitFor('stackUpdateComplete',
+        { StackName: nfx.stackName },
+        function(err, data) {
         if (err) {
           reject(err);
           return;

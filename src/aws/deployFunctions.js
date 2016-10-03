@@ -4,7 +4,7 @@ const fs         = require('fs'),
       path       = require('path'),
       consoleLog = require('../utils/consoleLog').consoleLog;
 
-module.exports.deployFunctions = function(cf, stackName, functions, bucketName) {
+module.exports.deployFunctions = function(nfx) {
   return new Promise((resolve, reject) => {
     const cfBaseContent = fsReadFile(path.join(__dirname, 'cf-base.json'));
     const cfBaseContentJSON = JSON.parse(cfBaseContent);
@@ -12,13 +12,13 @@ module.exports.deployFunctions = function(cf, stackName, functions, bucketName) 
     let cfFunctionVersionContent = fsReadFile(path.join(__dirname, 'cf-lambda-version.json'));
     let cfFunctionArnOutputContent = fsReadFile(path.join(__dirname, 'cf-lambda-arn-output.json'));
 
-    const funcPaths = Object.keys(functions);
+    const funcPaths = Object.keys(nfx.functions);
     const version = '0.0.2' // FIXME: hardcode it for now.
-    for ( var i = 0; i < funcPaths.length; i++) {
+    for (let i = 0; i < funcPaths.length; i++) {
       const funcPath = funcPaths[i];
       const funcName = funcPath.replace(path.sep, '');
       const s3Key = funcName + '-' + version + '.zip';
-      const func = functions[funcPath];
+      const func = nfx.functions[funcPath];
 
       if (funcPath === 'default') {
         continue;
@@ -37,15 +37,17 @@ module.exports.deployFunctions = function(cf, stackName, functions, bucketName) 
       cfBaseContentJSON.Outputs[funcName] = JSON.parse(cfFunctionArnOutputContent);
     }
 
-    const req = cf.updateStack({
-      StackName: stackName,
+    const req = nfx.awsSDK.cf.updateStack({
+      StackName: nfx.stackName,
       TemplateBody: JSON.stringify(cfBaseContentJSON),
       Capabilities: ['CAPABILITY_IAM'],
     });
 
     req.on('success', function(resp) {
       consoleLog('info', `Deploying functions...`);
-      cf.waitFor('stackUpdateComplete', { StackName: stackName }, function(err, data) {
+      nfx.awsSDK.cf.waitFor('stackUpdateComplete',
+        { StackName: nfx.stackName },
+        function(err, data) {
         if (err) {
           reject(err);
           return;
@@ -54,7 +56,6 @@ module.exports.deployFunctions = function(cf, stackName, functions, bucketName) 
         consoleLog('info', `Successfully deployed functions.`);
         resolve({
           cfTemplate: cfBaseContentJSON,
-          bucketName: bucketName,
           outputs: data.Stacks[0].Outputs
         });
       });

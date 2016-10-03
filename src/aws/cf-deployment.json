@@ -3,6 +3,6 @@
   "Properties": {
     "RestApiId": { "Ref": "NFXApi" },
     "Description": "API Deployment",
-    "StageName": "$STAGENAME"
+    "StageName": "$STAGE_NAME"
   }
 }

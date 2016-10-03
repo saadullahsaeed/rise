@@ -1,68 +1,36 @@
 "use strict";
 
-const path                  = require('path'),
-      fs                    = require('fs'),
-      archiver              = require('archiver'),
-      AWS                   = require('aws-sdk'),
-      consoleLog            = require('../utils/consoleLog').consoleLog,
-      loadYAML              = require('../utils/yaml').loadYAML,
+const consoleLog            = require('../utils/consoleLog').consoleLog,
       compressAndUpload     = require('../aws/compressAndUpload').compressAndUpload,
-      createStack           = require('../aws/createStack').createStack,
+      getStack              = require('../aws/getStack').getStack,
       describeStackResource = require('../aws/describeStackResource').describeStackResource,
       deployFunctions       = require('../aws/deployFunctions').deployFunctions,
       uploadAPITemplate     = require('../aws/uploadAPITemplate').uploadAPITemplate,
       updateAPIs            = require('../aws/updateAPIs').updateAPIs,
       deployAPIs            = require('../aws/deployAPIs').deployAPIs;
 
-module.exports = function() {
-  const project   = loadYAML('project.yaml'),
-        functions = loadYAML('functions.yaml');
-  if (!project) {
-    consoleLog('err', 'Invalid project.yaml.');
-    process.exit(1);
-  }
-  if (!functions) {
-    consoleLog('err', 'Invalid functions.yaml.');
-    process.exit(1);
-  }
-
-  AWS.config.region = project.profiles.default.region;
-  const cf = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
-  const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
-
-  const stackName = functions.stack;
-  const bucketName = project.profiles.default.bucket;
-
+module.exports = (nfx) => {
   consoleLog('info', 'Checking stack...');
-  createStack(cf, stackName)
+  getStack(nfx)
     .then(() => {
-      return describeStackResource(cf, stackName, bucketName);
+      return describeStackResource(nfx);
     })
     .then((stackResourceDetail) => {
-      return compressAndUpload(functions.functions, stackResourceDetail.PhysicalResourceId);
+      return compressAndUpload(nfx, stackResourceDetail.PhysicalResourceId);
     })
-    .then((bucketName) => {
-      return deployFunctions(cf, stackName, functions.functions, bucketName);
+    .then(() => {
+      return deployFunctions(nfx);
     })
     .then((result) => {
-      return uploadAPITemplate(result.cfTemplate, result.bucketName, result.outputs);
+      return uploadAPITemplate(nfx, result.cfTemplate, result.outputs);
     })
     .then((cfContent) => {
-      return updateAPIs(cf, stackName, cfContent);
+      return updateAPIs(nfx, cfContent);
     })
     .then((cfContent) => {
-      return deployAPIs(cf, stackName, cfContent);
+      return deployAPIs(nfx, cfContent);
     })
     .catch((err) => {
       consoleLog('err', err);
     });
-}
-
-function fsReadFile(path) {
-  try {
-    return fs.readFileSync(path, {encoding: 'utf8'});
-  } catch (err) {
-    consoleLog('err', err);
-    return false;
-  }
 }

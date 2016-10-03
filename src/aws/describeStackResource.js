@@ -1,10 +1,10 @@
 'use strict';
 
 // FIXME: Should use S3 API to check if bucket exist
-module.exports.describeStackResource = function(cf, stackName, resourseId) {
+module.exports.describeStackResource = function(nfx) {
   return new Promise((resolve, reject) => {
-    cf.describeStackResource({
-      StackName: stackName,
+    nfx.awsSDK.cf.describeStackResource({
+      StackName: nfx.stackName,
       LogicalResourceId: 'NFXDeploymentBucket' //FIXME
     }, (err, data) => {
       if (err) {
