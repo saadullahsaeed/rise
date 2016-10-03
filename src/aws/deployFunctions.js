@@ -12,16 +12,14 @@ module.exports.deployFunctions = function(nfx) {
     let cfFunctionVersionContent = fsReadFile(path.join(__dirname, 'cf-lambda-version.json'));
     let cfFunctionArnOutputContent = fsReadFile(path.join(__dirname, 'cf-lambda-arn-output.json'));
 
-    const funcPaths = Object.keys(nfx.functions);
-    for (let i = 0; i < funcPaths.length; i++) {
-      const funcPath = funcPaths[i];
-      const funcName = funcPath.replace(path.sep, '');
-      const s3Key = funcName + '-' + nfx.version + '.zip';
-      const func = nfx.functions[funcPath];
-
+    for (let funcPath in nfx.functions) {
       if (funcPath === 'default') {
         continue;
       }
+
+      const func = nfx.functions[funcPath];
+      const funcName = funcPath.replace(path.sep, '');
+      const s3Key = funcName + '-' + nfx.version + '.zip';
 
       cfFunctionContent = cfFunctionContent.replace('$HANDLER', func.handler);
       cfFunctionContent = cfFunctionContent.replace('$S3KEY', s3Key);

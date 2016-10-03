@@ -20,9 +20,24 @@ module.exports.updateAPIs = function(nfx) {
       Capabilities: ['CAPABILITY_IAM'],
     });
 
+
+    for (let funcPath in nfx.functions) {
+      if (funcPath === 'default') {
+        continue;
+      }
+
+      const func = nfx.functions[funcPath];
+      const funcName = funcPath.replace(path.sep, '');
+
+      let cfFuncRoleContent = fsReadFile(path.join(__dirname, 'cf-lambda-role.json'));
+      cfFuncRoleContent = cfFuncRoleContent.replace('$FUNCTION_NAME', funcName);
+      const cfFuncRoleJSON = JSON.parse(cfFuncRoleContent);
+      nfx.cfTemplate.Resources[`${funcName}Role`] = cfFuncRoleJSON;
+    }
+
     consoleLog('info', 'Updating api template...');
     req.on('success', function(resp) {
-      consoleLog('info', `Deploying functions...`);
+      consoleLog('info', `Made a request to updating api template...`);
       nfx.awsSDK.cf.waitFor('stackUpdateComplete',
         { StackName: nfx.stackName },
         function(err, data) {
