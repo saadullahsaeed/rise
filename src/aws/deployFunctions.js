@@ -13,6 +13,7 @@ module.exports.deployFunctions = function(nfx) {
     const cfFunctionVersionContent = fsReadFile(path.join(__dirname, 'cf-lambda-version.json'));
     const cfFunctionArnOutputContent = fsReadFile(path.join(__dirname, 'cf-lambda-arn-output.json'));
 
+    const defaultSetting = nfx.functions.default;
     for (let funcPath in nfx.functions) {
       if (funcPath === 'default') {
         continue;
@@ -21,11 +22,14 @@ module.exports.deployFunctions = function(nfx) {
       const func = nfx.functions[funcPath];
       const funcName = funcPath.replace(path.sep, '');
       const s3Key = funcName + '-' + nfx.version + '.zip';
+      const timeout = func.timeout || defaultSetting.timeout;
+      const memorySize = func.memory || defaultSetting.memory;
 
       cfBaseContentJSON.Resources[funcName] = JSON.parse(cfFunctionContent
                   .replace('$HANDLER', func.handler)
                   .replace('$S3KEY', s3Key)
-                  .replace('$TIMEOUT', func.timeout));
+                  .replace('$TIMEOUT', timeout)
+                  .replace('$MEMORY_SIZE', memorySize));
 
       // FIXME: VERSION is not update, update ${funcName}Version to create a new version
       cfBaseContentJSON.Resources[`${funcName}Version`] = JSON.parse(cfFunctionVersionContent.replace('$FUNCTION_NAME', funcName));
