@@ -3,7 +3,6 @@
 const fs         = require('fs'),
       path       = require('path'),
       consoleLog = require('../utils/consoleLog').consoleLog,
-      loadYAML   = require('../utils/yaml').loadYAML,
       yaml       = require('js-yaml');
 
 module.exports.uploadAPITemplate = function(nfx) {
@@ -15,7 +14,13 @@ module.exports.uploadAPITemplate = function(nfx) {
       lambdaARNMap[lambdaARN.OutputKey] = lambdaARN.OutputValue;
     }
 
-    let cfAPI = loadYAML('api.yaml');
+    let cfAPI = nfx.api;
+    cfAPI.info = {
+      title: nfx.stackName,
+      description: nfx.stackName + " nfx serverless app project",
+      version: nfx.version
+    }
+
     for ( let p in cfAPI.paths ) {
       const urlPath = cfAPI.paths[p];
       for ( let m in urlPath ) {

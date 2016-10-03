@@ -11,7 +11,9 @@ const consoleLog            = require('../utils/consoleLog').consoleLog,
 
 module.exports = (nfx) => {
   consoleLog('info', 'Checking stack...');
+  // FIXME: should not be hardcoded
   nfx.version = '0.0.4';
+  nfx.stage = 'staging';
 
   getStack(nfx)
     .then(() => {

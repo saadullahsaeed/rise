@@ -3,7 +3,8 @@
 const fs         = require('fs'),
       path       = require('path'),
       consoleLog = require('../utils/consoleLog').consoleLog,
-      loadYAML   = require('../utils/yaml').loadYAML;
+      loadYAML   = require('../utils/yaml').loadYAML,
+      fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports.updateAPIs = function(nfx) {
   return new Promise((resolve, reject) => {
@@ -57,12 +58,4 @@ module.exports.updateAPIs = function(nfx) {
 
     req.send();
   });
-}
-
-function fsReadFile(path) {
-  try {
-    return fs.readFileSync(path, { encoding: 'utf8' });
-  } catch (err) {
-    return false;
-  }
 }

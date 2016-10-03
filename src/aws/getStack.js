@@ -2,7 +2,8 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      consoleLog = require('../utils/consoleLog').consoleLog;
+      consoleLog = require('../utils/consoleLog').consoleLog,
+      fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports.getStack = (nfx) => {
   return new Promise((resolve, reject) => {
@@ -27,10 +28,9 @@ function create(nfx) {
       reject('getStack error.');
     }
 
-    const cfJSON = JSON.parse(content);
     const req = nfx.awsSDK.cf.createStack({
       StackName: nfx.stackName,
-      TemplateBody: JSON.stringify(cfJSON),
+      TemplateBody: content,
       Capabilities: ['CAPABILITY_IAM'],
       NotificationARNs: [],
       OnFailure: 'ROLLBACK',
@@ -58,12 +58,4 @@ function create(nfx) {
 
     req.send();
   });
-}
-
-function fsReadFile(path) {
-  try {
-    return fs.readFileSync(path);
-  } catch (err) {
-    return false;
-  }
 }

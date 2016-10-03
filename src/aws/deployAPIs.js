@@ -3,14 +3,13 @@
 const fs         = require('fs'),
       path       = require('path'),
       consoleLog = require('../utils/consoleLog').consoleLog,
-      LoadYAML   = require('../utils/yaml').LoadYAML,
-      YAML       = require('js-yaml');
+      fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports.deployAPIs = function(nfx) {
   return new Promise((resolve, reject) => {
     let cfDeploymentContent = fsReadFile(path.join(__dirname, 'cf-deployment.json'));
 
-    cfDeploymentContent = cfDeploymentContent.replace('$STAGE_NAME', 'staging');
+    cfDeploymentContent = cfDeploymentContent.replace('$STAGE_NAME', nfx.stage);
     const cfDeploymentJSON = JSON.parse(cfDeploymentContent);
     nfx.cfTemplate.Resources.NFXDeployment = cfDeploymentJSON;
 
@@ -41,12 +40,4 @@ module.exports.deployAPIs = function(nfx) {
 
     req.send();
   });
-}
-
-function fsReadFile(path) {
-  try {
-    return fs.readFileSync(path, { encoding: 'utf8' });
-  } catch (err) {
-    return false;
-  }
 }

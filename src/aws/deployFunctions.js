@@ -2,7 +2,8 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      consoleLog = require('../utils/consoleLog').consoleLog;
+      consoleLog = require('../utils/consoleLog').consoleLog,
+      fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports.deployFunctions = function(nfx) {
   return new Promise((resolve, reject) => {
@@ -63,12 +64,4 @@ module.exports.deployFunctions = function(nfx) {
 
     req.send();
   });
-}
-
-function fsReadFile(path) {
-  try {
-    return fs.readFileSync(path, { encoding: 'utf8' });
-  } catch (err) {
-    return false;
-  }
 }
