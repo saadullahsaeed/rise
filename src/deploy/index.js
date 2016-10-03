@@ -11,24 +11,26 @@ const consoleLog            = require('../utils/consoleLog').consoleLog,
 
 module.exports = (nfx) => {
   consoleLog('info', 'Checking stack...');
+  nfx.version = '0.0.4';
+
   getStack(nfx)
     .then(() => {
       return describeStackResource(nfx);
     })
-    .then((stackResourceDetail) => {
-      return compressAndUpload(nfx, stackResourceDetail.PhysicalResourceId);
+    .then((updatedNFX) => {
+      return compressAndUpload(updatedNFX);
     })
-    .then(() => {
-      return deployFunctions(nfx);
+    .then((updatedNFX) => {
+      return deployFunctions(updatedNFX);
     })
-    .then((result) => {
-      return uploadAPITemplate(nfx, result.cfTemplate, result.outputs);
+    .then((updatedNFX) => {
+      return uploadAPITemplate(updatedNFX);
     })
-    .then((cfContent) => {
-      return updateAPIs(nfx, cfContent);
+    .then((updatedNFX) => {
+      return updateAPIs(updatedNFX);
     })
-    .then((cfContent) => {
-      return deployAPIs(nfx, cfContent);
+    .then((updatedNFX) => {
+      return deployAPIs(updatedNFX);
     })
     .catch((err) => {
       consoleLog('err', err);

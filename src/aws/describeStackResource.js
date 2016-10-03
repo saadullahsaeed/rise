@@ -12,7 +12,8 @@ module.exports.describeStackResource = function(nfx) {
         console.log(err.message);
         reject(err.message);
       } else {
-        resolve(data.StackResourceDetail);
+        nfx.bucketName = data.StackResourceDetail.PhysicalResourceId;
+        resolve(nfx);
       }
     });
   });

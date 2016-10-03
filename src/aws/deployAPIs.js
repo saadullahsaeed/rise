@@ -6,20 +6,17 @@ const fs         = require('fs'),
       LoadYAML   = require('../utils/yaml').LoadYAML,
       YAML       = require('js-yaml');
 
-module.exports.deployAPIs = function(nfx, cfTemplate) {
+module.exports.deployAPIs = function(nfx) {
   return new Promise((resolve, reject) => {
-    const version = '0.0.2' // FIXME: hardcode it for now.
     let cfDeploymentContent = fsReadFile(path.join(__dirname, 'cf-deployment.json'));
 
     cfDeploymentContent = cfDeploymentContent.replace('$STAGE_NAME', 'staging');
     const cfDeploymentJSON = JSON.parse(cfDeploymentContent);
-
-    console.log(cfTemplate);
-    cfTemplate.Resources.NFXDeployment = cfDeploymentJSON;
+    nfx.cfTemplate.Resources.NFXDeployment = cfDeploymentJSON;
 
     const req = nfx.awsSDK.cf.updateStack({
       StackName: nfx.stackName,
-      TemplateBody: JSON.stringify(cfTemplate),
+      TemplateBody: JSON.stringify(nfx.cfTemplate),
       Capabilities: ['CAPABILITY_IAM'],
     });
 
@@ -34,7 +31,7 @@ module.exports.deployAPIs = function(nfx, cfTemplate) {
         }
 
         consoleLog('info', "Successfully deployed API.");
-        resolve();
+        resolve(nfx);
       });
     });
 

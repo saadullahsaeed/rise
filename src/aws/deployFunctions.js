@@ -13,11 +13,10 @@ module.exports.deployFunctions = function(nfx) {
     let cfFunctionArnOutputContent = fsReadFile(path.join(__dirname, 'cf-lambda-arn-output.json'));
 
     const funcPaths = Object.keys(nfx.functions);
-    const version = '0.0.2' // FIXME: hardcode it for now.
     for (let i = 0; i < funcPaths.length; i++) {
       const funcPath = funcPaths[i];
       const funcName = funcPath.replace(path.sep, '');
-      const s3Key = funcName + '-' + version + '.zip';
+      const s3Key = funcName + '-' + nfx.version + '.zip';
       const func = nfx.functions[funcPath];
 
       if (funcPath === 'default') {
@@ -54,10 +53,9 @@ module.exports.deployFunctions = function(nfx) {
         }
 
         consoleLog('info', `Successfully deployed functions.`);
-        resolve({
-          cfTemplate: cfBaseContentJSON,
-          outputs: data.Stacks[0].Outputs
-        });
+        nfx.cfTemplate = cfBaseContentJSON;
+        nfx.lambdaARNs = data.Stacks[0].Outputs;
+        resolve(nfx);
       });
     });
 

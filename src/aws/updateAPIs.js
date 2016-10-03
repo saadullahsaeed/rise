@@ -5,19 +5,18 @@ const fs         = require('fs'),
       consoleLog = require('../utils/consoleLog').consoleLog,
       loadYAML   = require('../utils/yaml').loadYAML;
 
-module.exports.updateAPIs = function(nfx, cfTemplate) {
+module.exports.updateAPIs = function(nfx) {
   return new Promise((resolve, reject) => {
-    const version = '0.0.2' // FIXME: hardcode it for now.
     let cfRestAPIContent = fsReadFile(path.join(__dirname, 'cf-restapi.json'));
 
-    const s3Key = 'api-' + version + '.yaml';
+    const s3Key = 'api-' + nfx.version + '.yaml';
     cfRestAPIContent = cfRestAPIContent.replace('$S3KEY', s3Key);
     const cfRestAPIJSON = JSON.parse(cfRestAPIContent);
-    cfTemplate.Resources.NFXApi = cfRestAPIJSON;
+    nfx.cfTemplate.Resources.NFXApi = cfRestAPIJSON;
 
     const req = nfx.awsSDK.cf.updateStack({
       StackName: nfx.stackName,
-      TemplateBody: JSON.stringify(cfTemplate),
+      TemplateBody: JSON.stringify(nfx.cfTemplate),
       Capabilities: ['CAPABILITY_IAM'],
     });
 
@@ -33,7 +32,7 @@ module.exports.updateAPIs = function(nfx, cfTemplate) {
         }
 
         consoleLog('info', "Successfully updated API.");
-        resolve(cfTemplate);
+        resolve(nfx);
       });
     });
 

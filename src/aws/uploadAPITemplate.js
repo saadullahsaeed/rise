@@ -6,19 +6,14 @@ const fs         = require('fs'),
       loadYAML   = require('../utils/yaml').loadYAML,
       yaml       = require('js-yaml');
 
-module.exports.uploadAPITemplate = function(nfx, cfTemplate, lambdaARNs) {
+module.exports.uploadAPITemplate = function(nfx) {
   return new Promise((resolve, reject) => {
-    const version = '0.0.2' // FIXME: hardcode it for now.
     const lambdaARNMap = {};
 
-    console.log('bucketName', nfx.bucketName);
-
-    for ( let i = 0; i < lambdaARNs.length; ++i ) {
-      const lambdaARN = lambdaARNs[i];
+    for ( let i = 0; i < nfx.lambdaARNs.length; ++i ) {
+      const lambdaARN = nfx.lambdaARNs[i];
       lambdaARNMap[lambdaARN.OutputKey] = lambdaARN.OutputValue;
     }
-
-    console.log('lambdaARNMap', lambdaARNMap);
 
     let cfAPI = loadYAML('api.yaml');
     for ( let p in cfAPI.paths ) {
@@ -30,9 +25,7 @@ module.exports.uploadAPITemplate = function(nfx, cfTemplate, lambdaARNs) {
       }
     }
 
-    console.log(cfAPI);
-
-    const s3Key = 'api-' + version + '.yaml';
+    const s3Key = 'api-' + nfx.version + '.yaml';
     const params = {
       Bucket: nfx.bucketName,
       Key: s3Key,
@@ -49,7 +42,7 @@ module.exports.uploadAPITemplate = function(nfx, cfTemplate, lambdaARNs) {
       }
 
       consoleLog('info', `Successfully uploaded ${s3Key}`);
-      resolve(cfTemplate);
+      resolve(nfx);
     });
   });
 }
