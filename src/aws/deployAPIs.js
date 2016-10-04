@@ -27,7 +27,6 @@ module.exports.deployAPIs = function(nfx) {
       nfx.awsSDK.cf.waitFor('stackUpdateComplete',
         { StackName: nfx.stackName },
         function(err, data) {
-          console.log(err);
           if (err) {
             reject(err);
             return;
