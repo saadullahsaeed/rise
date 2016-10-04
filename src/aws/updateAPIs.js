@@ -33,7 +33,7 @@ module.exports.updateAPIs = function(nfx) {
     const req = nfx.awsSDK.cf.updateStack({
       StackName: nfx.stackName,
       TemplateBody: JSON.stringify(nfx.cfTemplate, null, 2),
-      Capabilities: ['CAPABILITY_IAM'],
+      Capabilities: ['CAPABILITY_IAM']
     });
 
     consoleLog('info', 'Updating api template...');
