@@ -3,6 +3,7 @@
 const path       = require('path'),
       program    = require('commander'),
       deploy     = require('./deploy'),
+      rollback   = require('./rollback'),
       newProject = require('./new'),
       destroy    = require('./destroy');
 
@@ -20,12 +21,21 @@ class CLI {
       .action( () => {
         deploy(nfx);
       });
+
+    program
+      .command('rollback [version]')
+      .description('rollback to the specified version')
+      .action( (version) => {
+        rollback(nfx, version);
+      });
+
     program
       .command('destroy')
       .description('destroy a project')
       .action( () => {
         destroy(nfx);
       });
+
     program
       .command('new [stackName]')
       .description('setup provider credential')
