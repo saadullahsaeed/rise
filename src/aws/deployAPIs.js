@@ -9,8 +9,11 @@ module.exports.deployAPIs = function(nfx) {
   return new Promise((resolve, reject) => {
     let cfDeploymentContent = fsReadFile(path.join(__dirname, 'cf-deployment.json'));
 
-    cfDeploymentContent = cfDeploymentContent.replace('$STAGE_NAME', nfx.stage);
-    const cfDeploymentJSON = JSON.parse(cfDeploymentContent);
+    const cfDeploymentJSON = JSON.parse(
+      cfDeploymentContent
+        .replace('$STAGE_NAME', nfx.stage)
+        .replace('$DESCRIPTION', nfx.version)
+    );
     nfx.cfTemplate.Resources.NFXDeployment = cfDeploymentJSON;
 
     const req = nfx.awsSDK.cf.updateStack({

@@ -11,16 +11,10 @@ module.exports.updateAPIs = function(nfx) {
     let cfRestAPIContent = fsReadFile(path.join(__dirname, 'cf-restapi.json'));
 
     const s3Key = 'api-' + nfx.version + '.yaml';
-    cfRestAPIContent = cfRestAPIContent.replace('$S3KEY', s3Key);
-    const cfRestAPIJSON = JSON.parse(cfRestAPIContent);
+    const cfRestAPIJSON = JSON.parse(
+      cfRestAPIContent.replace('$S3KEY', s3Key)
+    );
     nfx.cfTemplate.Resources.NFXApi = cfRestAPIJSON;
-
-    const req = nfx.awsSDK.cf.updateStack({
-      StackName: nfx.stackName,
-      TemplateBody: JSON.stringify(nfx.cfTemplate, null, 2),
-      Capabilities: ['CAPABILITY_IAM'],
-    });
-
 
     for (let funcPath in nfx.functions) {
       if (funcPath === 'default') {
@@ -35,6 +29,12 @@ module.exports.updateAPIs = function(nfx) {
       const cfFuncRoleJSON = JSON.parse(cfFuncRoleContent);
       nfx.cfTemplate.Resources[`${funcName}Role`] = cfFuncRoleJSON;
     }
+
+    const req = nfx.awsSDK.cf.updateStack({
+      StackName: nfx.stackName,
+      TemplateBody: JSON.stringify(nfx.cfTemplate, null, 2),
+      Capabilities: ['CAPABILITY_IAM'],
+    });
 
     consoleLog('info', 'Updating api template...');
     req.on('success', function(resp) {

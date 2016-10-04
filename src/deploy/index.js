@@ -6,7 +6,8 @@ const fs                    = require('fs'),
       consoleLog            = require('../utils/consoleLog').consoleLog,
       compressAndUpload     = require('../aws/compressAndUpload').compressAndUpload,
       getStack              = require('../aws/getStack').getStack,
-      describeStackResource = require('../aws/describeStackResource').describeStackResource,
+      getBucketName         = require('../aws/getBucketName').getBucketName,
+      getStackTemplate      = require('../aws/getStackTemplate').getStackTemplate,
       deployFunctions       = require('../aws/deployFunctions').deployFunctions,
       uploadAPITemplate     = require('../aws/uploadAPITemplate').uploadAPITemplate,
       updateAPIs            = require('../aws/updateAPIs').updateAPIs,
@@ -39,8 +40,11 @@ module.exports = (nfx) => {
   nfx.stage = 'staging';
 
   getStack(nfx)
-    .then(() => {
-      return describeStackResource(nfx);
+    .then((updatedNFX) => {
+      return getBucketName(updatedNFX);
+    })
+    .then((updatedNFX) => {
+      return getStackTemplate(updatedNFX);
     })
     .then((updatedNFX) => {
       return compressAndUpload(updatedNFX);

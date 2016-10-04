@@ -12,10 +12,10 @@ module.exports.getStack = (nfx) => {
     }, (err, data) => {
       if (err && err.message.indexOf('does not exist') > -1) {
         create(nfx)
-          .then(resolve)
+          .then(() => resolve(nfx))
           .catch((err) => reject(err));
       } else {
-        resolve();
+        resolve(nfx);
       }
     });
   });

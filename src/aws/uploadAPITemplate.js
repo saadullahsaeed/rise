@@ -12,7 +12,7 @@ module.exports.uploadAPITemplate = function(nfx) {
     const cfCorsContent = fsReadFile(path.join(__dirname, 'cf-api-cors.json'));
     const lambdaARNMap = {};
 
-    for ( let i = 0; i < nfx.lambdaARNs.length; ++i ) {
+    for (let i = 0; i < nfx.lambdaARNs.length; ++i) {
       const lambdaARN = nfx.lambdaARNs[i];
       lambdaARNMap[lambdaARN.OutputKey] = lambdaARN.OutputValue;
     }
@@ -24,7 +24,7 @@ module.exports.uploadAPITemplate = function(nfx) {
       version: nfx.version
     }
 
-    for ( let p in cfAPI.paths ) {
+    for (let p in cfAPI.paths) {
       const urlPath = cfAPI.paths[p];
       const corsMethods = [];
       for ( let m in urlPath ) {

@@ -25,20 +25,22 @@ module.exports.deployFunctions = function(nfx) {
       const timeout = func.timeout || defaultSetting.timeout;
       const memorySize = func.memory || defaultSetting.memory;
 
-      cfBaseContentJSON.Resources[funcName] = JSON.parse(cfFunctionContent
-                  .replace('$HANDLER', func.handler)
-                  .replace('$S3KEY', s3Key)
-                  .replace('$TIMEOUT', timeout)
-                  .replace('$MEMORY_SIZE', memorySize));
+      nfx.cfTemplate.Resources[funcName] = JSON.parse(
+        cfFunctionContent
+          .replace('$HANDLER', func.handler)
+          .replace('$S3KEY', s3Key)
+          .replace('$TIMEOUT', timeout)
+          .replace('$MEMORY_SIZE', memorySize)
+      );
 
-      // FIXME: VERSION is not update, update ${funcName}Version to create a new version
-      cfBaseContentJSON.Resources[`${funcName}Version`] = JSON.parse(cfFunctionVersionContent.replace('$FUNCTION_NAME', funcName));
-      cfBaseContentJSON.Outputs[funcName] = JSON.parse(cfFunctionArnOutputContent.replace('$FUNCTION_NAME', funcName));
+      nfx.cfTemplate.Outputs[funcName] = JSON.parse(
+        cfFunctionArnOutputContent.replace('$FUNCTION_NAME', funcName)
+      );
     }
 
     const req = nfx.awsSDK.cf.updateStack({
       StackName: nfx.stackName,
-      TemplateBody: JSON.stringify(cfBaseContentJSON, null, 2),
+      TemplateBody: JSON.stringify(nfx.cfTemplate, null, 2),
       Capabilities: ['CAPABILITY_IAM'],
     });
 
@@ -53,14 +55,13 @@ module.exports.deployFunctions = function(nfx) {
         }
 
         consoleLog('info', `Successfully deployed functions.`);
-        nfx.cfTemplate = cfBaseContentJSON;
         nfx.lambdaARNs = data.Stacks[0].Outputs;
         resolve(nfx);
       });
     });
 
     req.on('error', function(err, data) {
-      reject(err.message);
+      reject(err);
     });
 
     req.send();

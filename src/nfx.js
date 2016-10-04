@@ -31,7 +31,7 @@ class NFX {
         this.NFX.awsSDK.cf = new AWS.CloudFormation({ apiVersion: '2010-05-15' });
         this.NFX.awsSDK.s3 = new AWS.S3();
 
-        this.NFX.cfTemplate = {}; // WIP
+        this.NFX.cfTemplate = {};
 
         break;
       default:
