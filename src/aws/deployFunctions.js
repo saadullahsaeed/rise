@@ -38,7 +38,7 @@ module.exports.deployFunctions = function(nfx) {
 
     const req = nfx.awsSDK.cf.updateStack({
       StackName: nfx.stackName,
-      TemplateBody: JSON.stringify(cfBaseContentJSON),
+      TemplateBody: JSON.stringify(cfBaseContentJSON, null, 2),
       Capabilities: ['CAPABILITY_IAM'],
     });
 
