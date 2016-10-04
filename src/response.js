@@ -1,5 +1,7 @@
 'use strict';
 
+const headers = require('./headers');
+
 /** Response */
 class Response {
   constructor(req, done) {
@@ -36,29 +38,22 @@ class Response {
   }
 
   /**
-   * HTTP response headers
+   * HTTP response headers object, following [Node.js convention](https://nodejs.org/api/http.html#http_message_headers)
    * @type {Object}
    * @readonly
    * @example
    * res.set('content-type', 'text/plain')
+   *    .set('set-cookie', 'foo=123; Expires=Sun, 1-Jan-2017 00:00:00 GMT; Path=/; Domain=foo.com')
    *    .set('x-foo', ['bar', 'baz']);
-   * res.headers // => { 'content-type': 'text/plain', 'x-foo': ['bar', 'baz'] }
+   * res.headers
+   * // => {
+   * //   'content-type': 'text/plain',
+   * //   'set-cookie': ['foo=123; Expires=Sun, 1-Jan-2017 00:00:00 GMT; Path=/; Domain=foo.com'],
+   * //   'x-foo': 'bar, baz'
+   * // }
    */
   get headers() {
-    const headers = this.__headers;
-    const h = {};
-    for (const k in headers) {
-      if (!headers.hasOwnProperty(k)) {
-        continue;
-      }
-      const v = headers[k];
-      if (!Array.isArray(v)) {
-        continue;
-      }
-
-      h[k] = v.length === 1 ? v[0] : v;
-    }
-    return h;
+    return headers.toNode(this.__headers);
   }
 
   /**

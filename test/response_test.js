@@ -1,12 +1,6 @@
 'use strict';
 
-const chai = require('chai'),
-      sinon = require('sinon'),
-      sinonChai = require('sinon-chai'),
-      Response = require('../src/response');
-
-const expect = chai.expect;
-chai.use(sinonChai);
+const Response = require('../src/response');
 
 describe('Response', function() {
   let res, doneFn;
@@ -142,12 +136,16 @@ describe('Response', function() {
     it('has a read-only getter', function() {
       res.set('Content-Type', 'text/plain')
          .set('foo', '123')
-         .set('bar', ['hello', 'world']);
+         .set('bar', ['hello', 'world'])
+         .set('age', [100, 200])
+         .set('set-cookie', 'foo=123; Expires=Sun, 1-Jan-2017 00:00:00 GMT; Path=/; Domain=foo.com');
 
       expect(res.headers).to.deep.equal({
         'content-type': 'text/plain',
         foo: '123',
-        bar: ['hello', 'world']
+        bar: 'hello, world',
+        age: '200',
+        'set-cookie': ['foo=123; Expires=Sun, 1-Jan-2017 00:00:00 GMT; Path=/; Domain=foo.com']
       });
     });
 
