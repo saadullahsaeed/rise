@@ -14,8 +14,14 @@ module.exports.getStack = (nfx) => {
         create(nfx)
           .then(() => resolve(nfx))
           .catch((err) => reject(err));
-      } else {
+      } else if (!err) {
+        // If outputs exist from previous deployment
+        if ( data.Stacks.length > 0 && data.Stacks[0].Outputs ) {
+          nfx.lambdaARNs = data.Stacks[0].Outputs;
+        }
         resolve(nfx);
+      } else {
+        reject(err);
       }
     });
   });
