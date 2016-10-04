@@ -49,7 +49,7 @@ function create(nfx) {
     });
 
     req.on('error', function(err, data) {
-      reject(err.message);
+      reject(err);
     });
 
     req.send();

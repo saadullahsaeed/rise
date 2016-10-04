@@ -49,19 +49,25 @@ module.exports.deployFunctions = function(nfx) {
       nfx.awsSDK.cf.waitFor('stackUpdateComplete',
         { StackName: nfx.stackName },
         function(err, data) {
-        if (err) {
-          reject(err);
-          return;
-        }
+          if (err) {
+            reject(err);
+            return;
+          }
 
-        consoleLog('info', `Successfully deployed functions.`);
-        nfx.lambdaARNs = data.Stacks[0].Outputs;
-        resolve(nfx);
-      });
+          consoleLog('info', `Successfully deployed functions.`);
+          nfx.lambdaARNs = data.Stacks[0].Outputs;
+          resolve(nfx);
+        }
+      );
     });
 
     req.on('error', function(err, data) {
-      reject(err);
+      if (err.message && err.message.indexOf('No updates are to be performed') !== -1) {
+        consoleLog('info', "No updates on lambda functions. Proceed to the next step");
+        resolve(nfx);
+      } else {
+        reject(err);
+      }
     });
 
     req.send();

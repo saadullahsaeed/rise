@@ -42,18 +42,22 @@ module.exports.updateAPIs = function(nfx) {
       nfx.awsSDK.cf.waitFor('stackUpdateComplete',
         { StackName: nfx.stackName },
         function(err, data) {
-        if (err) {
-          reject(err);
-          return;
-        }
+          if (err) {
+            reject(err);
+            return;
+          }
 
-        consoleLog('info', "Successfully updated API.");
-        resolve(nfx);
-      });
+          consoleLog('info', "Successfully updated API.");
+          resolve(nfx);
+        });
     });
 
     req.on('error', function(err, data) {
-      reject(err.message);
+      if (err.message && err.message.indexOf('No updates are to be performed') !== -1) {
+        consoleLog('info', "No updates on API. Proceed to the next step");
+        resolve(nfx);
+      }
+      reject(err);
     });
 
     req.send();
