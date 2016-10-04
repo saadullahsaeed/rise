@@ -16,6 +16,10 @@ module.exports.deployAPIs = function(nfx) {
     );
     nfx.cfTemplate.Resources.NFXDeployment = cfDeploymentJSON;
 
+    let cfBaseURLOutputContent = fsReadFile(path.join(__dirname, 'cf-api-base-url-output.json'));
+    cfBaseURLOutputContent = cfBaseURLOutputContent.replace('$STAGE_NAME', nfx.stage);
+    nfx.cfTemplate.Outputs.NFXBaseURL = JSON.parse(cfBaseURLOutputContent);
+
     const req = nfx.awsSDK.cf.updateStack({
       StackName: nfx.stackName,
       TemplateBody: JSON.stringify(nfx.cfTemplate, null, 2),
@@ -39,8 +43,9 @@ module.exports.deployAPIs = function(nfx) {
 
     req.on('error', function(err, data) {
       if (err.message && err.message.indexOf('No updates are to be performed') !== -1) {
-        consoleLog('info', "No updates on lambda functions. Proceed to the next step");
+        consoleLog('info', "No updates on api depoyment. Proceed to the next step");
         resolve(nfx);
+
       } else {
         reject(err);
       }

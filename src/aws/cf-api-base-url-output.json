@@ -1,0 +1,15 @@
+{
+  "Description": "NFXAPI Base URL",
+  "Value": {
+    "Fn::Join": [
+      "", [
+        "https://",
+        { "Ref": "NFXApi" },
+        ".execute-api.",
+        { "Ref": "AWS::Region" },
+        ".amazonaws.com/",
+        "$STAGE_NAME"
+      ]
+    ]
+  }
+}
