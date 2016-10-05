@@ -12,7 +12,6 @@ const fs                    = require('fs'),
       deployFunctions       = require('../aws/deployFunctions').deployFunctions,
       uploadAPITemplate     = require('../aws/uploadAPITemplate').uploadAPITemplate,
       updateAPIs            = require('../aws/updateAPIs').updateAPIs,
-      deployAPIs            = require('../aws/deployAPIs').deployAPIs,
       uploadNFXFiles        = require('../aws/uploadNFXFiles').uploadNFXFiles;
 
 module.exports = (nfx) => {
@@ -61,9 +60,6 @@ module.exports = (nfx) => {
     })
     .then((updatedNFX) => {
       return updateAPIs(updatedNFX);
-    })
-    .then((updatedNFX) => {
-      return deployAPIs(updatedNFX);
     })
     .then((updatedNFX) => {
       return uploadNFXFiles(updatedNFX);
