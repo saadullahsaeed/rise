@@ -16,6 +16,10 @@ module.exports.getStack = (nfx) => {
           .catch((err) => reject(err));
       } else if (!err) {
         // If outputs exist from previous deployment
+        const content = fsReadFile(path.join(__dirname, 'cf-base.json'));
+        const baseContentJSON = JSON.parse(content);
+        nfx.cfTemplate = Object.assign({}, nfx.cfTemplate, baseContentJSON);
+
         if ( data.Stacks.length > 0 && data.Stacks[0].Outputs ) {
           nfx.lambdaARNs = data.Stacks[0].Outputs;
         }

@@ -11,7 +11,9 @@ module.exports.getStackTemplate = function(nfx) {
           reject(err);
         }
         consoleLog('info', `Successfully fetched the template`);
-        nfx.cfTemplate = JSON.parse(data.TemplateBody);
+        const templateBodyJSON = JSON.parse(data.TemplateBody);
+        nfx.cfTemplate.Resources = Object.assign({}, templateBodyJSON.Resources, nfx.cfTemplate.Resources);
+        nfx.cfTemplate.Outputs = Object.assign({}, templateBodyJSON.Outputs, nfx.cfTemplate.Outputs);
         resolve(nfx);
       }
     );
