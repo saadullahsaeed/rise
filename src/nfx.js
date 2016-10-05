@@ -3,7 +3,8 @@
 const loadYAML   = require('./utils/yaml').loadYAML,
       consoleLog = require('./utils/consoleLog').consoleLog,
       AWS        = require('aws-sdk'),
-      CLI        = require('./cli');
+      CLI        = require('./cli'),
+      crypto     = require('crypto');
 
 class NFX {
   init() {
@@ -23,6 +24,7 @@ class NFX {
     this.NFX.provider   = project.profiles.default.provider;
     this.NFX.region     = project.profiles.default.region;
     this.NFX.api        = api;
+    this.NFX.hasher     = crypto.createHash('sha256');
 
     switch(this.NFX.provider) {
       case 'aws':

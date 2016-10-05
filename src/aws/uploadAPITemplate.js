@@ -53,7 +53,7 @@ module.exports.uploadAPITemplate = function(nfx) {
       }
     }
 
-    const s3Key = 'api-' + nfx.version + '.yaml';
+    const s3Key = `versions/${nfx.version}/aws/swagger.yaml`;
     const params = {
       Bucket: nfx.bucketName,
       Key: s3Key,

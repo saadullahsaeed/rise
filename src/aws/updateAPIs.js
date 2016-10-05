@@ -10,7 +10,7 @@ module.exports.updateAPIs = function(nfx) {
   return new Promise((resolve, reject) => {
     let cfRestAPIContent = fsReadFile(path.join(__dirname, 'cf-restapi.json'));
 
-    const s3Key = 'api-' + nfx.version + '.yaml';
+    const s3Key = `versions/${nfx.version}/aws/swagger.yaml`;
     const cfRestAPIJSON = JSON.parse(
       cfRestAPIContent.replace('$S3KEY', s3Key)
     );

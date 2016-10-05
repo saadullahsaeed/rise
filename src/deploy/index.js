@@ -12,7 +12,7 @@ const fs                    = require('fs'),
       uploadAPITemplate     = require('../aws/uploadAPITemplate').uploadAPITemplate,
       updateAPIs            = require('../aws/updateAPIs').updateAPIs,
       deployAPIs            = require('../aws/deployAPIs').deployAPIs,
-      saveCFTemplate        = require('../aws/saveCFTemplate').saveCFTemplate;
+      uploadNFXFiles        = require('../aws/uploadNFXFiles').uploadNFXFiles;
 
 module.exports = (nfx) => {
   consoleLog('info', 'Checking stack...');
@@ -62,7 +62,7 @@ module.exports = (nfx) => {
       return deployAPIs(updatedNFX);
     })
     .then((updatedNFX) => {
-      return saveCFTemplate(updatedNFX);
+      return uploadNFXFiles(updatedNFX);
     })
     .then((updatedNFX) => {
       consoleLog('info', `Successfully deployed your project. Version: ${nfx.version}`)

@@ -37,11 +37,14 @@ function compressAndUpload(nfx, funcPath, funcName, func) {
 
     // Compress files
     const zipArchive = archiver.create('zip');
-    const tempFileName = '/tmp/fn-' + funcName + '-' + new Date().getTime() + '.zip';
+    const tempFileName = `/tmp/fn-${funcName}-${new Date().getTime()}.zip`;
     const output = new fs.createWriteStream(tempFileName);
-    const s3Key = funcName + '-' + nfx.version + '.zip';
+    const s3Key = `versions/${nfx.version}/functions/${funcName}.zip`;
 
     output.on('close', function() {
+      // nfx.hasher ends at uploadNFXFiles
+      fs.createReadStream(tempFileName).pipe(nfx.hasher, { end: false });
+
       const params = {
         Bucket: nfx.bucketName,
         Key: s3Key,
