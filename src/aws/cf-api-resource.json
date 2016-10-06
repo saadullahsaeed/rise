@@ -1,0 +1,10 @@
+{
+  "Type": "AWS::ApiGateway::Resource",
+  "Properties": {
+    "RestApiId": {
+      "Ref": "NFXApi"
+    },
+    "ParentId": {},
+    "PathPart": "$LAST_PATH"
+  }
+}

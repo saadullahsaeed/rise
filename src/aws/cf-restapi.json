@@ -1,9 +1,3 @@
 {
-  "Type": "AWS::ApiGateway::RestApi",
-  "Properties": {
-    "BodyS3Location": {
-      "Bucket": { "Ref": "NFXDeploymentBucket" },
-      "Key": "$S3KEY"
-    }
-  }
+  "Type": "AWS::ApiGateway::RestApi"
 }

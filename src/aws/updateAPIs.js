@@ -10,10 +10,12 @@ module.exports.updateAPIs = function(nfx) {
   return new Promise((resolve, reject) => {
     let cfRestAPIContent = fsReadFile(path.join(__dirname, 'cf-restapi.json'));
 
-    const s3Key = `versions/${nfx.version}/aws/swagger.yaml`;
-    const cfRestAPIJSON = JSON.parse(
-      cfRestAPIContent.replace('$S3KEY', s3Key)
-    );
+    const s3Key = 'api-' + nfx.version + '.yaml';
+    const cfRestAPIJSON = JSON.parse(cfRestAPIContent);
+    cfRestAPIJSON.BodyS3Location = {
+      Bucket: { Ref: "NFXDeploymentBucket" },
+      Key: s3Key
+    };
     nfx.cfTemplate.Resources.NFXApi = cfRestAPIJSON;
 
     for (let funcPath in nfx.functions) {

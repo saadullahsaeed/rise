@@ -1,38 +1,35 @@
 {
-  "consumes": [
-    "application/json"
-  ],
-  "responses": {
-    "200": {
-      "description": "200 response",
-      "headers": {
-        "Access-Control-Allow-Origin": {
-          "type": "string"
-        },
-        "Access-Control-Allow-Methods": {
-          "type": "string"
-        },
-        "Access-Control-Allow-Headers": {
-          "type": "string"
-        }
-      }
-    }
-  },
-  "x-amazon-apigateway-integration": {
-    "responses": {
-      "default": {
-        "statusCode": "200",
-        "responseParameters": {
-          "method.response.header.Access-Control-Allow-Methods": "'$CORS_METHODS'",
+  "Type": "AWS::ApiGateway::Method",
+  "Properties": {
+    "RestApiId": {
+      "Ref": "NFXApi"
+    },
+    "ResourceId": {},
+    "HttpMethod": "OPTIONS",
+    "Integration": {
+      "Type": "MOCK",
+      "IntegrationHttpMethod": "POST",
+      "IntegrationResponses": [{
+        "ResponseParameters": {
           "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
-          "method.response.header.Access-Control-Allow-Origin": "'*'"
-        }
+          "method.response.header.Access-Control-Allow-Methods" : "'$CORS_METHODS'",
+          "method.response.header.Access-Control-Allow-Origin" : "'*'"
+        },
+        "StatusCode": "200"
+      }],
+      "RequestTemplates": {
+        "application/json": "{\"statusCode\": 200}"
       }
     },
-    "requestTemplates": {
-      "application/json": "{\"statusCode\": 200}"
-    },
-    "passthroughBehavior": "when_no_match",
-    "type": "mock"
+    "MethodResponses": [{
+      "ResponseModels": {},
+      "ResponseParameters": {
+        "method.response.header.Access-Control-Allow-Headers": "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        "method.response.header.Access-Control-Allow-Methods" : "'$CORS_METHODS'",
+        "method.response.header.Access-Control-Allow-Origin" : "'*'"
+      },
+      "StatusCode": "200"
+    }],
+    "AuthorizationType": "NONE"
   }
 }
