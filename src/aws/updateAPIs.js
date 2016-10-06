@@ -3,7 +3,6 @@
 const fs         = require('fs'),
       path       = require('path'),
       consoleLog = require('../utils/consoleLog').consoleLog,
-      loadYAML   = require('../utils/yaml').loadYAML,
       fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports.updateAPIs = function(nfx) {

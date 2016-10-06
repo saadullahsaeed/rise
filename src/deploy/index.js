@@ -8,8 +8,8 @@ const fs                    = require('fs'),
       uploadFunctions       = require('../aws/uploadFunctions').uploadFunctions,
       getStack              = require('../aws/getStack').getStack,
       getBucketName         = require('../aws/getBucketName').getBucketName,
-      getStackTemplate      = require('../aws/getStackTemplate').getStackTemplate,
       updateTemplate        = require('../aws/updateTemplate').updateTemplate,
+      deployAPI             = require('../aws/deployAPI').deployAPI,
       uploadNFXFiles        = require('../aws/uploadNFXFiles').uploadNFXFiles;
 
 module.exports = (nfx) => {
@@ -39,9 +39,6 @@ module.exports = (nfx) => {
 
   getStack(nfx)
     .then((updatedNFX) => {
-      return getStackTemplate(updatedNFX);
-    })
-    .then((updatedNFX) => {
       return getBucketName(updatedNFX);
     })
     .then((updatedNFX) => {
@@ -52,6 +49,9 @@ module.exports = (nfx) => {
     })
     .then((updatedNFX) => {
       return updateTemplate(updatedNFX);
+    })
+    .then((updatedNFX) => {
+      return deployAPI(updatedNFX);
     })
     .then((updatedNFX) => {
       return uploadNFXFiles(updatedNFX);

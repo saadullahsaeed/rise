@@ -11,7 +11,6 @@ module.exports.updateTemplate = function(nfx) {
     setBaseTemplate(nfx);
     setFunctions(nfx);
     setAPIs(nfx);
-    setDeployment(nfx);
 
     const req = nfx.awsSDK.cf.updateStack({
       StackName: nfx.stackName,
@@ -20,7 +19,7 @@ module.exports.updateTemplate = function(nfx) {
     });
 
     req.on('success', function(resp) {
-      consoleLog('info', `Updating stack with api methods ...`);
+      consoleLog('info', `Updating stack...`);
       nfx.awsSDK.cf.waitFor('stackUpdateComplete',
         { StackName: nfx.stackName },
         function(err, data) {
@@ -29,7 +28,7 @@ module.exports.updateTemplate = function(nfx) {
             return;
           }
 
-          consoleLog('info', `Successfully updated api methods.`);
+          consoleLog('info', `Successfully updated stack.`);
           resolve(nfx);
         }
       );
@@ -37,7 +36,7 @@ module.exports.updateTemplate = function(nfx) {
 
     req.on('error', function(err, data) {
       if (err.message && err.message.indexOf('No updates are to be performed') !== -1) {
-        consoleLog('info', "No updates on api methods. Proceed to the next step");
+        consoleLog('info', "No updates on updating stack. Proceed to the next step");
         resolve(nfx);
       } else {
         reject(err);
@@ -56,29 +55,6 @@ function setBaseTemplate(nfx) {
   const cfRestAPIContent = fsReadFile(path.join(__dirname, 'cf-restapi.json'));
   const cfRestAPIJSON = JSON.parse(cfRestAPIContent);
   nfx.cfTemplate.Resources.NFXApi = cfRestAPIJSON;
-}
-
-function setDeployment(nfx) {
-  let cfDeploymentContent = fsReadFile(path.join(__dirname, 'cf-deployment.json'));
-
-  cfDeploymentContent = cfDeploymentContent.replace('$STAGE_NAME', nfx.stage);
-  cfDeploymentContent = cfDeploymentContent.replace('$VERSION', nfx.version);
-  const cfDeploymentJSON = JSON.parse(cfDeploymentContent);
-
-  const apiMethodIds = [];
-  const resources = nfx.cfTemplate.Resources
-  for ( let resName in resources ) {
-    const resource = resources[resName];
-    if (resource.Type === 'AWS::ApiGateway::Method') {
-      apiMethodIds.push(resName);
-    }
-  }
-  cfDeploymentJSON.DependsOn = apiMethodIds;
-  nfx.cfTemplate.Resources[`NFXDeployment${nfx.version}`] = cfDeploymentJSON;
-
-  let cfBaseURLOutputContent = fsReadFile(path.join(__dirname, 'cf-api-base-url-output.json'));
-  cfBaseURLOutputContent = cfBaseURLOutputContent.replace('$STAGE_NAME', nfx.stage);
-  nfx.cfTemplate.Outputs.NFXBaseURL = JSON.parse(cfBaseURLOutputContent);
 }
 
 function setFunctions(nfx) {
