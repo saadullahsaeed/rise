@@ -4,7 +4,8 @@ const fs                    = require('fs'),
       path                  = require('path'),
       fsStat                = require('../utils/fs').fsStat,
       consoleLog            = require('../utils/consoleLog').consoleLog,
-      compressAndUpload     = require('../aws/compressAndUpload').compressAndUpload,
+      compressAndCompare    = require('../aws/compressAndCompare').compressAndCompare,
+      uploadFunctions       = require('../aws/uploadFunctions').uploadFunctions,
       getStack              = require('../aws/getStack').getStack,
       getBucketName         = require('../aws/getBucketName').getBucketName,
       getStackTemplate      = require('../aws/getStackTemplate').getStackTemplate,
@@ -41,13 +42,16 @@ module.exports = (nfx) => {
 
   getStack(nfx)
     .then((updatedNFX) => {
-      return getBucketName(updatedNFX);
-    })
-    .then((updatedNFX) => {
       return getStackTemplate(updatedNFX);
     })
     .then((updatedNFX) => {
-      return compressAndUpload(updatedNFX);
+      return getBucketName(updatedNFX);
+    })
+    .then((updatedNFX) => {
+      return compressAndCompare(updatedNFX);
+    })
+    .then((updatedNFX) => {
+      return uploadFunctions(updatedNFX);
     })
     .then((updatedNFX) => {
       return deployFunctions(updatedNFX);

@@ -20,6 +20,10 @@ module.exports.uploadNFXFiles = function(nfx) {
       key: `versions/${nfx.version}/functions.yaml`,
       body: fs.createReadStream('functions.yaml'),
       contentType: 'text/yaml'
+    }, {
+      key: 'nfx.json',
+      body: JSON.stringify(nfx.nfxJSON),
+      contentType: 'application/json'
     }];
 
     for (let i = 0; i < nfxFiles.length; i++) {
@@ -27,8 +31,6 @@ module.exports.uploadNFXFiles = function(nfx) {
         uploadS3(nfx, nfxFiles[i].key, nfxFiles[i].body, nfxFiles[i].contentType)
       );
     }
-
-    uploadS3Promises.push(updateNFXJSON(nfx));
 
     Promise.all(uploadS3Promises).then(() => {
       resolve(nfx);
@@ -58,47 +60,5 @@ function uploadS3(nfx, key, body, contentType) {
       consoleLog('info', `Successfully saved ${key}`);
       resolve();
     });
-  });
-}
-
-function updateNFXJSON(nfx) {
-  return new Promise((resolve, reject) => {
-    const pipeHashPromises = [];
-    pipeHashPromises.push(pipeHash(nfx, 'api.yaml'));
-    pipeHashPromises.push(pipeHash(nfx, 'functions.yaml'));
-    Promise.all(pipeHashPromises).then(() => {
-      nfx.hasher.end();
-
-      const params = {
-        Bucket: nfx.bucketName,
-        Key: 'nfx.json',
-      };
-
-      nfx.awsSDK.s3.getObject(params, function(err, data) {
-        let nfxJSON = {}
-        if (err) {
-          if (err.message.indexOf('does not exist') > -1) {
-            nfxJSON['version_hashes'] = {}
-          } else {
-            reject(err);
-          }
-        } else {
-          nfxJSON = JSON.parse(data.Body);
-        }
-        nfxJSON['active_version'] = nfx.version;
-        nfxJSON['version_hashes'][`${nfx.version}`] = nfx.hasher.read().toString('hex');
-        uploadS3(nfx, 'nfx.json', JSON.stringify(nfxJSON), 'application/json')
-          .then(resolve)
-          .catch(reject)
-      });
-    });
-  });
-}
-
-function pipeHash(nfx, file) {
-  return new Promise((resolve, reject) => {
-    const readStream = fs.createReadStream(file);
-    readStream.once('end', resolve);
-    readStream.pipe(nfx.hasher, { end: false });
   });
 }

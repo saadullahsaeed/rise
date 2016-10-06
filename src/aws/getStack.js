@@ -24,10 +24,6 @@ module.exports.getStack = (nfx) => {
 function create(nfx) {
   return new Promise((resolve, reject) => {
     const content = fsReadFile(path.join(__dirname, 'cf-base.json'));
-    if (!content) {
-      reject('getStack error.');
-    }
-
     const req = nfx.awsSDK.cf.createStack({
       StackName: nfx.stackName,
       TemplateBody: content,

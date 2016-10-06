@@ -18,13 +18,15 @@ class NFX {
     const functions = this.loadCoreConfig('functions.yaml');
     const api       = this.loadCoreConfig('api.yaml');
 
-    this.NFX.stackName  = functions.stack;
-    this.NFX.functions  = functions.functions;
-    this.NFX.bucketName = project.profiles.default.bucket;
-    this.NFX.provider   = project.profiles.default.provider;
-    this.NFX.region     = project.profiles.default.region;
-    this.NFX.api        = api;
-    this.NFX.hasher     = crypto.createHash('sha256');
+    this.NFX.stackName           = functions.stack;
+    this.NFX.functions           = functions.functions;
+    this.NFX.bucketName          = project.profiles.default.bucket;
+    this.NFX.provider            = project.profiles.default.provider;
+    this.NFX.region              = project.profiles.default.region;
+    this.NFX.api                 = api;
+    this.NFX.hasher              = crypto.createHash('sha256');
+    this.NFX.compressedFunctions = [];
+    this.NFX.nfxJSON             = {};
 
     switch(this.NFX.provider) {
       case 'aws':
