@@ -1,6 +1,5 @@
 {
   "Type": "AWS::ApiGateway::Deployment",
-  "DependsOn": "NFXApi",
   "Properties": {
     "RestApiId": { "Ref": "NFXApi" },
     "Description": "$DESCRIPTION",

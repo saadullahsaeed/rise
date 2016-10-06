@@ -61,6 +61,10 @@ module.exports = (nfx) => {
       fs.writeFileSync(nfxVersionPath, nfx.version, { encoding: 'utf8' });
     })
     .catch((err) => {
-      consoleLog('err', err);
+      if (err.stack) {
+        consoleLog('err', err.stack);
+      } else {
+        consoleLog('err', err);
+      }
     });
 }

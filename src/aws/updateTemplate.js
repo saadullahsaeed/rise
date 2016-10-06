@@ -8,6 +8,7 @@ const fs         = require('fs'),
 
 module.exports.updateTemplate = function(nfx) {
   return new Promise((resolve, reject) => {
+    setBaseTemplate(nfx);
     setFunctions(nfx);
     setAPIs(nfx);
     setDeployment(nfx);
@@ -47,13 +48,32 @@ module.exports.updateTemplate = function(nfx) {
   });
 }
 
+function setBaseTemplate(nfx) {
+  const content = fsReadFile(path.join(__dirname, 'cf-base.json'));
+  const baseContentJSON = JSON.parse(content);
+  nfx.cfTemplate = baseContentJSON;
+
+  const cfRestAPIContent = fsReadFile(path.join(__dirname, 'cf-restapi.json'));
+  const cfRestAPIJSON = JSON.parse(cfRestAPIContent);
+  nfx.cfTemplate.Resources.NFXApi = cfRestAPIJSON;
+}
+
 function setDeployment(nfx) {
   let cfDeploymentContent = fsReadFile(path.join(__dirname, 'cf-deployment.json'));
 
   cfDeploymentContent = cfDeploymentContent.replace('$STAGE_NAME', nfx.stage);
   cfDeploymentContent = cfDeploymentContent.replace('$VERSION', nfx.version);
   const cfDeploymentJSON = JSON.parse(cfDeploymentContent);
-  // TODO: Remove previous deployment tag and put version
+
+  const apiMethodIds = [];
+  const resources = nfx.cfTemplate.Resources
+  for ( let resName in resources ) {
+    const resource = resources[resName];
+    if (resource.Type === 'AWS::ApiGateway::Method') {
+      apiMethodIds.push(resName);
+    }
+  }
+  cfDeploymentJSON.DependsOn = apiMethodIds;
   nfx.cfTemplate.Resources[`NFXDeployment${nfx.version}`] = cfDeploymentJSON;
 
   let cfBaseURLOutputContent = fsReadFile(path.join(__dirname, 'cf-api-base-url-output.json'));
@@ -64,6 +84,7 @@ function setDeployment(nfx) {
 function setFunctions(nfx) {
   const cfFunctionContent = fsReadFile(path.join(__dirname, 'cf-lambda-function.json'));
   const cfFunctionVersionContent = fsReadFile(path.join(__dirname, 'cf-lambda-version.json'));
+  const cfFuncRoleContent = fsReadFile(path.join(__dirname, 'cf-lambda-role.json'));
 
   const defaultSetting = nfx.functions.default;
   for (let funcPath in nfx.functions) {
@@ -89,6 +110,8 @@ function setFunctions(nfx) {
     nfx.cfTemplate.Resources[`${funcName}Version`] = JSON.parse(
       cfFunctionVersionContent.replace('$FUNCTION_NAME', funcName)
     );
+
+    nfx.cfTemplate.Resources[`${funcName}Role`] = JSON.parse(cfFuncRoleContent.replace('$FUNCTION_NAME', funcName));
   }
 }
 
