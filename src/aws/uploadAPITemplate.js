@@ -9,7 +9,7 @@ const fs         = require('fs'),
 
 module.exports.uploadAPITemplate = function(nfx) {
   return new Promise((resolve, reject) => {
-    const cfCorsContent = fsReadFile(path.join(__dirname, 'cf-api-cors.json'));
+    const cfCorsContent = fsReadFile(path.join(__dirname, 'cf-api-cors-swagger.json'));
     const lambdaARNMap = {};
 
     for (let i = 0; i < nfx.lambdaARNs.length; ++i) {

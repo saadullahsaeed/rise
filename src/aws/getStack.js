@@ -54,7 +54,7 @@ function create(nfx) {
           reject(err);
         }
 
-        resolve();
+        resolve(nfx);
       });
     });
 

@@ -42,8 +42,6 @@ module.exports.updateAPIs = function(nfx) {
     cfBaseURLOutputContent = cfBaseURLOutputContent.replace('$STAGE_NAME', nfx.stage);
     nfx.cfTemplate.Outputs.NFXBaseURL = JSON.parse(cfBaseURLOutputContent);
 
-    console.log('nfx.cfTemplate', nfx.cfTemplate.Resources.NFXDeployment);
-
     const req = nfx.awsSDK.cf.updateStack({
       StackName: nfx.stackName,
       TemplateBody: JSON.stringify(nfx.cfTemplate, null, 2),

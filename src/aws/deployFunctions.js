@@ -7,8 +7,6 @@ const fs         = require('fs'),
 
 module.exports.deployFunctions = function(nfx) {
   return new Promise((resolve, reject) => {
-    const cfBaseContent = fsReadFile(path.join(__dirname, 'cf-base.json'));
-    const cfBaseContentJSON = JSON.parse(cfBaseContent);
     const cfFunctionContent = fsReadFile(path.join(__dirname, 'cf-lambda-function.json'));
     const cfFunctionVersionContent = fsReadFile(path.join(__dirname, 'cf-lambda-version.json'));
     const cfFunctionArnOutputContent = fsReadFile(path.join(__dirname, 'cf-lambda-arn-output.json'));
