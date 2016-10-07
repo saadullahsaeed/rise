@@ -11,7 +11,7 @@ module.exports.updateStackToVersion = function(nfx) {
     const cf = nfx.awsSDK.cf;
     const params = {
       StackName: nfx.stackName,
-      TemplateURL: `https://s3-${nfx.region}.amazonaws.com/${nfx.bucketName}/versions/${version}.json`,
+      TemplateURL: `https://s3-${nfx.region}.amazonaws.com/${nfx.bucketName}/versions/${version}/aws/cf.json`,
       Capabilities: ['CAPABILITY_IAM']
     };
     const req = cf.updateStack(params);
