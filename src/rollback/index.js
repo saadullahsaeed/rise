@@ -25,7 +25,8 @@ module.exports = function(nfx, version) {
       return getStackTemplate(updatedNFX);
     })
     .then((updatedNFX) => {
-      return deployAPI(updatedNFX);
+      // FIXME:
+      return deployAPI(updatedNFX, { rollback: true });
     })
     .catch((err) => {
       consoleLog('err', err);

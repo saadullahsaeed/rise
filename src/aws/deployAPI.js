@@ -5,9 +5,9 @@ const fs         = require('fs'),
       consoleLog = require('../utils/consoleLog').consoleLog,
       fsReadFile = require('../utils/fs').fsReadFile;
 
-module.exports.deployAPI = function(nfx) {
+module.exports.deployAPI = function(nfx, options) {
   return new Promise((resolve, reject) => {
-    setDeployment(nfx);
+    setDeployment(nfx, options.rollback);
 
     const req = nfx.awsSDK.cf.updateStack({
       StackName: nfx.stackName,
@@ -44,12 +44,18 @@ module.exports.deployAPI = function(nfx) {
   });
 }
 
-function setDeployment(nfx) {
+function setDeployment(nfx, rollback) {
   let cfDeploymentContent = fsReadFile(path.join(__dirname, 'cf-deployment.json'));
 
   cfDeploymentContent = cfDeploymentContent.replace('$STAGE_NAME', nfx.stage);
   const cfDeploymentJSON = JSON.parse(cfDeploymentContent);
-  nfx.cfTemplate.Resources[`NFXDeployment${nfx.version}`] = JSON.parse(cfDeploymentContent);
+  let deploymentResourceName = `NFXDeployment${nfx.version}`;
+  if (rollback) {
+    // If we don't create new deployment tag with new name,
+    // it will not deploy since there is no changes on deployment tag.
+    deploymentResourceName = `${deploymentResourceName}Rollback`;
+  }
+  nfx.cfTemplate.Resources[deploymentResourceName] = JSON.parse(cfDeploymentContent);
 
   let cfBaseURLOutputContent = fsReadFile(path.join(__dirname, 'cf-api-base-url-output.json'));
   cfBaseURLOutputContent = cfBaseURLOutputContent.replace('$STAGE_NAME', nfx.stage);
