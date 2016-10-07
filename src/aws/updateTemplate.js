@@ -39,6 +39,9 @@ module.exports.updateTemplate = function(nfx) {
         consoleLog('info', "No updates on updating stack. Proceed to the next step");
         resolve(nfx);
       } else {
+        // TODO: If a user cancelled deploying, it might get "ResourceNotReady: Resource is not in the state stackUpdateComplete"
+        // Since it is rolling back
+        // We need to share a deployment state globally and ignore the error when it is on canceling
         reject(err);
       }
     });

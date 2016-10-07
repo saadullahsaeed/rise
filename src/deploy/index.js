@@ -10,7 +10,8 @@ const fs                    = require('fs'),
       getBucketName         = require('../aws/getBucketName').getBucketName,
       updateTemplate        = require('../aws/updateTemplate').updateTemplate,
       deployAPI             = require('../aws/deployAPI').deployAPI,
-      uploadNFXFiles        = require('../aws/uploadNFXFiles').uploadNFXFiles;
+      uploadNFXFiles        = require('../aws/uploadNFXFiles').uploadNFXFiles,
+      cancelUpdateTemplate  = require('../aws/cancelUpdateTemplate').cancelUpdateTemplate;
 
 module.exports = (nfx) => {
   consoleLog('info', 'Checking stack...');
@@ -37,53 +38,54 @@ module.exports = (nfx) => {
 
   // FIXME: It should be configurable.
   nfx.stage = 'staging';
+  console.log(`deploying ${newVersion}...`);
 
   let startTime = new Date().getTime();
   let state = 'FETCHING';
   getStack(nfx)
     .then((updatedNFX) => {
       const endTime = new Date().getTime();
-      console.log('fetching stack took: ', endTime - startTime);
+      console.log(`fetching stack took: ${(endTime - startTime)/1000}s`);
       startTime = endTime;
       return getBucketName(updatedNFX);
     })
     .then((updatedNFX) => {
       const endTime = new Date().getTime();
-      console.log('getting bucket took: ', endTime - startTime);
+      console.log(`getting bucket took: ${(endTime - startTime)/1000}s`);
       startTime = endTime;
       return compressAndCompare(updatedNFX);
     })
     .then((updatedNFX) => {
       state = 'UPLOADING';
       const endTime = new Date().getTime();
-      console.log('compressing and comparing took: ', endTime - startTime);
+      console.log(`compressing and comparing took: ${(endTime - startTime)/1000}s`);
       startTime = endTime;
       return uploadFunctions(updatedNFX);
     })
-    .then((updatedNFX) => {
+    .then((updatedNFX) => { // Takes at least 30 secs
       state = 'UPDATING';
       const endTime = new Date().getTime();
-      console.log('uploading functions took: ', endTime - startTime);
+      console.log(`uploading functions took: ${(endTime - startTime)/1000}s`);
       startTime = endTime;
       return updateTemplate(updatedNFX);
     })
-    .then((updatedNFX) => {
+    .then((updatedNFX) => { // Takes at least 30 secs
       state = 'DEPLOYING';
       const endTime = new Date().getTime();
-      console.log('updating stack took: ', endTime - startTime);
+      console.log(`updating stack took: ${(endTime - startTime)/1000}s`);
       startTime = endTime;
-      return deployAPI(updatedNFX);
+      return deployAPI(updatedNFX, {});
     })
     .then((updatedNFX) => {
       state = 'SAVING';
       const endTime = new Date().getTime();
-      console.log('uploading stack took: ', endTime - startTime);
+      console.log(`uploading stack took: ${(endTime - startTime)/1000}s`);
       startTime = endTime;
       return uploadNFXFiles(updatedNFX);
     })
     .then((updatedNFX) => {
       const endTime = new Date().getTime();
-      console.log('saving template took: ', endTime - startTime);
+      console.log(`saving template took: ${(endTime - startTime)/1000}s`);
       consoleLog('info', `Successfully deployed your project. Version: ${nfx.version}`)
       fs.writeFileSync(nfxVersionPath, nfx.version, { encoding: 'utf8' });
     })
@@ -98,6 +100,24 @@ module.exports = (nfx) => {
   // To catch Ctrl+c
   process.on('SIGINT', function () {
     console.log(`SIGINT fired at ${state}`);
-    process.exit(1)
+    if (state === 'UPDATING') {
+      console.log('canceling updating stack');
+      cancelUpdateTemplate(nfx)
+        .then(function() {
+          console.log('cancelled');
+          process.exit(1);
+        })
+        .catch(function(err) {
+          if (err.stack) {
+            consoleLog('err', err.stack);
+          } else {
+            consoleLog('err', err);
+          }
+          process.exit(1);
+        });
+    } else if (state === 'DEPLOYING') {
+      console.log('rolling back to previous version');
+      process.exit(1);
+    }
   });
 }
