@@ -5,9 +5,13 @@ const Response = require('../src/response');
 describe('Response', function() {
   let res, doneFn;
 
-  beforeEach(function() {
+  const reset = function() {
     doneFn = sinon.spy();
     res = new Response(null, doneFn);
+  };
+
+  beforeEach(function() {
+    reset();
   });
 
   describe('status()', function() {
@@ -33,6 +37,9 @@ describe('Response', function() {
 
       res.header('bar', 'lol');
       expect(res.get('bar')).to.equal('lol');
+
+      res.setHeader('hello', 'world');
+      expect(res.getHeader('hello')).to.equal('world');
     });
 
     it('handles field names case-insensitively', function() {
@@ -45,6 +52,11 @@ describe('Response', function() {
       res.set('foo', 'baz');
       expect(res.get('Foo')).to.equal('baz');
       expect(res.get('foO')).to.equal('baz');
+    });
+
+    it('trims leading and trailing whitespace', function() {
+      res.set('Content-Type', '    text/plain     ');
+      expect(res.get('content-type')).to.equal('text/plain');
     });
 
     it('converts value to string if a non-string is passed as a param', function() {
@@ -332,7 +344,7 @@ describe('Response', function() {
       });
 
       context('when a buffer is passed', function() {
-        it('invokes end() with binary body', function() {
+        it('invokes end() with a utf-8  body', function() {
           const bin = new Buffer([207, 250, 237, 254, 7, 0, 0, 1, 3, 0]);
           res.send(bin);
 
@@ -341,6 +353,83 @@ describe('Response', function() {
           expect(res.end).to.have.been.calledOnce;
           expect(res.end).to.have.been.calledWithExactly();
         });
+      });
+    });
+
+    describe('sendStatus()', function() {
+      it('sets a given status code and sends a json representation of the status code', function() {
+        res.sendStatus(200);
+        expect(res.statusCode).to.equal(200);
+        expect(res.get('content-type')).to.equal('application/json; charset=utf-8');
+        expect(res.body).to.equal(JSON.stringify({ status: 'OK' }));
+
+        reset();
+
+        res.sendStatus(404);
+        expect(res.statusCode).to.equal(404);
+        expect(res.get('content-type')).to.equal('application/json; charset=utf-8');
+        expect(res.body).to.equal(JSON.stringify({ status: 'Not Found' }));
+      });
+    });
+  });
+
+  describe('http.ServerResponse and express compatibility', function() {
+    describe('writeHead()', function() {
+      it('sets status code and headers', function() {
+        res.writeHead(200, 'ignored', {
+          'Content-Type': 'text/plain',
+          'Foo': 'bar'
+        });
+        expect(res.statusCode).to.equal(200);
+        expect(res.get('content-type')).to.equal('text/plain');
+        expect(res.get('foo')).to.equal('bar');
+
+        reset();
+
+        res.writeHead(404, 'ignored', {
+          'X-Bar': 'lol'
+        });
+        expect(res.statusCode).to.equal(404);
+        expect(res.get('x-bar')).to.equal('lol');
+      });
+    });
+
+    describe('write()', function() {
+      it('writes to the response body', function() {
+        const writeCb = sinon.spy();
+        res.write('Hello world', 'utf8', writeCb);
+        res.write('!!!');
+
+        expect(res.body).to.equal('Hello world!!!');
+        expect(writeCb).to.have.been.calledOnce;
+        expect(writeCb).to.have.been.calledWithExactly();
+      });
+    });
+
+    describe('end()', function() {
+      it('writes to the response body and ends request', function() {
+        const endCb = sinon.spy();
+        res.write('Hello world');
+
+        res.end('Foo bar', 'utf8', endCb);
+        expect(doneFn).to.have.been.calledOnce;
+        expect(doneFn).to.have.been.calledWithExactly(null, {
+          statusCode: 200,
+          headers: {},
+          body: 'Hello worldFoo bar'
+        });
+        expect(endCb).to.have.been.calledOnce;
+        expect(endCb).to.have.been.calledWithExactly();
+      });
+    });
+
+    describe('mock properties and functions', function() {
+      it('returns mock values for compatibility', function() {
+        expect(res.sendDate).to.be.true;
+        expect(res.statusMessage).to.be.undefined;
+        expect(res.setTimeout()).to.equal(res);
+        expect(res.addTrailers()).to.be.undefined;
+        expect(res.writeContinue()).to.be.undefined;
       });
     });
   });

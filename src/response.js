@@ -1,16 +1,20 @@
 'use strict';
 
-const headers = require('./headers');
+const http = require('http'),
+      EventEmitter = require('events'),
+      headers = require('./headers');
 
 /** Response */
-class Response {
+class Response extends EventEmitter {
   constructor(req, done) {
+    super();
     this.__req = req;
     this.__done = done;
     this.__statusCode = null;
     this.__finished = false;
     this.__headers = {};
     this.__body = '';
+    this.locals = {};
   }
 
   /**
@@ -38,7 +42,7 @@ class Response {
   }
 
   /**
-   * HTTP response headers object, following [Node.js convention](https://nodejs.org/api/http.html#http_message_headers)
+   * HTTP response headers, following [Node.js convention](https://nodejs.org/api/http.html#http_message_headers)
    * @type {Object}
    * @readonly
    * @example
@@ -66,6 +70,25 @@ class Response {
    */
   get body() {
     return this.__body;
+  }
+
+  /**
+   * Sends an HTTP response with a given status code and the JSON representation of the status code as the response body.
+   * @param {number} statusCode - Status code
+   * @returns {Response} this
+   * @example
+   * res.sendStatus(200); // equivalent to res.status(200).send({ status: 'OK' });
+   * res.sendStatus(403); // equivalent to res.status(403).send({ status: 'Forbidden' });
+   * res.sendStatus(404); // equivalent to res.status(404).send({ status: 'Not Found' });
+   * res.sendStatus(500); // equivalent to res.status(404).send({ status: 'Internal Server Error' });
+   */
+  sendStatus(statusCode) {
+    if ((typeof statusCode !== 'string' && typeof statusCode !== 'number') ||
+        (typeof statusCode === 'string' && isNaN(statusCode = parseInt(statusCode, 10)))) {
+      throw new TypeError("'statusCode' must be a number");
+    }
+
+    return this.status(statusCode).send({ status: http.STATUS_CODES[statusCode] || String(statusCode) });
   }
 
   /**
@@ -122,11 +145,25 @@ class Response {
   }
 
   /**
-   * Sends an HTTP response. Use it to quickly respond without any data. To respond with data, use [res.send()]{@link Response#send} or [res.json()]{@link Response#json} instead.
+   * Sends an HTTP response. This function is usually invoked without any arguments to quickly respond without any data. To respond with data, you should use [res.send()]{@link Response#send} or [res.json()]{@link Response#json} instead.
+   * @param {string|Buffer} [data] - data to write
+   * @param {string} [encoding] - encoding to use when `data` is a string
+   * @param {function} [callback] - callback to be invoked after the response is sent
    * @returns {boolean} true if response is sent
    */
-  end() {
-    if(this.__finished) {
+  end(data, encoding, callback) {
+    if (typeof data === 'function') {
+      callback = data;
+      data = undefined;
+    } else if (data != null) {
+      if (typeof encoding === 'function') {
+        callback = encoding;
+        encoding = undefined;
+      }
+      this.write(data, encoding);
+    }
+
+    if (this.__finished) {
       throw new Error('Response is already ended');
     }
 
@@ -147,6 +184,10 @@ class Response {
       body
     });
     this.__finished = true;
+    this.emit('finish');
+    if (typeof callback === 'function') {
+      callback();
+    }
     return true;
   }
 
@@ -277,7 +318,7 @@ class Response {
       return this;
     }
 
-    this.__headers[field] = [String(value)];
+    this.__headers[field] = [String(value).trim()];
     return this;
   }
 
@@ -321,21 +362,11 @@ class Response {
     }
 
     if (Array.isArray(this.__headers[field])) {
-      this.__headers[field].push(String(value));
+      this.__headers[field].push(String(value).trim());
     } else {
       this.set(field, value);
     }
     return this;
-  }
-
-  /**
-   * Alias of [res.set()]{@link Response#set}.
-   * @param {(string|Object)} field - Header field name or an object containing a key-value mapping of headers.
-   * @param {(string|string[])} [value] - Header value or a list of values
-   * @returns {Response} this
-   */
-  header(field, value) {
-    return this.set(field, value);
   }
 
   /**
@@ -357,8 +388,91 @@ class Response {
     }
     return this;
   }
+
+  /**
+   * Set status code and response headers. Exists only for compatibility with http.IncomingResponse. You should use [res.status()]{@link Response#status} and [res.headers()]{@link Response#headers} instead.
+   * @param {number} statusCode - status code
+   * @param {string} statusMessage - unused
+   * @param {Object} headers - headers
+   * @returns {boolean} returns true if successful
+   * @ignore
+   */
+  writeHead(statusCode, statusMessage, headers) {
+    this.status(statusCode).set(headers);
+  }
+
+  /**
+   * Write data to response body. Exists only for compatibility with http.IncomingResponse. You should use [res.send()]{@link Response#send} instead.
+   * @param {string|Buffer} [chunk] - data to write
+   * @param {string} [encoding] - encoding to use when `data` is a string
+   * @param {function} [callback] - callback to be invoked after data is written
+   * @returns {boolean} true if successful
+   * @ignore
+   */
+  write(chunk, encoding, callback) {
+    if (typeof chunk !== 'string' && !(chunk instanceof Buffer)) {
+      throw new TypeError("'chunk' must be a string or a Buffer");
+    }
+    encoding = encoding || 'utf8';
+    this.__body += new Buffer(chunk, encoding).toString('utf8');
+
+    if (typeof callback === 'function') {
+      callback();
+    }
+    return true;
+  }
+
+  /**
+   * Exists only for compatibility with http.IncomingResponse
+   * @returns {boolean} true if response is sent
+   * @ignore
+   */
+  get headersSent() {
+    return this.__finished;
+  }
+
+  /**
+   * Exists only for compatibility with http.IncomingResponse
+   * @returns {boolean} always true
+   * @ignore
+   */
+  get sendDate() {
+    return true;
+  }
+
+  /**
+   * Exists only for compatibility with http.IncomingResponse
+   * @returns {undefined}
+   * @ignore
+   */
+  get statusMessage() {}
+
+  /**
+   * Exists only for compatibility with http.IncomingResponse
+   * @returns {Response} this
+   * @ignore
+   */
+  setTimeout() {
+    return this;
+  }
+
+  /**
+   * Exists only for compatibility with http.IncomingResponse
+   * @returns {undefined}
+   * @ignore
+   */
+  addTrailers() {}
+
+  /**
+   * Exists only for compatibility with http.IncomingResponse
+   * @returns {undefined}
+   * @ignore
+   */
+  writeContinue() {}
 }
 
 Response.prototype.header = Response.prototype.set;
+Response.prototype.setHeader = Response.prototype.set;
+Response.prototype.getHeader = Response.prototype.get;
 
 module.exports = Response;
