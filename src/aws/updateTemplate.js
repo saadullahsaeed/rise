@@ -53,7 +53,9 @@ function setBaseTemplate(nfx) {
   nfx.cfTemplate = baseContentJSON;
 
   const cfRestAPIContent = fsReadFile(path.join(__dirname, 'cf-restapi.json'));
-  const cfRestAPIJSON = JSON.parse(cfRestAPIContent);
+  const cfRestAPIJSON = JSON.parse(
+    cfRestAPIContent.replace('$NAME', `${nfx.stackName} API`)
+  );
   nfx.cfTemplate.Resources.NFXApi = cfRestAPIJSON;
 }
 
