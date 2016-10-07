@@ -71,7 +71,7 @@ function setFunctions(nfx) {
     const func = nfx.functions[funcPath];
     // TODO: Titlecase function name
     const funcName = funcPath.replace(path.sep, '');
-    const s3Key = funcName + '-' + nfx.version + '.zip';
+    const s3Key = `versions/${nfx.version}/functions/${funcName}.zip`;
     const timeout = func.timeout || defaultSetting.timeout;
     const memorySize = func.memory || defaultSetting.memory;
 

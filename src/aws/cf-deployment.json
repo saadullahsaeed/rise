@@ -2,7 +2,7 @@
   "Type": "AWS::ApiGateway::Deployment",
   "Properties": {
     "RestApiId": { "Ref": "NFXApi" },
-    "Description": "$DESCRIPTION",
+    "Description": "API Deployment",
     "StageName": "$STAGE_NAME"
   }
 }
