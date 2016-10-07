@@ -1,6 +1,6 @@
 'use strict';
 
-const loadYAML   = require('./utils/yaml').loadYAML,
+const loadConfig = require('./utils/loadConfig').loadConfig,
       consoleLog = require('./utils/consoleLog').consoleLog,
       AWS        = require('aws-sdk'),
       CLI        = require('./cli'),
@@ -14,9 +14,9 @@ class NFX {
   }
 
   loadConfigs() {
-    const project   = this.loadCoreConfig('project.yaml');
-    const functions = this.loadCoreConfig('functions.yaml');
-    const api       = this.loadCoreConfig('api.yaml');
+    const project   = loadConfig('project');
+    const functions = loadConfig('functions');
+    const api       = loadConfig('api');
 
     this.NFX.stackName           = `NFX-${functions.stack}`;
     this.NFX.functions           = functions.functions;
@@ -44,17 +44,6 @@ class NFX {
         break;
     }
   }
-
-  loadCoreConfig(file) {
-    const config = loadYAML(file);
-    if (!config) {
-      consoleLog('err', `Invalid ${file}.`);
-      process.exit(1);
-    }
-
-    return config;
-  }
-
 }
 
 module.exports = NFX;
