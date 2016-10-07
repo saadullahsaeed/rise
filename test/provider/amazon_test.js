@@ -87,6 +87,7 @@ describe('provider/amazon', function() {
             path: "/items/my-item/comments/123",
             protocol: "https",
             method: "POST",
+            httpVersion: "1.1",
             headers: {
               "accept": "*/*",
               "cloudfront-forwarded-proto": "https",
@@ -220,6 +221,7 @@ describe('provider/amazon', function() {
             path: "/user",
             protocol: "https",
             method: "GET",
+            httpVersion: "1.1",
             headers: {
               "accept": "*/*",
               "cloudfront-forwarded-proto": "https",

@@ -11,6 +11,7 @@ class Request extends Readable {
     this.__path = props.path;
     this.__protocol = props.protocol;
     this.__method = props.method;
+    this.__httpVersion = props.httpVersion;
     this.__headers = props.headers;
     this.__rawQuery = props.query;
     this.__params = props.params;
@@ -83,6 +84,42 @@ class Request extends Readable {
    */
   get method() {
     return this.__method;
+  }
+
+  /**
+   * Version of the HTTP protocol used in the request
+   * @type {string}
+   * @readonly
+   * @example
+   * HTTP/1.1
+   * req.httpVersion // => "1.1"
+   */
+  get httpVersion() {
+    return this.__httpVersion;
+  }
+
+  /**
+   * Major version of the HTTP protocol used in the request
+   * @type {number}
+   * @readonly
+   * @example
+   * // HTTP/1.0
+   * req.httpVersionMajor // => 1
+   */
+  get httpVersionMajor() {
+    return parseInt(this.__httpVersion.split('.')[0], 10);
+  }
+
+  /**
+   * Minor version of the HTTP protocol used in the request
+   * @type {number}
+   * @readonly
+   * @example
+   * // HTTP/1.0
+   * req.httpVersionMinor // => 0
+   */
+  get httpVersionMinor() {
+    return parseInt(this.__httpVersion.split('.')[1], 10);
   }
 
   /**

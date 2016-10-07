@@ -37,6 +37,7 @@ describe('Request', function() {
       path,
       protocol: 'https',
       method: 'POST',
+      httpVersion: '1.1',
       headers,
       query,
       params,
@@ -52,11 +53,21 @@ describe('Request', function() {
       expect(req.route).to.equal(route);
       expect(req.path).to.equal(path);
       expect(req.method).to.equal('POST');
+      expect(req.httpVersion).to.equal('1.1');
       expect(req.headers).to.deep.equal(headers);
       expect(req.params).to.deep.equal(params);
       expect(req.stage).to.deep.equal(stage);
       expect(req.rawBody).to.equal(rawBody);
       expect(req.meta).to.equal(meta);
+    });
+  });
+
+  describe('req.httpVersion*', function() {
+    it('returns http version', function() {
+      req = new Request({ httpVersion: '3.1' }); // 3.1 for testing purpose
+      expect(req.httpVersion).to.equal('3.1');
+      expect(req.httpVersionMajor).to.equal(3);
+      expect(req.httpVersionMinor).to.equal(1);
     });
   });
 
