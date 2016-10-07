@@ -32,31 +32,58 @@ module.exports = (nfx) => {
   // We can use https://github.com/npm/lockfile if it works with windows well
   const currentVersion = fs.readFileSync(nfxVersionPath, { encoding: 'utf8' });
   // Version format is v1234 for now
-  nfx.version = `v${(parseInt(currentVersion.substr(1) || 0) + 1)}`;
+  const newVersion = `v${(parseInt(currentVersion.substr(1) || 0) + 1)}`;
+  nfx.version = newVersion
 
   // FIXME: It should be configurable.
   nfx.stage = 'staging';
 
+  let startTime = new Date().getTime();
+  let state = 'FETCHING';
   getStack(nfx)
     .then((updatedNFX) => {
+      const endTime = new Date().getTime();
+      console.log('fetching stack took: ', endTime - startTime);
+      startTime = endTime;
       return getBucketName(updatedNFX);
     })
     .then((updatedNFX) => {
+      const endTime = new Date().getTime();
+      console.log('getting bucket took: ', endTime - startTime);
+      startTime = endTime;
       return compressAndCompare(updatedNFX);
     })
     .then((updatedNFX) => {
+      state = 'UPLOADING';
+      const endTime = new Date().getTime();
+      console.log('compressing and comparing took: ', endTime - startTime);
+      startTime = endTime;
       return uploadFunctions(updatedNFX);
     })
     .then((updatedNFX) => {
+      state = 'UPDATING';
+      const endTime = new Date().getTime();
+      console.log('uploading functions took: ', endTime - startTime);
+      startTime = endTime;
       return updateTemplate(updatedNFX);
     })
     .then((updatedNFX) => {
+      state = 'DEPLOYING';
+      const endTime = new Date().getTime();
+      console.log('updating stack took: ', endTime - startTime);
+      startTime = endTime;
       return deployAPI(updatedNFX);
     })
     .then((updatedNFX) => {
+      state = 'SAVING';
+      const endTime = new Date().getTime();
+      console.log('uploading stack took: ', endTime - startTime);
+      startTime = endTime;
       return uploadNFXFiles(updatedNFX);
     })
     .then((updatedNFX) => {
+      const endTime = new Date().getTime();
+      console.log('saving template took: ', endTime - startTime);
       consoleLog('info', `Successfully deployed your project. Version: ${nfx.version}`)
       fs.writeFileSync(nfxVersionPath, nfx.version, { encoding: 'utf8' });
     })
@@ -67,4 +94,10 @@ module.exports = (nfx) => {
         consoleLog('err', err);
       }
     });
+
+  // To catch Ctrl+c
+  process.on('SIGINT', function () {
+    console.log(`SIGINT fired at ${state}`);
+    process.exit(1)
+  });
 }
