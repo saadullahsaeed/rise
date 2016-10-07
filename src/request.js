@@ -1,10 +1,12 @@
 'use strict';
 
-const qs = require('qs');
+const Readable = require('stream').Readable,
+      qs = require('qs');
 
 /** Request */
-class Request {
+class Request extends Readable {
   constructor(props) {
+    super();
     this.__route = props.route;
     this.__path = props.path;
     this.__protocol = props.protocol;
@@ -17,9 +19,34 @@ class Request {
     this.__ip = props.ip;
     this.__meta = props.meta;
 
+    this.__readIndex = 0;
     this.__query = null;
     this.__url = null;
     this.__port = null;
+  }
+
+  _read(size) {
+    const bodyLength = this.__rawBody.length;
+    if (this.__readIndex === bodyLength) {
+      this.push(null);
+      return;
+    }
+
+    if (size == null) {
+      size = bodyLength - this.__readIndex;
+    }
+
+    const data = this.__rawBody.slice(this.__readIndex, this.__readIndex + size);
+    this.__readIndex += data.length;
+
+    if (!this.push(data, 'utf8')) {
+      this.__readIndex = bodyLength;
+      return;
+    }
+
+    if (this.__readIndex === bodyLength) {
+      this.push(null);
+    }
   }
 
   /**
@@ -271,6 +298,33 @@ class Request {
     }
 
     return this.__headers[field.toLowerCase()];
+  }
+
+  /**
+   * Exists only for compatibility with http.IncomingResponse
+   * @returns {null}
+   * @ignore
+   */
+  get socket() {
+    return null;
+  }
+
+  /**
+   * Trailers are not supported. Exists only for compatibility with http.IncomingResponse
+   * @returns {Object} empty object
+   * @ignore
+   */
+  get trailers() {
+    return {};
+  }
+
+  /**
+   * Exists only for compatibility with http.IncomingResponse
+   * @returns {Request} this
+   * @ignore
+   */
+  setTimeout() {
+    return this;
   }
 }
 

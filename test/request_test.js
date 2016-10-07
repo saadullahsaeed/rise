@@ -183,6 +183,72 @@ describe('Request', function() {
     });
   });
 
-  describe('req.subdomains', function() {
+  describe('http.IncomingMessage compatibility', function() {
+    describe('stream.Readable compatibility', function() {
+      it('can read data by a given size at a time', function(done) {
+        // reply=lol&secret=false
+
+        const dataCb = sinon.spy(),
+              endCb = sinon.spy();
+        req.on('data', dataCb);
+        req.on('end', endCb);
+
+        req.read(6);
+        expect(dataCb).to.have.been.calledOnce;
+        expect(dataCb).to.have.been.calledWith(new Buffer('reply=', 'utf8'));
+        expect(endCb).not.to.have.been.called;
+        dataCb.reset();
+
+        req.read(10);
+        expect(dataCb).to.have.been.calledOnce;
+        expect(dataCb).to.have.been.calledWith(new Buffer('lol&secret', 'utf8'));
+        expect(endCb).not.to.have.been.called;
+        dataCb.reset();
+
+        req.read(20);
+        expect(dataCb).to.have.been.calledOnce;
+        expect(dataCb).to.have.been.calledWith(new Buffer('=false', 'utf8'));
+        expect(endCb).not.to.have.been.called;
+        dataCb.reset();
+
+        req.read(100);
+        expect(dataCb).not.to.have.been.called;
+
+        process.nextTick(() => {
+          expect(endCb).to.have.been.calledOnce;
+          done();
+        });
+      });
+
+      it('can read a large chunk of data at once if size param is not given', function(done) {
+        const dataCb = sinon.spy(),
+              endCb = sinon.spy();
+        req.on('data', dataCb);
+        req.on('end', endCb);
+
+        req.read(5);
+        expect(dataCb).to.have.been.calledOnce;
+        expect(dataCb).to.have.been.calledWith(new Buffer('reply', 'utf8'));
+        expect(endCb).not.to.have.been.called;
+        dataCb.reset();
+
+        req.read(); // read the rest of the data
+        expect(dataCb).to.have.been.calledOnce;
+        expect(dataCb).to.have.been.calledWith(new Buffer(rawBody.slice(5), 'utf8'));
+
+        process.nextTick(() => {
+          expect(endCb).to.have.been.calledOnce;
+          done();
+        });
+      });
+    });
+
+    describe('mock properties and functions', function() {
+      it('returns mock values for compatibility', function() {
+        expect(req.socket).to.be.null;
+        expect(req.trailers).to.deep.equal({});
+        expect(req.setTimeout()).to.equal(req);
+      });
+    });
   });
 });
