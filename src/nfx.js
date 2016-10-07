@@ -18,7 +18,7 @@ class NFX {
     const functions = this.loadCoreConfig('functions.yaml');
     const api       = this.loadCoreConfig('api.yaml');
 
-    this.NFX.stackName           = functions.stack;
+    this.NFX.stackName           = `NFX-${functions.stack}`;
     this.NFX.functions           = functions.functions;
     this.NFX.bucketName          = project.profiles.default.bucket;
     this.NFX.provider            = project.profiles.default.provider;
