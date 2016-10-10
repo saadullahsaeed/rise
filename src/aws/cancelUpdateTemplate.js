@@ -33,7 +33,14 @@ module.exports.cancelUpdateTemplate = function(nfx) {
     });
 
     req.on('error', function(err, data) {
-      reject(err);
+      // This is when the update is done before the request was made
+      if (err.message && err.message.indexOf('CancelUpdateStack cannot be called from current stack status') !== -1) {
+        consoleLog('info', 'The stack already has updated.');
+        nfx.state = 'UNEXPECTEDLY_UPDATED';
+        resolve(nfx);
+      } else {
+        reject(err);
+      }
     });
 
     req.send();

@@ -73,55 +73,7 @@ module.exports = (nfx) => {
       }
     });
 
-  // To catch Ctrl+c
   process.on('SIGINT', function () {
-    console.log(`SIGINT fired at ${state}`);
-    if (state === 'CREATING') {
-      // TODO: Delete the stack
-    } else if (state === 'UPDATING') {
-      // Users could send Ctrl+c again.
-      state = 'ROLLING_BACK';
-      console.log('Canceling updating stack');
-      cancelUpdateTemplate(nfx)
-        .then(function() {
-          console.log('cancelled');
-          process.exit(1);
-        })
-        .catch(function(err) {
-          if (err.stack) {
-            consoleLog('err', err.stack);
-          } else {
-            consoleLog('err', err);
-          }
-          process.exit(1);
-        });
-    } else if (state === 'DEPLOYING') {
-      // Nothing to rollback if this is the first deployment
-      // 1. Cancel deployment
-      // 2. Rollback to previous version
-      state = 'ROLLING_BACK';
-
-      console.log('Canceling deploying');
-      cancelUpdateTemplate(nfx)
-        .then(function(updatedNFX) {
-          console.log('the deployment have been cancelled. Rolling back to current version');
-          if (currentVersion !== 'v0') {
-            updatedNFX.version = currentVersion
-            return updateStackToVersion(updatedNFX);
-          }
-        })
-        .then(function() {
-          console.log('Successfully rolled back');
-          process.exit(1);
-        })
-        .catch(function(err) {
-          if (err.stack) {
-            consoleLog('err', err.stack);
-          } else {
-            consoleLog('err', err);
-          }
-          process.exit(1);
-        });
-    }
+    handleInterrupt(nfx);
   });
 }
