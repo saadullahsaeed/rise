@@ -14,6 +14,7 @@ class App {
 
     const env = (props.stage && props.stage.NODE_ENV) || 'development';
     this.set('env', env);
+    this.set('jsonp callback name', 'callback');
   }
 
   /**

@@ -168,6 +168,65 @@ class Response extends EventEmitter {
   }
 
   /**
+   * Sends an HTTP response with JSON body. The parameter will be converted to JSON with `JSON.stringify()` function.
+   * @param {*} [body] - Data to be represented as JSON in the response body
+   * @returns {Response} this
+   * @example
+   * res.json({ some: 'json' });
+   * res.status(500).send({ error: 'something went wrong' });
+   */
+  json(body) {
+    if (!this.get('Content-Type')) {
+      this.type('json');
+    }
+    this.__body = JSON.stringify(body);
+    this.end();
+    return this;
+  }
+
+  /**
+   * Sends an HTTP response with JSON body, optionally wrapped with JSONP callback.
+   * The default query string param for JSONP callback name is `callback`. It can be overridden with the `jsonp callback name` setting.
+   * If the callback name is not specified in the query string params, the behavior of this method is identical to [res.json()]{@link Response#json}.
+   * @param {*} [body] - Data to be represented as JSON in the response body
+   * @returns {Response} this
+   * @example
+   * // ?callback=foo
+   * res.jsonp({ data: "hello world" });
+   * // => foo({ "data": "hello world" });
+   *
+   * app.set('jsonp callback name', 'cb');
+   * // ?cb=handle
+   * res.status(500).jsonp({ error: 'something went wrong' });
+   * // => handle({ "error": "something went wrong" });
+   */
+  jsonp(body) {
+    const callbackQuery = (this.app && this.app.get('jsonp callback name')) || 'callback';
+    let callbackName = this.req && this.req.query && this.req.query[callbackQuery];
+
+    if (Array.isArray(callbackName)) {
+      callbackName = callbackName[0];
+    }
+
+    if (!callbackName || typeof callbackName !== 'string') {
+      return this.json(body);
+    }
+
+    if (!this.get('Content-Type')) {
+      this.set({
+        'X-Content-Type-Options': 'nosniff',
+        'Content-Type': 'text/javascript; charset=utf-8'
+      });
+    }
+
+    body = JSON.stringify(body).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+
+    this.__body = `/**/${callbackName}(${body});`;
+    this.end();
+    return this;
+  }
+
+  /**
    * Sends an HTTP response. This function is usually invoked without any arguments to quickly respond without any data. To respond with data, you should use [res.send()]{@link Response#send} or [res.json()]{@link Response#json} instead.
    * @param {string|Buffer} [data] - data to write
    * @param {string} [encoding] - encoding to use when `data` is a string

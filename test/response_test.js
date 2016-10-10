@@ -375,6 +375,110 @@ describe('Response', function() {
       });
     });
 
+    describe('json()', function() {
+      beforeEach(function() {
+        sinon.stub(res, 'end');
+      });
+
+      it('invokes end() with json representation of the data', function() {
+        [
+          { error_code: 123, error: 'unknown_error', error_message: 'something went wrong' },
+          'hello world!',
+          null,
+          123,
+          true,
+          new Date()
+        ].forEach((j) => {
+          res.end.reset();
+          res.json(j);
+
+          expect(res.get('content-type')).to.equal('application/json; charset=utf-8');
+          expect(res.body).to.equal(JSON.stringify(j));
+          expect(res.end).to.have.been.calledOnce;
+          expect(res.end).to.have.been.calledWithExactly();
+        });
+      });
+    });
+
+    describe('jsonp()', function() {
+      beforeEach(function() {
+        sinon.stub(res, 'end');
+      });
+
+      const testCases = [
+        { error_code: 123, error: 'unknown_error', error_message: 'something went wrong' },
+        'hello world!',
+        null,
+        123,
+        true,
+        new Date()
+      ];
+
+      context('when callback name is not specified in the query', function() {
+        it('works just like json()', function() {
+          testCases.forEach((j) => {
+            res.end.reset();
+            res.jsonp(j);
+
+            expect(res.get('content-type')).to.equal('application/json; charset=utf-8');
+            expect(res.body).to.equal(JSON.stringify(j));
+            expect(res.end).to.have.been.calledOnce;
+            expect(res.end).to.have.been.calledWithExactly();
+          });
+        });
+      });
+
+      context('when callback name is specified in the query', function() {
+        beforeEach(function() {
+          res.req.query = {
+            callback: 'handle'
+          };
+        });
+
+        it('wraps the json with the callback function', function() {
+          testCases.forEach((j) => {
+            res.end.reset();
+            res.jsonp(j);
+
+            expect(res.get('content-type')).to.equal('text/javascript; charset=utf-8');
+            expect(res.body).to.equal(`/**/handle(${JSON.stringify(j)});`);
+            expect(res.end).to.have.been.calledOnce;
+            expect(res.end).to.have.been.calledWithExactly();
+          });
+        });
+
+        it('escapes invalid characters that are valid in json, but invalid in js', function() {
+          const j = { data: "hello\u2028world\u2029" };
+          res.jsonp(j);
+
+          expect(res.get('content-type')).to.equal('text/javascript; charset=utf-8');
+          expect(res.body).to.equal(`/**/handle({"data":"hello\\u2028world\\u2029"});`);
+          expect(res.end).to.have.been.calledOnce;
+          expect(res.end).to.have.been.calledWithExactly();
+        });
+      });
+
+      context('when "jsonp callback name" setting is defined', function() {
+        beforeEach(function() {
+          app.set('jsonp callback name', 'foo');
+        });
+
+        it('reads the callback function name by looking at the query param name defined in the setting', function() {
+          res.req.query = {
+            foo: 'bar'
+          };
+
+          const j = { hello: 'world' };
+          res.jsonp(j);
+
+          expect(res.get('content-type')).to.equal('text/javascript; charset=utf-8');
+          expect(res.body).to.equal(`/**/bar(${JSON.stringify(j)});`);
+          expect(res.end).to.have.been.calledOnce;
+          expect(res.end).to.have.been.calledWithExactly();
+        });
+      });
+    });
+
     describe('sendStatus()', function() {
       it('sets a given status code and sends a json representation of the status code', function() {
         res.sendStatus(200);
