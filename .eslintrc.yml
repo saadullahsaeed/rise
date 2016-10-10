@@ -5,6 +5,7 @@ env:
 globals:
   sinon: true
   expect: true
+  waitUntil: true
 extends: 'eslint:recommended'
 rules:
   indent:
