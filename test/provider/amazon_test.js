@@ -106,7 +106,7 @@ describe('provider/amazon', function() {
               "x-forwarded-port": "443",
               "x-forwarded-proto": "https"
             },
-            query: encodeURI("arr[0]=hello&arr[1]=world&bar=lolz&foo=123&hash[alpha]=cafe&hash[beta]=tuna fish"),
+            rawQuery: encodeURI("arr[0]=hello&arr[1]=world&bar=lolz&foo=123&hash[alpha]=cafe&hash[beta]=tuna fish"),
             params: {
               "comment_id": "123",
               "item_slug": "my-item"
@@ -115,7 +115,7 @@ describe('provider/amazon', function() {
               "awesomeId": "123",
               "FOO_BAR": "bazqux"
             },
-            body: "hello=world&foo=123",
+            rawBody: "hello=world&foo=123",
             ip: '123.4.56.123',
             meta: {
               provider: 'amazon',
@@ -238,10 +238,10 @@ describe('provider/amazon', function() {
               "x-forwarded-port": "443",
               "x-forwarded-proto": "https"
             },
-            query: "",
+            rawQuery: "",
             params: {},
             stage: {},
-            body: "",
+            rawBody: "",
             ip: '123.4.56.123',
             meta: {
               provider: 'amazon',

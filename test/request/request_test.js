@@ -1,9 +1,9 @@
 'use strict';
 
-const Request = require('../src/request');
+const Request = require('../../src/request');
 
 describe('Request', function() {
-  let req, route, path, headers, query, params, stage, rawBody, meta;
+  let req, route, path, headers, rawQuery, params, stage, rawBody, meta;
 
   beforeEach(function() {
     route = '/tasks/{taskSlug}/comments/{commentId}/replies';
@@ -16,7 +16,7 @@ describe('Request', function() {
       'content-type': 'application/x-www-form-urlencoded',
       'cookie': 'sessionId=d7dabffddb579d3bee20; username=pete'
     };
-    query = 'this_is=just+an+example&hello=world&list[0]=apple&list[1]=banana&hash[foo]=hi&hash[bar]=bye';
+    rawQuery = 'this_is=just+an+example&hello=world&list[0]=apple&list[1]=banana&hash[foo]=hi&hash[bar]=bye';
     params = {
       taskSlug: 'my-awesome-task',
       commentId: '123'
@@ -39,10 +39,10 @@ describe('Request', function() {
       method: 'POST',
       httpVersion: '1.1',
       headers,
-      query,
+      rawQuery,
       params,
       stage,
-      body: rawBody,
+      rawBody,
       ip: '100.200.123.45',
       meta
     });
@@ -146,7 +146,7 @@ describe('Request', function() {
 
   describe('req.url', function() {
     it('returns path with query string', function() {
-      expect(req.url).to.equal(path + '?' + query);
+      expect(req.url).to.equal(path + '?' + rawQuery);
     });
   });
 

@@ -17,10 +17,10 @@ module.exports = {
       method: event.httpMethod,
       httpVersion: httpVerMatch ? httpVerMatch[0] : '1.1',
       headers: hdrs,
-      query: qs.stringify(event.queryStringParameters || ''),
+      rawQuery: qs.stringify(event.queryStringParameters || ''),
       params: event.pathParameters || {},
       stage: event.stageVariables || {},
-      body: event.body || '',
+      rawBody: event.body || '',
       ip: keypath.get(event, 'requestContext.identity.sourceIp') || '',
       meta: {
         provider: 'amazon',

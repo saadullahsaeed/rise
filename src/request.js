@@ -13,10 +13,10 @@ class Request extends Readable {
     this.__method = props.method;
     this.__httpVersion = props.httpVersion;
     this.__headers = props.headers;
-    this.__rawQuery = props.query;
+    this.__rawQuery = props.rawQuery;
     this.__params = props.params;
     this.__stage = props.stage;
-    this.__rawBody = props.body;
+    this.__rawBody = props.rawBody;
     this.__ip = props.ip;
     this.__meta = props.meta;
 
