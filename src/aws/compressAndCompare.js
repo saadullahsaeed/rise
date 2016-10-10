@@ -1,9 +1,10 @@
 'use strict';
 
-const fs         = require('fs'),
-      path       = require('path'),
-      archiver   = require('archiver'),
-      consoleLog = require('../utils/consoleLog').consoleLog;
+const fs           = require('fs'),
+      path         = require('path'),
+      archiver     = require('archiver'),
+      fetchVersion = require('../aws/fetchVersion').fetchVersion,
+      consoleLog   = require('../utils/consoleLog').consoleLog;
 
 module.exports.compressAndCompare = function(nfx) {
   return new Promise((resolve, reject) => {
@@ -29,17 +30,36 @@ module.exports.compressAndCompare = function(nfx) {
         nfx.hasher.end();
         const checksumHex = nfx.hasher.read().toString('hex');
 
-        getActiveVersionHash(nfx).then((activeVersionHash) => {
+        fetchVersion(nfx).then((updatedNFX) => {
+          const activeVersion = updatedNFX.nfxJSON.active_version;
+          const activeVersionHash = updatedNFX.nfxJSON.version_hashes[nfx.nfxJSON.active_version];
+
+          if (activeVersion == undefined) {
+            updatedNFX.version = 'v1';
+            consoleLog('info', `Deploying the first version`);
+          } else {
+            updatedNFX.previousVersion = activeVersion;
+            updatedNFX.version = `v${(parseInt(activeVersion.substr(1) || 0) + 1)}`;
+            consoleLog('info', `Current active version is "${activeVersion}". Deploying "${nfx.version}"`);
+          }
+
           if (activeVersionHash === checksumHex) {
             // FIXME: delete temp zip file!!!
             reject("No change is present");
           } else {
-            nfx.nfxJSON['active_version'] = nfx.version;
-            nfx.nfxJSON['version_hashes'][`${nfx.version}`] = checksumHex;
+            nfx.nfxJSON.version_hashes[nfx.version] = checksumHex;
             resolve(nfx);
           }
-        }, (err) => reject(err));
+        }).catch ( (err) => {
+          reject(err)
+        });
+      })
+      .catch( (err) => {
+        reject(err);
       });
+    })
+    .catch( (err) => {
+      reject(err);
     });
   });
 }
@@ -76,28 +96,3 @@ function checksum(nfx, file) {
     readStream.pipe(nfx.hasher, { end: false });
   });
 }
-
-function getActiveVersionHash(nfx) {
-  return new Promise((resolve, reject) => {
-    const params = {
-      Bucket: nfx.bucketName,
-      Key: 'nfx.json',
-    };
-
-    nfx.awsSDK.s3.getObject(params, function(err, data) {
-      if (err) {
-        if (err.message.indexOf('does not exist') > -1) {
-          nfx.nfxJSON['version_hashes'] = {}
-          resolve(null);
-        } else {
-          reject(err);
-        }
-      } else {
-        nfx.nfxJSON = JSON.parse(data.Body);
-        const activeVersionHash = nfx.nfxJSON['version_hashes'][nfx.nfxJSON['active_version']];
-        resolve(activeVersionHash);
-      }
-    });
-  });
-}
-
