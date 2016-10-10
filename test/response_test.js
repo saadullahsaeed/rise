@@ -1,17 +1,32 @@
 'use strict';
 
-const Response = require('../src/response');
+const Response = require('../src/response'),
+      App = require('../src/app');
 
 describe('Response', function() {
-  let res, doneFn;
+  let res, app, req, doneFn;
 
   const reset = function() {
+    app = new App();
+    req = {};
     doneFn = sinon.spy();
-    res = new Response(null, doneFn);
+
+    res = new Response({
+      app,
+      req,
+      done: doneFn
+    });
   };
 
   beforeEach(function() {
     reset();
+  });
+
+  describe('simple getters', function() {
+    it('returns values', function() {
+      expect(res.app).to.equal(app);
+      expect(res.req).to.equal(req);
+    });
   });
 
   describe('status()', function() {
@@ -216,7 +231,11 @@ describe('Response', function() {
       });
 
       it('cannot be invoked more than once', function() {
+        expect(res.finished).to.be.false;
+
         res.end();
+        expect(res.finished).to.be.true;
+
         expect(() => {
           res.end();
         }).to.throw(Error);

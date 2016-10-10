@@ -6,15 +6,38 @@ const http = require('http'),
 
 /** Response */
 class Response extends EventEmitter {
-  constructor(req, done) {
+  /**
+   * Do not initialize this class on your own. An instance of this class is provided to your handler as a parameter.
+   * @param {Object} props
+   */
+  constructor(props) {
     super();
-    this.__req = req;
-    this.__done = done;
+    props = props || {};
+
+    this.__app = props.app;
+    this.__req = props.req;
+    this.__done = props.done;
+
     this.__statusCode = null;
     this.__finished = false;
     this.__headers = {};
     this.__body = '';
+
     this.locals = {};
+  }
+
+  /**
+   * [App]{@link App} object, used to access application-wide settings.
+   * @type {App}
+   * @readonly
+   * @see {@link App}
+   */
+  get app() {
+    return this.__app;
+  }
+
+  get req() {
+    return this.__req;
   }
 
   /**

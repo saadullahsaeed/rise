@@ -5,8 +5,16 @@ const Readable = require('stream').Readable,
 
 /** Request */
 class Request extends Readable {
+  /**
+   * Do not initialize this class on your own. An instance of this class is provided to your handler as a parameter.
+   * @param {Object} props
+   */
   constructor(props) {
     super();
+    props = props || {};
+
+    this.__app = props.app;
+    this.__res = props.res;
     this.__route = props.route;
     this.__path = props.path;
     this.__protocol = props.protocol;
@@ -48,6 +56,20 @@ class Request extends Readable {
     if (this.__readIndex === bodyLength) {
       this.push(null);
     }
+  }
+
+  /**
+   * [App]{@link App} object, used to access application-wide settings.
+   * @type {App}
+   * @readonly
+   * @see {@link App}
+   */
+  get app() {
+    return this.__app;
+  }
+
+  get res() {
+    return this.__res;
   }
 
   /**

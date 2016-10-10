@@ -1,11 +1,15 @@
 'use strict';
 
-const Request = require('../../src/request');
+const Request = require('../../src/request'),
+      App = require('../../src/app');
 
 describe('Request', function() {
-  let req, route, path, headers, rawQuery, params, stage, rawBody, meta;
+  let req, app, res, route, path, headers, rawQuery, params, stage, rawBody, meta;
 
   beforeEach(function() {
+    app = new App();
+    res = {};
+
     route = '/tasks/{taskSlug}/comments/{commentId}/replies';
     path = '/tasks/my-awesome-task/comments/123/replies';
     headers = {
@@ -33,6 +37,8 @@ describe('Request', function() {
     };
 
     req = new Request({
+      app,
+      res,
       route,
       path,
       protocol: 'https',
@@ -50,6 +56,8 @@ describe('Request', function() {
 
   describe('simple getters', function() {
     it('returns values', function() {
+      expect(req.app).to.equal(app);
+      expect(req.res).to.equal(res);
       expect(req.route).to.equal(route);
       expect(req.path).to.equal(path);
       expect(req.method).to.equal('POST');
