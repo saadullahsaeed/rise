@@ -11,38 +11,17 @@ const fs                    = require('fs'),
       updateTemplate        = require('../aws/updateTemplate').updateTemplate,
       deployAPI             = require('../aws/deployAPI').deployAPI,
       uploadNFXFiles        = require('../aws/uploadNFXFiles').uploadNFXFiles,
-      cancelUpdateTemplate  = require('../aws/cancelUpdateTemplate').cancelUpdateTemplate,
-      updateStackToVersion = require('../aws/updateStackToVersion').updateStackToVersion;
+      updateStackToVersion  = require('../aws/updateStackToVersion').updateStackToVersion,
+      handleInterrupt       = require('../aws/handleInterrupt').handleInterrupt;
 
 module.exports = (nfx) => {
   consoleLog('info', 'Checking stack...');
 
-  const nfxFolder = '.nfx';
-  const nfxFolderStat = fsStat(nfxFolder);
-  if (!nfxFolderStat) {
-    fs.mkdirSync(nfxFolder, 0o755);
-  }
-
-  const nfxVersionPath = path.join(nfxFolder, 'VERSION');
-  const nfxVersionStat = fsStat(nfxVersionPath);
-  if (!nfxVersionStat) {
-    fs.writeFileSync(nfxVersionPath, 'v0', { encoding: 'utf8' });
-  }
-
-  // FIXME: This operation should be atomic.
-  // We should lock the access to the version file while deploying
-  // We can use https://github.com/npm/lockfile if it works with windows well
-  const currentVersion = fs.readFileSync(nfxVersionPath, { encoding: 'utf8' });
-  // Version format is v1234 for now
-  const newVersion = `v${(parseInt(currentVersion.substr(1) || 0) + 1)}`;
-  nfx.version = newVersion
-
   // FIXME: It should be configurable.
   nfx.stage = 'staging';
-  console.log(`deploying ${newVersion}...`);
 
   let startTime = new Date().getTime();
-  let state = 'CREATING';
+  nfx.state = 'CREATING';
   getStack(nfx)
     .then((updatedNFX) => {
       const endTime = new Date().getTime();
@@ -57,38 +36,34 @@ module.exports = (nfx) => {
       return compressAndCompare(updatedNFX);
     })
     .then((updatedNFX) => {
-      state = 'UPLOADING';
+      nfx.state = 'UPLOADING';
       const endTime = new Date().getTime();
       console.log(`compressing and comparing took: ${(endTime - startTime)/1000}s`);
       startTime = endTime;
       return uploadFunctions(updatedNFX);
     })
     .then((updatedNFX) => { // Takes at least 30 secs
-      state = 'UPDATING';
+      nfx.state = 'UPDATING';
       const endTime = new Date().getTime();
       console.log(`uploading functions took: ${(endTime - startTime)/1000}s`);
       startTime = endTime;
       return updateTemplate(updatedNFX);
     })
     .then((updatedNFX) => { // Takes at least 30 secs
-      state = 'DEPLOYING';
+      nfx.state = 'DEPLOYING';
       const endTime = new Date().getTime();
       console.log(`updating stack took: ${(endTime - startTime)/1000}s`);
       startTime = endTime;
       return deployAPI(updatedNFX, {});
     })
     .then((updatedNFX) => {
-      state = 'SAVING';
+      nfx.state = 'SAVING';
       const endTime = new Date().getTime();
       console.log(`uploading stack took: ${(endTime - startTime)/1000}s`);
       startTime = endTime;
+
+      nfx.nfxJSON.active_version = nfx.version;
       return uploadNFXFiles(updatedNFX);
-    })
-    .then((updatedNFX) => {
-      const endTime = new Date().getTime();
-      console.log(`saving template took: ${(endTime - startTime)/1000}s`);
-      consoleLog('info', `Successfully deployed your project. Version: ${nfx.version}`)
-      fs.writeFileSync(nfxVersionPath, nfx.version, { encoding: 'utf8' });
     })
     .catch((err) => {
       if (err.stack) {
