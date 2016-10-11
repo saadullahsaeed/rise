@@ -242,6 +242,74 @@ describe('Response', function() {
         });
       });
     });
+
+    describe('"Set-Cookie" header"', function() {
+      describe('cookie()', function() {
+        it('sets "Set-Cookie" header', function() {
+          res.cookie('foo', 'bar');
+          expect(res.get('set-cookie')).to.equal('foo=bar; Path=/');
+
+          res.cookie('seen', { id: [1, 2, 3] });
+          expect(res.get('set-cookie')[1]).to.equal(`seen=${encodeURIComponent('j:{"id":[1,2,3]}')}; Path=/`);
+
+          res.cookie('newVisitor', true, { domain: '.example.com' });
+          expect(res.get('set-cookie')[2]).to.equal('newVisitor=true; Domain=.example.com; Path=/');
+
+          const expDate = new Date(Date.now() + 30 * 60 * 1000);
+          res.cookie('remember', 1, { path: '/admin', expires: expDate, httpOnly: true, secure: true });
+          expect(res.get('set-cookie')[3]).to.equal(`remember=1; Path=/admin; Expires=${expDate.toGMTString()}; HttpOnly; Secure`);
+        });
+
+        context('when maxAge is given', function() {
+          let clock;
+
+          beforeEach(function() {
+            clock = sinon.useFakeTimers();
+          });
+
+          afterEach(function() {
+            clock.restore();
+          });
+
+          it('sets both Max-Age and Expires options', function() {
+            res.cookie('remember', 1, { path: '/admin', maxAge: 86400000 });
+            const expDate = new Date(Date.now() + 86400000).toGMTString();
+            expect(res.get('set-cookie')).to.equal(`remember=1; Max-Age=86400; Path=/admin; Expires=${expDate}`);
+          });
+        });
+
+        context('when signed is true', function() {
+          context('when req.secret is set (usually by cookieParser middleware)', function() {
+            beforeEach(function() {
+              req.secret = "s3cr3t_k3y";
+            });
+
+            it('signs cookie', function() {
+              res.cookie('cafe', 'babe', { signed: true });
+              expect(res.get('set-cookie')).to.equal('cafe=s%3Ababe.f7P6QjlZ0bM8ztYGEqy93CCiPpA7kSWilfvigsGW2O0; Path=/');
+            });
+          });
+
+          context('when req.secret is not set', function() {
+            it('throws error', function() {
+              expect(() => {
+                res.cookie('cafe', 'babe', { signed: true });
+              }).to.throw(Error);
+            });
+          });
+        });
+      });
+
+      describe('clearCookie()', function() {
+        it('sets "Set-Cookie" header with super old expiration date and empty value', function() {
+          res.clearCookie('foo');
+          expect(res.get('set-cookie')).to.equal('foo=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT');
+
+          res.clearCookie('remember', { path: '/admin', domain: '.example.com' });
+          expect(res.get('set-cookie')[1]).to.equal('remember=; Domain=.example.com; Path=/admin; Expires=Thu, 01 Jan 1970 00:00:00 GMT');
+        });
+      });
+    });
   });
 
   describe('finishing the response', function() {

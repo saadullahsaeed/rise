@@ -3,6 +3,8 @@
 const http = require('http'),
       EventEmitter = require('events'),
       encodeURL = require('encodeurl'),
+      cookie = require('cookie'),
+      cookieSignature = require('cookie-signature'),
       headers = require('./headers');
 
 /** Response */
@@ -516,6 +518,87 @@ class Response extends EventEmitter {
       this.__headers[field] = undefined;
     }
     return this;
+  }
+
+  /**
+   * Sets a cookie by adding a `Set-Cookie` header. The `value` paramter can either be a string or an object which can be represented as JSON.
+   *
+   * To clear a cookie, use [res.clearCookie()]{@link Response#clearCookie}. `undefined`, `null`, `false`, and empty string (`""`) are valid values for the `value` parameter.
+   *
+   * ##### Options:
+   *
+   * | Property   | Type                  | Default Value        | Description                                                                                    |
+   * |:-----------|:----------------------|:---------------------|:-----------------------------------------------------------------------------------------------|
+   * | `domain`   | string                | Not set              | Domain name where cookie is valid                                                              |
+   * | `encode`   | function              | `encodeURIComponent` | Function to be used to encode value                                                            |
+   * | `expires`  | Date                  | Not set              | Expiration date                                                                                |
+   * | `httpOnly` | boolean               | false                | Make cookie visible only by the backend web app, and not by JavaScript                         |
+   * | `maxAge`   | number                | Not set              | Number of **milliseconds** after which the cookie will be expired                              |
+   * | `path`     | string                | `"/"`                | Path where cookie is valid                                                                     |
+   * | `sameSite` | boolean &#124; string | false                | Disable third-party usage of cookie (allowed values: `true` / `false` / `"lax"` / `"strict"`)  |
+   * | `secure`   | boolean               | false                | Makes cookie valid only with HTTPS                                                             |
+   * | `signed`   | boolean               | false                | Whether cookie should be signed. The secret is derived from `cookieParser(secret)` middleware. |
+   *
+   * @param {string} name - Cookie name
+   * @param {*} value - Cookie value
+   * @param {Object} [options] - Options
+   * @returns {Response} this
+   * @example
+   * res.cookie('remember', '1', { expires: new Date(Date.now() + 60 * 60 * 24 * 7 * 1000), httpOnly: true });
+   * // If a non-string is passed, it is serialized as JSON for you.
+   * res.cookie('seen', { ids: [1, 2, 3] }, { maxAge: 86400000 });
+   * // The following requires a secret signing key to be passed to `cookieParser(secret)` middleware.
+   * res.cookie('username', 'pete', { domain: '.example.com', path: '/', secure: true, signed: true });
+   */
+  cookie(name, value, options) {
+    if (typeof name !== 'string' ||
+        (typeof name === 'string' && name.length === 0)) {
+      throw new TypeError("'name' must be a non-empty string");
+    }
+    const opts = options || {},
+          secret = this.req && this.req.secret,
+          signed = opts.signed;
+
+    if (signed && (typeof secret !== 'string' || secret.length === 0)) {
+      throw new Error('`cookieParser(secret)` required for signed cookies');
+    }
+
+    let val;
+
+    if (typeof value === 'object') {
+      val = 'j:' + JSON.stringify(value);
+    } else {
+      val = String(value);
+    }
+
+    if (signed) {
+      val = 's:' + cookieSignature.sign(val, secret);
+    }
+
+    opts.path = opts.path || '/';
+
+    const maxAge = parseInt(opts.maxAge, 10);
+    if (isNaN(maxAge)) {
+      opts.maxAge = null;
+    } else {
+      opts.maxAge = maxAge / 1000;
+      opts.expires = new Date(Date.now() + maxAge);
+    }
+
+    return this.append('Set-Cookie', cookie.serialize(name, val, opts));
+  }
+
+  /**
+   * Clears the cookie by the given `name`.
+   * @param {string} name - Cookie name
+   * @param {object} [options] - Options. See options parameter for [res.cookie()]{@link Response#cookie}.
+   * @returns {Response} this
+   * @example
+   * res.cookie('remember', '1', { path: '/' });
+   * res.clearCookie('remember', { path: '/' });
+   */
+  clearCookie(name, options) {
+    return this.cookie(name, '', Object.assign({ path: '/', expires: new Date(1) }, options));
   }
 
   /**
