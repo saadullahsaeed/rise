@@ -1,7 +1,7 @@
 'use strict';
 
-const Request = require('../../src/request'),
-      App = require('../../src/app');
+const Request = require('../src/request'),
+      App = require('../src/app');
 
 describe('Request', function() {
   let req, app, res, route, path, headers, rawQuery, params, stage, rawBody, meta;
