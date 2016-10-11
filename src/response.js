@@ -2,6 +2,7 @@
 
 const http = require('http'),
       EventEmitter = require('events'),
+      encodeURL = require('encodeurl'),
       headers = require('./headers');
 
 /** Response */
@@ -227,6 +228,52 @@ class Response extends EventEmitter {
   }
 
   /**
+   * Sets the `Location` HTTP response header to the given `url` parameter.
+   * If `url` is `"back"`, it uses the value of the `Referer` in the request header unless the it is absent, in which case it will use the value `"\"`.
+   * @param {string} url - URL/Path to be assigned to the `Location` header
+   * @returns {Response} this
+   * @example
+   * res.location('/hello/world');
+   * res.location('https://www.example.com/');
+   * res.location('back');
+   */
+  location(url) {
+    url = url ? String(url) : '/';
+
+    if (url === 'back') {
+      url = (this.req && this.req.headers && this.req.headers.referer) || '/';
+    }
+
+    return this.set('location', encodeURL(url));
+  }
+
+  /**
+   * Sends a redirect response to the given `url`. If `status` is not specified, the default status of `302 Found` is used.
+   * If `url` is `"back"`, it uses the value of the `Referer` in the request header unless the it is absent, in which case it will use the value `"\"`.
+   * @param {status} [statusCode] - HTTP status code
+   * @param {string} url - URL/Path to be assigned to the `Location` header
+   * @returns {Response} this
+   * @example
+   * res.redirect('/hello/world');
+   * res.redirect('https://www.example.com/');
+   * res.redirect(301, '/hello/world');
+   * res.redirect('back');
+   */
+  redirect(statusCode, url) {
+    if (arguments.length === 1) {
+      url = statusCode;
+      statusCode = 302;
+    }
+
+    if (typeof statusCode !== 'number') {
+      throw new TypeError("'statusCode' must be a number");
+    }
+
+    const location = this.location(url).get('location');
+    return this.status(statusCode).send({ location });
+  }
+
+  /**
    * Sends an HTTP response. This function is usually invoked without any arguments to quickly respond without any data. To respond with data, you should use [res.send()]{@link Response#send} or [res.json()]{@link Response#json} instead.
    * @param {string|Buffer} [data] - data to write
    * @param {string} [encoding] - encoding to use when `data` is a string
@@ -275,7 +322,7 @@ class Response extends EventEmitter {
 
   /**
    * Sets the HTTP response status code.
-   * @param {number} code - Status code
+   * @param {number} code - HTTP status code
    * @returns {Response} this
    * @example
    * res.status(200).send({ status: 'ok' });

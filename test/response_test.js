@@ -176,7 +176,7 @@ describe('Response', function() {
       });
     });
 
-    describe('type() for content-type header', function() {
+    describe('type() for "content-type" header', function() {
       it('sets the header as passed if type contains slash', function() {
         res.type('audio/mpeg');
         expect(res.get('content-type')).to.equal('audio/mpeg');
@@ -214,6 +214,32 @@ describe('Response', function() {
 
         res.type('.json');
         expect(res.get('content-type')).to.equal('application/json; charset=utf-8');
+      });
+    });
+
+    describe('location() for "Location" header', function() {
+      it('sets "Location" header', function() {
+        res.location('/foo/bar');
+        expect(res.get('location')).to.equal('/foo/bar');
+
+        res.location('https://www.example.com/foo');
+        expect(res.get('location')).to.equal('https://www.example.com/foo');
+
+        res.location('https://www.example.com/hello%20^_^');
+        expect(res.get('location')).to.equal('https://www.example.com/hello%20%5E_%5E');
+      });
+
+      context('when "back" is given as a param', function() {
+        it('uses the value in the referer header, unless absent, in which case "/" is used', function() {
+          res.location('back');
+          expect(res.get('location')).to.equal('/');
+
+          req.headers = {
+            referer: 'https://www.example.com/hello%20^_^'
+          };
+          res.location('back');
+          expect(res.get('location')).to.equal('https://www.example.com/hello%20%5E_%5E');
+        });
       });
     });
   });
@@ -475,6 +501,75 @@ describe('Response', function() {
           expect(res.body).to.equal(`/**/bar(${JSON.stringify(j)});`);
           expect(res.end).to.have.been.calledOnce;
           expect(res.end).to.have.been.calledWithExactly();
+        });
+      });
+    });
+
+    describe('redirect()', function() {
+      beforeEach(function() {
+        sinon.stub(res, 'end');
+      });
+
+      it('sets "Location" header and sends response', function() {
+        res.redirect('/foo/bar');
+        expect(res.statusCode).to.equal(302);
+        expect(res.get('location')).to.equal('/foo/bar');
+        expect(res.end).to.have.been.calledOnce;
+        expect(res.end).to.have.been.calledWithExactly();
+        expect(res.body).to.equal(JSON.stringify({ location: "/foo/bar" }));
+
+        res.end.reset();
+        res.redirect(301, '/foo/bar');
+        expect(res.statusCode).to.equal(301);
+        expect(res.get('location')).to.equal('/foo/bar');
+        expect(res.end).to.have.been.calledOnce;
+        expect(res.end).to.have.been.calledWithExactly();
+        expect(res.body).to.equal(JSON.stringify({ location: "/foo/bar" }));
+
+        res.end.reset();
+        res.redirect('https://www.example.com/foo');
+        expect(res.statusCode).to.equal(302);
+        expect(res.get('location')).to.equal('https://www.example.com/foo');
+        expect(res.end).to.have.been.calledOnce;
+        expect(res.end).to.have.been.calledWithExactly();
+        expect(res.body).to.equal(JSON.stringify({ location: "https://www.example.com/foo" }));
+
+        res.end.reset();
+        res.redirect('https://www.example.com/hello%20^_^');
+        expect(res.statusCode).to.equal(302);
+        expect(res.get('location')).to.equal('https://www.example.com/hello%20%5E_%5E');
+        expect(res.end).to.have.been.calledOnce;
+        expect(res.end).to.have.been.calledWithExactly();
+        expect(res.body).to.equal(JSON.stringify({ location: "https://www.example.com/hello%20%5E_%5E" }));
+      });
+
+      context('when "back" is given as a param', function() {
+        it('uses the value in the referer header, unless absent, in which case "/" is used', function() {
+          res.redirect('back');
+          expect(res.statusCode).to.equal(302);
+          expect(res.get('location')).to.equal('/');
+          expect(res.end).to.have.been.calledOnce;
+          expect(res.end).to.have.been.calledWithExactly();
+          expect(res.body).to.equal(JSON.stringify({ location: "/" }));
+
+          res.end.reset();
+          req.headers = {
+            referer: 'https://www.example.com/hello%20^_^'
+          };
+          res.redirect('back');
+          expect(res.statusCode).to.equal(302);
+          expect(res.get('location')).to.equal('https://www.example.com/hello%20%5E_%5E');
+          expect(res.end).to.have.been.calledOnce;
+          expect(res.end).to.have.been.calledWithExactly();
+          expect(res.body).to.equal(JSON.stringify({ location: "https://www.example.com/hello%20%5E_%5E" }));
+
+          res.end.reset();
+          res.redirect(301, 'back');
+          expect(res.statusCode).to.equal(301);
+          expect(res.get('location')).to.equal('https://www.example.com/hello%20%5E_%5E');
+          expect(res.end).to.have.been.calledOnce;
+          expect(res.end).to.have.been.calledWithExactly();
+          expect(res.body).to.equal(JSON.stringify({ location: "https://www.example.com/hello%20%5E_%5E" }));
         });
       });
     });
