@@ -20,7 +20,7 @@ describe('Request: compatibility with body-parser', function() {
   });
 
   describe('json', function() {
-    it('parses json in request body and makes it available as req.body', function(done) {
+    it('parses json in request body and makes it available as req.body', function() {
       const json = JSON.stringify({ foo: 'bar', hello: 123 });
 
       const req = new Request({
@@ -34,17 +34,16 @@ describe('Request: compatibility with body-parser', function() {
       expect(req.body).to.be.undefined;
       stack.run(req, res);
 
-      waitUntil(() => handler.callCount > 0).then(() => {
+      return waitUntil(() => handler.callCount > 0).then(() => {
         expect(handler).to.have.been.calledOnce;
         expect(req.body).not.to.be.undefined;
         expect(req.body).to.deep.equal({ foo: 'bar', hello: 123 });
-        done();
-      }, done);
+      });
     });
   });
 
   describe('form data', function() {
-    it('parses url encoded form data in request body and makes it available as req.body', function(done) {
+    it('parses url encoded form data in request body and makes it available as req.body', function() {
       const formData = qs.stringify({ foo: 123, bar: 'hello' });
 
       const req = new Request({
@@ -58,17 +57,16 @@ describe('Request: compatibility with body-parser', function() {
       expect(req.body).to.be.undefined;
       stack.run(req, res);
 
-      waitUntil(() => handler.callCount > 0).then(() => {
+      return waitUntil(() => handler.callCount > 0).then(() => {
         expect(handler).to.have.been.calledOnce;
         expect(req.body).not.to.be.undefined;
         expect(req.body).to.deep.equal({ foo: '123', bar: 'hello' });
-        done();
-      }, done);
+      });
     });
   });
 
   describe('text', function() {
-    it('parses url encoded form data in request body and makes it available as req.body', function(done) {
+    it('parses url encoded form data in request body and makes it available as req.body', function() {
       const text = 'The quick brown fox jumps over the lazy dog';
 
       const req = new Request({
@@ -82,12 +80,11 @@ describe('Request: compatibility with body-parser', function() {
       expect(req.body).to.be.undefined;
       stack.run(req, res);
 
-      waitUntil(() => handler.callCount > 0).then(() => {
+      return waitUntil(() => handler.callCount > 0).then(() => {
         expect(handler).to.have.been.calledOnce;
         expect(req.body).not.to.be.undefined;
         expect(req.body).to.deep.equal(text);
-        done();
-      }, done);
+      });
     });
   });
 });

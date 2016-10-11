@@ -14,7 +14,7 @@ root.waitUntil = function(conditionFunc, timeoutMs, intervalMs) {
   intervalMs = intervalMs || 1;
 
   return new Promise(function(resolve, reject) {
-    const startTime = +new Date();
+    const startTime = Date.now();
 
     const timer = setInterval(function() {
       if (conditionFunc()) {
@@ -22,7 +22,7 @@ root.waitUntil = function(conditionFunc, timeoutMs, intervalMs) {
         resolve();
         return;
       }
-      if ((+new Date() - startTime) > timeoutMs) {
+      if ((Date.now() - startTime) > timeoutMs) {
         clearInterval(timer);
         reject(new Error('waitUntil timed out'));
       }
