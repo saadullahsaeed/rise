@@ -73,14 +73,27 @@ class Request extends Readable {
   }
 
   /**
-   * Current route
+   * Current route. It is wrapped in an object for compatibility reasons.
+   * @type {Object}
+   * @readonly
+   * @example
+   * req.route // => { path: "/tasks/{id}" }
+   * @see {@link Request#path}
+   * @see {@link Request#routeString}
+   */
+  get route() {
+    return { path: this.__route };
+  }
+
+  /**
+   * Current route.
    * @type {string}
    * @readonly
    * @example
-   * req.route // => "/tasks/{id}"
+   * req.routeString // => "/tasks/{id}"
    * @see {@link Request#path}
    */
-  get route() {
+  get routeString() {
     return this.__route;
   }
 
@@ -90,8 +103,8 @@ class Request extends Readable {
    * @readonly
    * @example
    * req.path  // => "/tasks/123"
-   * req.route // => "/tasks/{id}"
-   * @see {@link Request#route}
+   * req.routeString // => "/tasks/{id}"
+   * @see {@link Request#routeString}
    */
   get path() {
     return this.__path;

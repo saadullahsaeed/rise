@@ -59,7 +59,7 @@ describe('Request', function() {
     it('returns values', function() {
       expect(req.app).to.equal(app);
       expect(req.res).to.equal(res);
-      expect(req.route).to.equal(route);
+      expect(req.routeString).to.equal(route);
       expect(req.path).to.equal(path);
       expect(req.method).to.equal('POST');
       expect(req.httpVersion).to.equal('1.1');
@@ -68,6 +68,14 @@ describe('Request', function() {
       expect(req.stage).to.deep.equal(stage);
       expect(req.rawBody).to.equal(rawBody);
       expect(req.meta).to.equal(meta);
+    });
+  });
+
+  describe('req.route', function() {
+    it('returns the route wrapped in an object (for compatibility with express)', function() {
+      expect(req.route).to.deep.equal({
+        path: route
+      });
     });
   });
 
