@@ -18,6 +18,7 @@ describe('Request', function() {
       'accept': '*/*',
       'content-length': '22',
       'content-type': 'application/x-www-form-urlencoded',
+      'referer': 'https://www.example.com/',
       'cookie': 'sessionId=d7dabffddb579d3bee20; username=pete'
     };
     rawQuery = 'this_is=just+an+example&hello=world&list[0]=apple&list[1]=banana&hash[foo]=hi&hash[bar]=bye';
@@ -199,6 +200,15 @@ describe('Request', function() {
       expect(req.xhr).to.be.true;
       headers['x-requested-with'] = 'xmlhttprequest';
       expect(req.xhr).to.be.true;
+    });
+  });
+
+  describe('req.get()', function() {
+    it('returns the value of the HTTP request header', function() {
+      expect(req.get('host')).to.equal('api.todoly.com');
+      expect(req.get('referer')).to.equal('https://www.example.com/');
+      // special case: referrer -> referer
+      expect(req.get('referrer')).to.equal('https://www.example.com/');
     });
   });
 

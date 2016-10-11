@@ -356,7 +356,13 @@ class Request extends Readable {
       throw new TypeError('`field` must be a non-empty string');
     }
 
-    return this.__headers[field.toLowerCase()];
+    field = field.toLowerCase();
+
+    if (field === 'referrer') {
+      field = 'referer';
+    }
+
+    return this.__headers[field];
   }
 
   /**
