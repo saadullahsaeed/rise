@@ -524,6 +524,7 @@ class Response extends EventEmitter {
    * @param {string} statusMessage - unused
    * @param {Object} headers - headers
    * @returns {boolean} returns true if successful
+   * @deprecated
    * @ignore
    */
   writeHead(statusCode, statusMessage, headers) {
@@ -536,6 +537,7 @@ class Response extends EventEmitter {
    * @param {string} [encoding] - encoding to use when `data` is a string
    * @param {function} [callback] - callback to be invoked after data is written
    * @returns {boolean} true if successful
+   * @deprecated
    * @ignore
    */
   write(chunk, encoding, callback) {
@@ -554,6 +556,7 @@ class Response extends EventEmitter {
   /**
    * Exists only for compatibility with http.IncomingResponse
    * @returns {boolean} true if response is sent
+   * @deprecated
    * @ignore
    */
   get headersSent() {
@@ -563,6 +566,7 @@ class Response extends EventEmitter {
   /**
    * Exists only for compatibility with http.IncomingResponse
    * @returns {boolean} always true
+   * @deprecated
    * @ignore
    */
   get sendDate() {
@@ -572,6 +576,7 @@ class Response extends EventEmitter {
   /**
    * Exists only for compatibility with http.IncomingResponse
    * @returns {undefined}
+   * @deprecated
    * @ignore
    */
   get statusMessage() {}
@@ -579,6 +584,7 @@ class Response extends EventEmitter {
   /**
    * Exists only for compatibility with http.IncomingResponse
    * @returns {Response} this
+   * @deprecated
    * @ignore
    */
   setTimeout() {
@@ -588,6 +594,7 @@ class Response extends EventEmitter {
   /**
    * Exists only for compatibility with http.IncomingResponse
    * @returns {undefined}
+   * @deprecated
    * @ignore
    */
   addTrailers() {}
@@ -595,6 +602,7 @@ class Response extends EventEmitter {
   /**
    * Exists only for compatibility with http.IncomingResponse
    * @returns {undefined}
+   * @deprecated
    * @ignore
    */
   writeContinue() {}

@@ -368,6 +368,7 @@ class Request extends Readable {
   /**
    * Exists only for compatibility with http.IncomingResponse
    * @returns {null}
+   * @deprecated
    * @ignore
    */
   get socket() {
@@ -377,6 +378,7 @@ class Request extends Readable {
   /**
    * Trailers are not supported. Exists only for compatibility with http.IncomingResponse
    * @returns {Object} empty object
+   * @deprecated
    * @ignore
    */
   get trailers() {
@@ -386,6 +388,7 @@ class Request extends Readable {
   /**
    * Exists only for compatibility with http.IncomingResponse
    * @returns {Request} this
+   * @deprecated
    * @ignore
    */
   setTimeout() {
