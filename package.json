@@ -5,7 +5,10 @@
   "engines": {
     "node": ">=4.0"
   },
-  "scripts": {},
+  "scripts": {
+    "test": "./node_modules/.bin/mocha 'test/**/*_test.js'",
+    "lint": "./node_modules/.bin/eslint 'src/**/*.js' 'test/**/*.js'"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/nitrous-io/nfx.git"
@@ -27,5 +30,12 @@
     "commander": "^2.9.0",
     "js-yaml": "^3.6.1",
     "readline-sync": "^1.4.4"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "eslint": "^3.7.1",
+    "mocha": "^3.1.2",
+    "sinon": "^1.17.6",
+    "sinon-chai": "^2.8.0"
   }
 }
