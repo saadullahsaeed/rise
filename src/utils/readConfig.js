@@ -4,7 +4,7 @@ const fsReadFile = require('../utils/fs').fsReadFile,
       consoleLog = require('./consoleLog').consoleLog,
       yaml       = require('js-yaml');
 
-module.exports.loadConfig = function(file) {
+module.exports = function(file) {
   let fileName, content, extension;
   const extensions = ['.yaml', '.yml', '.json', '.js'];
   for (let i = 0; i < extensions.length; i++) {

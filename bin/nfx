@@ -2,6 +2,52 @@
 
 'use strict';
 
-const NFX = require('../src/nfx');
-const nfx = new NFX();
-nfx.init();
+const path = require('path'),
+      program = require('commander'),
+      deploy = require('../src/deploy'),
+      rollback = require('../src/rollback'),
+      newProject = require('../src/new'),
+      destroy = require('../src/destroy'),
+      session = require('../src/session').init();
+
+const pkgJSON = require(path.join(__dirname, '..', 'package.json'));
+
+program
+  .version(pkgJSON.version)
+  .usage('[command]');
+
+program
+  .command('deploy')
+  .description('deploy a project')
+  .action(() => {
+    deploy(session);
+  });
+
+program
+  .command('rollback [version]')
+  .description('rollback to the specified version')
+  .action((version) => {
+    rollback(session, version);
+  });
+
+program
+  .command('destroy')
+  .description('destroy a project')
+  .action(() => {
+    destroy(session);
+  });
+
+program
+  .command('new [stackName]')
+  .description('setup provider credential')
+  .option('-r, --region [region]', 'AWS region')
+  .option('-b, --bucket-name [bucketName]', 'AWS bucket name')
+  .action((stackName, options) => {
+    newProject(session, stackName, options);
+  });
+
+program.parse(process.argv);
+
+if (program.args.length === 0) {
+  program.outputHelp();
+}
