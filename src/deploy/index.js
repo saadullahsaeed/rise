@@ -7,7 +7,7 @@ const fs                    = require('fs'),
       compressAndCompare    = require('../aws/compressAndCompare').compressAndCompare,
       uploadFunctions       = require('../aws/uploadFunctions').uploadFunctions,
       getStack              = require('../aws/getStack').getStack,
-      getBucketName         = require('../aws/getBucketName').getBucketName,
+      getBucket             = require('../aws/getBucket').getBucket,
       updateTemplate        = require('../aws/updateTemplate').updateTemplate,
       deployAPI             = require('../aws/deployAPI').deployAPI,
       uploadNFXFiles        = require('../aws/uploadNFXFiles').uploadNFXFiles,
@@ -22,16 +22,16 @@ module.exports = (nfx) => {
 
   let startTime = new Date().getTime();
   nfx.state = 'CREATING';
-  getStack(nfx)
-    .then((updatedNFX) => {
-      const endTime = new Date().getTime();
-      console.log(`fetching stack took: ${(endTime - startTime)/1000}s`);
-      startTime = endTime;
-      return getBucketName(updatedNFX);
-    })
+  getBucket(nfx)
     .then((updatedNFX) => {
       const endTime = new Date().getTime();
       console.log(`getting bucket took: ${(endTime - startTime)/1000}s`);
+      startTime = endTime;
+      return getStack(updatedNFX);
+    })
+    .then((updatedNFX) => {
+      const endTime = new Date().getTime();
+      console.log(`fetching stack took: ${(endTime - startTime)/1000}s`);
       startTime = endTime;
       return compressAndCompare(updatedNFX);
     })

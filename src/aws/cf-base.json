@@ -2,9 +2,6 @@
   "AWSTemplateFormatVersion" : "2010-09-09",
   "Description": "NFX stack",
   "Resources": {
-    "NFXDeploymentBucket": {
-      "Type": "AWS::S3::Bucket"
-    },
     "NFXRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {

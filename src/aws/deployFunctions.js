@@ -26,6 +26,7 @@ module.exports.deployFunctions = function(nfx) {
       nfx.cfTemplate.Resources[funcName] = JSON.parse(
         cfFunctionContent
           .replace('$HANDLER', func.handler)
+          .replace('$S3BUCKET', nfx.bucketName)
           .replace('$S3KEY', s3Key)
           .replace('$TIMEOUT', timeout)
           .replace('$MEMORY_SIZE', memorySize)

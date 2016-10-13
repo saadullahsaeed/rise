@@ -9,7 +9,7 @@
       ]
     },
     "Code" : {
-      "S3Bucket" : { "Ref": "NFXDeploymentBucket" },
+      "S3Bucket" : "$S3BUCKET",
       "S3Key" : "$S3KEY"
     },
     "Runtime" :   "nodejs4.3",

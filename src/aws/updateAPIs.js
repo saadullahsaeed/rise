@@ -12,7 +12,7 @@ module.exports.updateAPIs = function(nfx) {
     const s3Key = 'api-' + nfx.version + '.yaml';
     const cfRestAPIJSON = JSON.parse(cfRestAPIContent);
     cfRestAPIJSON.BodyS3Location = {
-      Bucket: { Ref: "NFXDeploymentBucket" },
+      Bucket: nfx.bucketName,
       Key: s3Key
     };
     nfx.cfTemplate.Resources.NFXApi = cfRestAPIJSON;

@@ -2,7 +2,6 @@
 
 const AWS                  = require('aws-sdk'),
       getStack             = require('../aws/getStack').getStack,
-      getBucketName        = require('../aws/getBucketName').getBucketName,
       updateStackToVersion = require('../aws/updateStackToVersion').updateStackToVersion,
       deployAPI            = require('../aws/deployAPI').deployAPI,
       getStackTemplate     = require('../aws/getStackTemplate').getStackTemplate,
@@ -19,9 +18,6 @@ module.exports = function(nfx, version) {
 
   nfx.state = 'ROLLING_BACK';
   getStack(nfx)
-    .then((updatedNFX) => {
-      return getBucketName(updatedNFX);
-    })
     .then((updatedNFX) => {
       return fetchVersion(updatedNFX);
     })
