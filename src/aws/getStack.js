@@ -7,7 +7,7 @@ const fs         = require('fs'),
 
 module.exports.getStack = (nfx) => {
   return new Promise((resolve, reject) => {
-    nfx.awsSDK.cf.describeStacks({
+    nfx.aws.cf.describeStacks({
       StackName: nfx.stackName
     }, (err, data) => {
       if (err && err.message.indexOf('does not exist') > -1) {
@@ -34,7 +34,7 @@ module.exports.getStack = (nfx) => {
 function create(nfx) {
   return new Promise((resolve, reject) => {
     const content = fsReadFile(path.join(__dirname, 'cf-base.json'));
-    const req = nfx.awsSDK.cf.createStack({
+    const req = nfx.aws.cf.createStack({
       StackName: nfx.stackName,
       TemplateBody: content,
       Capabilities: ['CAPABILITY_IAM'],

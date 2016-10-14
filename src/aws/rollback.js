@@ -1,16 +1,9 @@
 'use strict';
 
-const fs         = require('fs'),
-      path       = require('path'),
-      log = require('../utils/log');
+const log = require('../utils/log');
 
 module.exports = function rollback(nfx, version) {
   return new Promise((resolve, reject) => {
-    nfx.previousVersion = nfx.nfxJSON.active_version;
-    nfx.version = version;
-
-    log.info(`Current active version is "${activeVersion}". Rolling back to "${version}".`);
-
     nfx.state = 'UPDATING';
 
     const cf = nfx.awsSDK.cf;
@@ -32,6 +25,7 @@ module.exports = function rollback(nfx, version) {
           return;
         }
 
+        nfx.version = version;
         log.info(`Successfully updated stack to version ${version}`);
         resolve(nfx);
       });

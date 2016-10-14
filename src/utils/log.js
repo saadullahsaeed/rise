@@ -29,7 +29,9 @@ function log(type) {
       return m.stack;
     }
     return m;
-  }).push("\n");
+  }));
+
+  log.push("\n");
 
   const msg = log.join(' ');
 

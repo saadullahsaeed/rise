@@ -1,10 +1,9 @@
 'use strict';
 
-const readConfig = require('./utils/readConfig');
+const readConfig = require('./utils/readConfig'),
       log = require('./utils/log'),
-      AWS        = require('aws-sdk'),
-      CLI        = require('./cli'),
-      crypto     = require('crypto');
+      AWS = require('aws-sdk'),
+      crypto = require('crypto');
 
 module.exports = class Session {
   constructor() {
@@ -44,9 +43,9 @@ module.exports = class Session {
       case 'aws':
         AWS.config.region = s.region;
         s.aws = {
-          s3: new AWS.S3();
-          cf: new AWS.CloudFormation({ apiVersion: '2010-05-15' });
-          cfTemplate: {};
+          s3: new AWS.S3(),
+          cf: new AWS.CloudFormation({ apiVersion: '2010-05-15' }),
+          cfTemplate: {}
         };
         break;
 

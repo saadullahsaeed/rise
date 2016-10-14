@@ -20,9 +20,9 @@ module.exports = function(nfx, version) {
   getStack(nfx)
     .then(fetchVersion(nfx))
     .then(rollback(nfx, version))
-    .then(getStackTemplate(nfx)
-    .then(deployAPI(nfx, { rollback: true })
-    .then(uploadNFXFiles(nfx)
+    .then(getStackTemplate(nfx))
+    .then(deployAPI(nfx, { rollback: true }))
+    .then(uploadNFXFiles(nfx))
     .catch(log.error);
 
   process.on('SIGINT', function () {

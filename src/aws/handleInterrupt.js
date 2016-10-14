@@ -3,7 +3,7 @@
 const fs                   = require('fs'),
       log = require('../utils/log'),
       cancelUpdateTemplate = require('../aws/cancelUpdateTemplate').cancelUpdateTemplate,
-      updateStackToVersion = require('../aws/updateStackToVersion').updateStackToVersion;
+      rollback = require('../aws/rollback');
 
 module.exports.handleInterrupt = function(nfx) {
   console.log(`SIGINT fired at ${nfx.state}`);
@@ -18,9 +18,9 @@ module.exports.handleInterrupt = function(nfx) {
           // we update the stack to previous version
           // Nothing to rollback if this is the first deployment.
           if (nfx.version !== 'v1') {
-            log.info(`the deployment have been cancelled. Rolling back to "${nfx.previousVersion}"`);
-            nfx.version = nfx.previousVersion;
-            updateStackToVersion(nfx).then( () => {
+            const activeVersion = nfx.nfxJSON.active_version;
+            log.info(`the deployment have been cancelled. Rolling back to "${activeVersion}"`);
+            rollback(nfx, activeVersion).then( () => {
               console.log('Successfully rolled back.');
               process.exit(1);
             }).catch(function(err) {
@@ -52,9 +52,9 @@ module.exports.handleInterrupt = function(nfx) {
       .then(function(nfx) {
         // Nothing to rollback if this is the first deployment.
         if (nfx.version !== 'v1') {
-          log.info(`the deployment have been cancelled. Rolling back to "${nfx.previousVersion}"`);
-          nfx.version = nfx.previousVersion;
-          return updateStackToVersion(nfx);
+          const activeVersion = nfx.nfxJSON.active_version;
+          log.info(`the deployment have been cancelled. Rolling back to "${activeVersion}"`);
+          return rollback(nfx, activeVersion);
         }
       })
       .then(function() {
