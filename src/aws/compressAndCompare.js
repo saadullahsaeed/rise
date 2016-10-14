@@ -1,79 +1,71 @@
 'use strict';
 
-const fs           = require('fs'),
-      path         = require('path'),
-      archiver     = require('archiver'),
-      fetchVersion = require('../aws/fetchVersion').fetchVersion,
+const fs = require('fs'),
+      path = require('path'),
+      archiver = require('archiver'),
+      titlecase = require('../utils/stringHelper'),
       log = require('../utils/log');
 
-module.exports.compressAndCompare = function(nfx) {
-  return new Promise((resolve, reject) => {
-    const funcPaths = Object.keys(nfx.functions);
-    const compressPromises = []
-    for (let i = 0; i < funcPaths.length; ++i) {
-      const funcPath = funcPaths[i];
-      const funcName = funcPath.replace(path.sep, '');
+module.exports = function compressAndCompare(nfx) {
+  const funcPaths = Object.keys(nfx.functions),
+        compressPromises = [];
 
-      if (funcPath === 'default') {
-        continue;
-      }
+  for (let i = 0; i < funcPaths.length; ++i) {
+    const funcPath = funcPaths[i];
+    const funcName = titlecase(funcPath, path.sep);
 
-      compressPromises.push(compress(nfx, funcPath, funcName));
+    if (funcPath === 'default') {
+      continue;
     }
 
-    const checksumPromises = [];
-    checksumPromises.push(checksum(nfx, 'api.yaml'));
-    checksumPromises.push(checksum(nfx, 'functions.yaml'));
+    compressPromises.push(compress(nfx, funcPath, funcName));
+  }
 
-    Promise.all(compressPromises).then(() => {
-      Promise.all(checksumPromises).then(() => {
-        nfx.hasher.end();
-        const checksumHex = nfx.hasher.read().toString('hex');
+  const checksumPromises = [];
+  checksumPromises.push(checksum(nfx.hasher, 'api.yaml'));
+  checksumPromises.push(checksum(nfx.hasher, 'functions.yaml'));
 
-        fetchVersion(nfx).then((nfx) => {
-          const activeVersion = nfx.nfxJSON.active_version;
-          const activeVersionHash = nfx.nfxJSON.version_hashes[nfx.nfxJSON.active_version];
+  return Promise.all(compressPromises)
+    .then(Promise.all(checksumPromises))
+    .then(() => {
+      nfx.hasher.end();
+      const checksumHex = nfx.hasher.read().toString('hex'),
+            activeVersion = nfx.nfxJSON.active_version,
+            activeVersionHash = nfx.nfxJSON.version_hashes[nfx.nfxJSON.active_version];
 
-          if (activeVersion == undefined) {
-            nfx.version = 'v1';
-            log.info(`Deploying the first version`);
-          } else {
-            nfx.previousVersion = activeVersion;
-            nfx.version = `v${(parseInt(activeVersion.substr(1) || 0) + 1)}`;
-            log.info(`Current active version is "${activeVersion}". Deploying "${nfx.version}"`);
-          }
+      if (activeVersionHash === checksumHex) {
+        for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
+          fs.unlinkSync(nfx.compressedFunctions[i].filePath);
+        }
+        return Promise.reject("No change is present");
+      }
 
-          if (activeVersionHash === checksumHex) {
-            // FIXME: delete temp zip file!!!
-            reject("No change is present");
-          } else {
-            nfx.nfxJSON.version_hashes[nfx.version] = checksumHex;
-            resolve(nfx);
-          }
-        }).catch ( (err) => {
-          reject(err)
-        });
-      })
-      .catch( (err) => {
-        reject(err);
-      });
-    })
-    .catch( (err) => {
-      reject(err);
+      if (!activeVersion) {
+        log.info('Deploying the first version');
+        nfx.version = 'v1';
+      } else {
+        nfx.previousVersion = activeVersion;
+        nfx.version = `v${(parseInt(activeVersion.substr(1) || 0) + 1)}`;
+        log.info(`Current active version is "${activeVersion}". Deploying "${nfx.version}"`);
+      }
+
+      nfx.nfxJSON.version_hashes[nfx.version] = checksumHex;
+
+      return Promise.resolve(nfx);
     });
-  });
-}
+};
 
 function compress(nfx, funcPath, funcName) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve/*, reject*/) => {
     log.info(`Compressing ${funcName}...`);
 
     const zipArchive = archiver.create('zip');
     const tempFileName = `/tmp/fn-${funcName}-${new Date().getTime()}.zip`;
     const output = fs.createWriteStream(tempFileName);
 
-    output.on('close', function() {
-      checksum(nfx, tempFileName).then(resolve);
+    output.on('close', () => {
+      checksum(nfx.hasher, tempFileName).then(resolve).catch(log.error);
+      log.info(`Compressed ${funcName}`);
     });
 
     nfx.compressedFunctions.push({
@@ -85,14 +77,19 @@ function compress(nfx, funcPath, funcName) {
     zipArchive.bulk([
       { src: [ '**/*' ], cwd: funcPath, expand: true }
     ]);
+
     zipArchive.finalize();
   });
 }
 
-function checksum(nfx, file) {
-  return new Promise((resolve, reject) => {
+function checksum(hasher, file) {
+  return new Promise((resolve/*, reject*/) => {
+    log.info(`Calculating checksum of ${file}...`);
+
     const readStream = fs.createReadStream(file);
     readStream.once('end', resolve);
-    readStream.pipe(nfx.hasher, { end: false });
+    readStream.pipe(hasher, { end: false });
+
+    log.info(`Calculated checksum of ${file}`);
   });
 }
