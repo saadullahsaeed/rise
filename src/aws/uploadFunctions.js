@@ -1,53 +1,48 @@
 'use strict';
 
-const fs         = require('fs'),
-      path       = require('path'),
-      archiver   = require('archiver'),
+const fs = require('fs'),
       log = require('../utils/log');
 
-module.exports.uploadFunctions = function(nfx) {
-  return new Promise((resolve, reject) => {
-    const uploadPromises = [];
-    for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
-      const compressFunction = nfx.compressedFunctions[i];
-      uploadPromises.push(
-        upload(nfx, compressFunction)
-      );
-    }
+module.exports = function uploadFunctions(nfx) {
+  const uploadPromises = [];
+  for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
+    const compressFunction = nfx.compressedFunctions[i];
+    uploadPromises.push(
+      upload(nfx, compressFunction)
+    );
+  }
 
-    Promise.all(uploadPromises).then(() => {
-      resolve(nfx);
-    }, (err) => {
-      reject(err);
-    });
+  nfx.state = 'UPLOADING';
+  return Promise.all(uploadPromises).then(() => {
+    nfx.state = 'UPLOADED';
+    log.info("All functions are uploaded");
+    return Promise.resolve(nfx);
+  }, (err) => {
+    return Promise.reject(err);
   });
-}
+};
 
 function upload(nfx, compressFunction) {
-  return new Promise((resolve, reject) => {
-    nfx.state = 'UPLOADING';
-    const funcName = compressFunction.functionName;
-    log.info(`Uploading ${funcName} to bucket ${nfx.bucketName}...`);
+  const funcName = compressFunction.functionName,
+        s3Key = `versions/${nfx.version}/functions/${funcName}.zip`,
+        params = {
+          Bucket: nfx.bucketName,
+          Key: s3Key,
+          ACL: 'private',
+          Body: fs.createReadStream(compressFunction.filePath),
+          ContentType: 'application/zip'
+        };
 
-    const s3Key = `versions/${nfx.version}/functions/${funcName}.zip`;
-    const params = {
-      Bucket: nfx.bucketName,
-      Key: s3Key,
-      ACL: 'private',
-      Body: fs.createReadStream(compressFunction.filePath),
-      ContentType: 'application/zip'
-    };
-
-    nfx.awsSDK.s3.upload(params, function(err, data) {
+  log.info(`Uploading ${s3Key} to bucket ${nfx.bucketName}...`);
+  return nfx.aws.s3.putObject(params).promise()
+    .then(function() {
       fs.unlinkSync(compressFunction.filePath);
-
-      if (err) {
-        log.error(`Error on uploading function ${err}`);
-        reject(err);
-      }
-
-      log.info(`Successfully uploaded ${s3Key}`);
-      resolve();
+      log.info(`Uploaded ${s3Key} to bucket ${nfx.bucketName}...`);
+      return Promise.resolve();
+    })
+    .catch(function(err) {
+      fs.unlinkSync(compressFunction.filePath);
+      log.error(`Error on uploading function ${s3Key}: ${err}`);
+      return Promise.reject(err);
     });
-  });
 }
