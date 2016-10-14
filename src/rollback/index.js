@@ -1,7 +1,7 @@
 "use strict";
 
 const AWS                  = require('aws-sdk'),
-      getStack             = require('../aws/getStack').getStack,
+      getStack = require('../aws/getStack'),
       rollback = require('../aws/rollback'),
       deployAPI            = require('../aws/deployAPI').deployAPI,
       getStackTemplate     = require('../aws/getStackTemplate').getStackTemplate,
