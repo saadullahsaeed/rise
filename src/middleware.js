@@ -50,10 +50,14 @@ class Stack {
       this.run(req, res, err);
     };
 
-    if (fn.length < 4) {
-      fn(req, res, nextFn);
-    } else {
-      fn(err, req, res, nextFn);
+    try {
+      if (fn.length < 4) {
+        fn(req, res, nextFn);
+      } else {
+        fn(err, req, res, nextFn);
+      }
+    } catch (err) {
+      nextFn(err);
     }
   }
 }

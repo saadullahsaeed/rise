@@ -84,6 +84,27 @@ describe("middleware", function() {
         expect(errHandler).to.have.been.calledAfter(errMw);
       });
 
+      it('also skips to the next error-handling middleware when an error is thrown synchronously', function() {
+        const mw = sinon.spy(function(req, res, next) {
+          throw myErr;
+        });
+
+        stack.push(mw)
+             .push(mw1)
+             .push(errHandler);
+
+        stack.run(req, res);
+
+        expect(mw).to.have.been.calledOnce;
+        expect(mw).to.have.been.calledWithExactly(req, res, sinon.match.func);
+
+        expect(mw1).not.to.have.been.called;
+
+        expect(errHandler).to.have.been.calledOnce;
+        expect(errHandler).to.have.been.calledWithExactly(myErr, req, res, sinon.match.func);
+        expect(errHandler).to.have.been.calledAfter(mw);
+      });
+
       it('allows error handler to continue to the next middleware', function() {
         errHandler = sinon.spy(function(err, req, res, next) { next(); });
 
