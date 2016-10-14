@@ -1,7 +1,7 @@
 'use strict';
 
 const fs                   = require('fs'),
-      consoleLog           = require('../utils/consoleLog').consoleLog,
+      log = require('../utils/log'),
       cancelUpdateTemplate = require('../aws/cancelUpdateTemplate').cancelUpdateTemplate,
       updateStackToVersion = require('../aws/updateStackToVersion').updateStackToVersion;
 
@@ -12,36 +12,36 @@ module.exports.handleInterrupt = function(nfx) {
     nfx.state = 'REVERTING';
     console.log('Canceling updating stack');
     cancelUpdateTemplate(nfx)
-      .then(function(updatedNFX) {
-        if (updatedNFX.state == 'UNEXPECTEDLY_UPDATED') {
+      .then(function(nfx) {
+        if (nfx.state == 'UNEXPECTEDLY_UPDATED') {
           // When the stack is updated before cancelling,
           // we update the stack to previous version
           // Nothing to rollback if this is the first deployment.
-          if (updatedNFX.version !== 'v1') {
-            consoleLog('info', `the deployment have been cancelled. Rolling back to "${updatedNFX.previousVersion}"`);
-            updatedNFX.version = updatedNFX.previousVersion;
-            updateStackToVersion(updatedNFX).then( () => {
+          if (nfx.version !== 'v1') {
+            log.info(`the deployment have been cancelled. Rolling back to "${nfx.previousVersion}"`);
+            nfx.version = nfx.previousVersion;
+            updateStackToVersion(nfx).then( () => {
               console.log('Successfully rolled back.');
               process.exit(1);
             }).catch(function(err) {
               if (err.stack) {
-                consoleLog('err', err.stack);
+                log.error(err.stack);
               } else {
-                consoleLog('err', err);
+                log.error(err);
               }
               process.exit(1);
             });
           }
         } else {
-          consoleLog('info', 'cancelled');
+          log.info('cancelled');
           process.exit(1);
         }
       })
       .catch(function(err) {
         if (err.stack) {
-          consoleLog('err', err.stack);
+          log.error(err.stack);
         } else {
-          consoleLog('err', err);
+          log.error(err);
         }
         process.exit(1);
       });
@@ -49,12 +49,12 @@ module.exports.handleInterrupt = function(nfx) {
     nfx.state = 'REVERTING';
     console.log('Canceling deploying');
     cancelUpdateTemplate(nfx)
-      .then(function(updatedNFX) {
+      .then(function(nfx) {
         // Nothing to rollback if this is the first deployment.
-        if (updatedNFX.version !== 'v1') {
-          consoleLog('info', `the deployment have been cancelled. Rolling back to "${updatedNFX.previousVersion}"`);
-          updatedNFX.version = updatedNFX.previousVersion;
-          return updateStackToVersion(updatedNFX);
+        if (nfx.version !== 'v1') {
+          log.info(`the deployment have been cancelled. Rolling back to "${nfx.previousVersion}"`);
+          nfx.version = nfx.previousVersion;
+          return updateStackToVersion(nfx);
         }
       })
       .then(function() {
@@ -63,9 +63,9 @@ module.exports.handleInterrupt = function(nfx) {
       })
       .catch(function(err) {
         if (err.stack) {
-          consoleLog('err', err.stack);
+          log.error(err.stack);
         } else {
-          consoleLog('err', err);
+          log.error(err);
         }
         process.exit(1);
       });

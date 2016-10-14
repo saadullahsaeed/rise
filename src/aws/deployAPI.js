@@ -2,11 +2,12 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      consoleLog = require('../utils/consoleLog').consoleLog,
+      log = require('../utils/log'),
       fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports.deployAPI = function(nfx, options) {
   return new Promise((resolve, reject) => {
+    nfx.state = 'DEPLOYING';
     setDeployment(nfx, options.rollback);
 
     const req = nfx.awsSDK.cf.updateStack({
@@ -16,7 +17,7 @@ module.exports.deployAPI = function(nfx, options) {
     });
 
     req.on('success', function(resp) {
-      consoleLog('info', `Updating stack with new deployment ${nfx.version}...`);
+      log.info(`Updating stack with new deployment ${nfx.version}...`);
       nfx.awsSDK.cf.waitFor('stackUpdateComplete',
         { StackName: nfx.stackName },
         function(err, data) {
@@ -25,7 +26,9 @@ module.exports.deployAPI = function(nfx, options) {
             return;
           }
 
-          consoleLog('info', `Successfully deployed.`);
+          nfx.nfxJSON.active_version = nfx.version;
+
+          log.info('Successfully deployed.');
           resolve(nfx);
         }
       );
@@ -33,7 +36,7 @@ module.exports.deployAPI = function(nfx, options) {
 
     req.on('error', function(err, data) {
       if (err.message && err.message.indexOf('No updates are to be performed') !== -1) {
-        consoleLog('info', "No updates on deployment. Proceed to the next step");
+        log.info("No updates on deployment. Proceed to the next step");
         resolve(nfx);
       } else {
         reject(err);

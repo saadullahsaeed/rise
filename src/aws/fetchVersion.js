@@ -1,6 +1,6 @@
 'use strict';
 
-const consoleLog = require('../utils/consoleLog').consoleLog;
+const log = require('../utils/log');
 
 module.exports.fetchVersion = function(nfx) {
   return new Promise((resolve, reject) => {

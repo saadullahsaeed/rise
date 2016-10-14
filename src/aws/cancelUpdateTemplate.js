@@ -2,7 +2,7 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      consoleLog = require('../utils/consoleLog').consoleLog,
+      log = require('../utils/log'),
       fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports.cancelUpdateTemplate = function(nfx) {
@@ -18,7 +18,7 @@ module.exports.cancelUpdateTemplate = function(nfx) {
       }
 
       var status = data.Stacks[0].StackStatus
-      if (status != 'UPDATE_ROLLBACK_COMPLETE') {
+      if (status !== 'UPDATE_ROLLBACK_COMPLETE') {
         setTimeout(function() {
           cf.describeStacks(params, checkStackState);
         }, 5000);
@@ -27,7 +27,7 @@ module.exports.cancelUpdateTemplate = function(nfx) {
       }
     };
 
-    consoleLog('info', `Canceling Updating stack...`);
+    log.info('Canceling Updating stack...');
     req.on('success', function(resp) {
       cf.describeStacks(params, checkStackState);
     });
@@ -35,7 +35,7 @@ module.exports.cancelUpdateTemplate = function(nfx) {
     req.on('error', function(err, data) {
       // This is when the update is done before the request was made
       if (err.message && err.message.indexOf('CancelUpdateStack cannot be called from current stack status') !== -1) {
-        consoleLog('info', 'The stack already has updated.');
+        log.info('The stack already has updated.');
         nfx.state = 'UNEXPECTEDLY_UPDATED';
         resolve(nfx);
       } else {

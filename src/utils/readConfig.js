@@ -1,7 +1,7 @@
 'use strict';
 
 const fsReadFile = require('../utils/fs').fsReadFile,
-      consoleLog = require('./consoleLog').consoleLog,
+      log = require('./log'),
       yaml       = require('js-yaml');
 
 module.exports = function(file) {
@@ -22,7 +22,7 @@ module.exports = function(file) {
       try {
         return yaml.safeLoad(content);
       } catch (err) {
-        consoleLog('err', `Invalid ${fileName}.`);
+        log.error(`Invalid ${fileName}.`);
         process.exit(1);
       }
       break;
@@ -31,12 +31,12 @@ module.exports = function(file) {
       try {
         return JSON.parse(content);
       } catch (err) {
-        consoleLog('err', `Invalid ${fileName}.`);
+        log.error(`Invalid ${fileName}.`);
         process.exit(1);
       }
       break;
     default:
-      consoleLog('err', `Unknown file ${file}.`);
+      log.error(`Unknown file ${file}.`);
       process.exit(1);
       break;
   }

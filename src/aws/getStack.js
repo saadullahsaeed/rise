@@ -2,7 +2,7 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      consoleLog = require('../utils/consoleLog').consoleLog,
+      log = require('../utils/log'),
       fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports.getStack = (nfx) => {
@@ -46,7 +46,7 @@ function create(nfx) {
     });
 
     req.on('success', function(resp) {
-      consoleLog('info', `Creating stack [${nfx.stackName}]...`);
+      log.info(`Creating stack [${nfx.stackName}]...`);
       nfx.awsSDK.cf.waitFor('stackCreateComplete',
         { StackName: nfx.stackName },
         function(err, data) {

@@ -2,7 +2,7 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      consoleLog = require('../utils/consoleLog').consoleLog,
+      log = require('../utils/log'),
       fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports.deployFunctions = function(nfx) {
@@ -44,7 +44,7 @@ module.exports.deployFunctions = function(nfx) {
     });
 
     req.on('success', function(resp) {
-      consoleLog('info', `Deploying functions...`);
+      log.info(`Deploying functions...`);
       nfx.awsSDK.cf.waitFor('stackUpdateComplete',
         { StackName: nfx.stackName },
         function(err, data) {
@@ -53,7 +53,7 @@ module.exports.deployFunctions = function(nfx) {
             return;
           }
 
-          consoleLog('info', `Successfully deployed functions.`);
+          log.info(`Successfully deployed functions.`);
           nfx.lambdaARNs = data.Stacks[0].Outputs;
           resolve(nfx);
         }
@@ -62,7 +62,7 @@ module.exports.deployFunctions = function(nfx) {
 
     req.on('error', function(err, data) {
       if (err.message && err.message.indexOf('No updates are to be performed') !== -1) {
-        consoleLog('info', "No updates on lambda functions. Proceed to the next step");
+        log.info("No updates on lambda functions. Proceed to the next step");
         resolve(nfx);
       } else {
         reject(err);

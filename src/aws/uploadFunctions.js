@@ -3,7 +3,7 @@
 const fs         = require('fs'),
       path       = require('path'),
       archiver   = require('archiver'),
-      consoleLog = require('../utils/consoleLog').consoleLog;
+      log = require('../utils/log');
 
 module.exports.uploadFunctions = function(nfx) {
   return new Promise((resolve, reject) => {
@@ -25,8 +25,9 @@ module.exports.uploadFunctions = function(nfx) {
 
 function upload(nfx, compressFunction) {
   return new Promise((resolve, reject) => {
+    nfx.state = 'UPLOADING';
     const funcName = compressFunction.functionName;
-    consoleLog('info', `Uploading ${funcName} to bucket ${nfx.bucketName}...`);
+    log.info(`Uploading ${funcName} to bucket ${nfx.bucketName}...`);
 
     const s3Key = `versions/${nfx.version}/functions/${funcName}.zip`;
     const params = {
@@ -41,11 +42,11 @@ function upload(nfx, compressFunction) {
       fs.unlinkSync(compressFunction.filePath);
 
       if (err) {
-        consoleLog('err', `Error on uploading function ${err}`);
+        log.error(`Error on uploading function ${err}`);
         reject(err);
       }
 
-      consoleLog('info', `Successfully uploaded ${s3Key}`);
+      log.info(`Successfully uploaded ${s3Key}`);
       resolve();
     });
   });

@@ -2,10 +2,11 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      consoleLog = require('../utils/consoleLog').consoleLog;
+      log = require('../utils/log');
 
 module.exports.uploadNFXFiles = function(nfx) {
   return new Promise((resolve, reject) => {
+    nfx.state = 'SAVING';
     const uploadS3Promises = [];
 
     const nfxFiles = [{
@@ -50,14 +51,14 @@ function uploadS3(nfx, key, body, contentType) {
       ContentType: contentType
     };
 
-    consoleLog('info', `Saving ${key} in S3...`);
+    log.info(`Saving ${key} in S3...`);
     nfx.awsSDK.s3.upload(params, function(err, data) {
       if (err) {
-        consoleLog('err', `Error on saving template ${err}`);
+        log.error(`Error on saving template ${err}`);
         reject(err);
       }
 
-      consoleLog('info', `Successfully saved ${key}`);
+      log.info(`Successfully saved ${key}`);
       resolve();
     });
   });

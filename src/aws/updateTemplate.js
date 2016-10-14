@@ -2,12 +2,13 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      consoleLog = require('../utils/consoleLog').consoleLog,
+      log = require('../utils/log'),
       yaml       = require('js-yaml'),
       fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports.updateTemplate = function(nfx) {
   return new Promise((resolve, reject) => {
+    nfx.state = 'UPDATING';
     setBaseTemplate(nfx);
     setFunctions(nfx);
     setAPIs(nfx);
@@ -19,7 +20,7 @@ module.exports.updateTemplate = function(nfx) {
     });
 
     req.on('success', function(resp) {
-      consoleLog('info', `Updating stack...`);
+      log.info(`Updating stack...`);
       nfx.awsSDK.cf.waitFor('stackUpdateComplete',
         { StackName: nfx.stackName },
         function(err, data) {
@@ -28,7 +29,7 @@ module.exports.updateTemplate = function(nfx) {
             return;
           }
 
-          consoleLog('info', `Successfully updated stack.`);
+          log.info(`Successfully updated stack.`);
           resolve(nfx);
         }
       );
@@ -36,7 +37,7 @@ module.exports.updateTemplate = function(nfx) {
 
     req.on('error', function(err, data) {
       if (err.message && err.message.indexOf('No updates are to be performed') !== -1) {
-        consoleLog('info', "No updates on updating stack. Proceed to the next step");
+        log.info("No updates on updating stack. Proceed to the next step");
         resolve(nfx);
       } else {
         // TODO: If a user cancelled deploying, it might get "ResourceNotReady: Resource is not in the state stackUpdateComplete"

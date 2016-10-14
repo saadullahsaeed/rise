@@ -1,6 +1,6 @@
 'use strict';
 
-const consoleLog = require('../utils/consoleLog').consoleLog;
+const log = require('../utils/log');
 
 module.exports.getStackTemplate = function(nfx) {
   return new Promise((resolve, reject) => {
@@ -10,7 +10,7 @@ module.exports.getStackTemplate = function(nfx) {
         if (err) {
           reject(err);
         }
-        consoleLog('info', `Successfully fetched the template`);
+        log.info(`Successfully fetched the template`);
         nfx.cfTemplate = JSON.parse(data.TemplateBody);
         resolve(nfx);
       }

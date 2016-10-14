@@ -1,7 +1,7 @@
 'use strict';
 
 const readConfig = require('./utils/readConfig');
-      consoleLog = require('./utils/consoleLog').consoleLog,
+      log = require('./utils/log'),
       AWS        = require('aws-sdk'),
       CLI        = require('./cli'),
       crypto     = require('crypto');
@@ -19,6 +19,8 @@ module.exports = class Session {
     this.nfxJSON = {};
 
     this.aws = null;
+
+    this.stage = null;
   }
 
   static init() {
@@ -27,15 +29,15 @@ module.exports = class Session {
     const api       = readConfig('api');
 
     const s = {
-      stackName           : `NFX-${functions.stack}`,
-      functions           : functions.functions,
-      bucketName          : project.profiles.default.bucket,
-      provider            : project.profiles.default.provider,
-      region              : project.profiles.default.region,
-      api                 : api,
-      hasher              : crypto.createHash('sha256'),
+      stackName: `NFX-${functions.stack}`,
+      functions: functions.functions,
+      bucketName: project.profiles.default.bucket,
+      provider: project.profiles.default.provider,
+      region: project.profiles.default.region,
+      api,
+      hasher: crypto.createHash('sha256'),
       compressedFunctions : [],
-      nfxJSON             : {}
+      nfxJSON: {}
     };
 
     switch(s.provider) {
@@ -49,7 +51,7 @@ module.exports = class Session {
         break;
 
       default:
-        consoleLog('err', 'Unknown provider');
+        log.error('Unknown provider');
         process.exit(1);
         break;
     }

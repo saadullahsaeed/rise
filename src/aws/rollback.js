@@ -2,12 +2,17 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      consoleLog = require('../utils/consoleLog').consoleLog;
+      log = require('../utils/log');
 
-// It rolls back to nfx.version
-module.exports.updateStackToVersion = function(nfx) {
+module.exports = function rollback(nfx, version) {
   return new Promise((resolve, reject) => {
-    const version = nfx.version;
+    nfx.previousVersion = nfx.nfxJSON.active_version;
+    nfx.version = version;
+
+    log.info(`Current active version is "${activeVersion}". Rolling back to "${version}".`);
+
+    nfx.state = 'UPDATING';
+
     const cf = nfx.awsSDK.cf;
     const params = {
       StackName: nfx.stackName,
@@ -16,24 +21,24 @@ module.exports.updateStackToVersion = function(nfx) {
     };
     const req = cf.updateStack(params);
 
-    consoleLog('info', `Updating stack to version ${version}...`);
+    log.info(`Updating stack to version ${version}...`);
     req.on('success', function(resp) {
-      consoleLog('info', `Successfully made a request to update stack to ${version}...`);
+      log.info(`Successfully made a request to update stack to ${version}...`);
       cf.waitFor('stackUpdateComplete',
         { StackName: nfx.stackName },
         function(err, data) {
         if (err) {
-          consoleLog('err', `Failed to update stack to version ${version}: ${err}`);
+          log.error(`Failed to update stack to version ${version}: ${err}`);
           return;
         }
 
-        consoleLog('info', `Successfully updated stack to version ${version}`);
+        log.info(`Successfully updated stack to version ${version}`);
         resolve(nfx);
       });
     });
 
     req.on('error', function(err, data) {
-      consoleLog('err', `Errors on making a request to update stack to version ${version}: ${err}`);
+      log.error(`Errors on making a request to update stack to version ${version}: ${err}`);
       reject(err);
     });
 

@@ -2,7 +2,7 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      consoleLog = require('../utils/consoleLog').consoleLog,
+      log = require('../utils/log'),
       yaml       = require('js-yaml'),
       fsReadFile = require('../utils/fs').fsReadFile;
 
@@ -62,14 +62,14 @@ module.exports.uploadAPITemplate = function(nfx) {
       ContentType: 'text/yaml'
     };
 
-    consoleLog('info', 'Uploading api template...');
+    log.info('Uploading api template...');
     nfx.awsSDK.s3.upload(params, function(err, data) {
       if (err) {
-        consoleLog('err', `Error on uploading function ${err}`);
+        log.error(`Error on uploading function ${err}`);
         reject(err);
       }
 
-      consoleLog('info', `Successfully uploaded ${s3Key}`);
+      log.info(`Successfully uploaded ${s3Key}`);
       resolve(nfx);
     });
   });

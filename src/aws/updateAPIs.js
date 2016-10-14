@@ -2,7 +2,7 @@
 
 const fs         = require('fs'),
       path       = require('path'),
-      consoleLog = require('../utils/consoleLog').consoleLog,
+      log = require('../utils/log'),
       fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports.updateAPIs = function(nfx) {
@@ -49,9 +49,9 @@ module.exports.updateAPIs = function(nfx) {
       Capabilities: ['CAPABILITY_IAM']
     });
 
-    consoleLog('info', 'Updating api template...');
+    log.info('Updating api template...');
     req.on('success', function(resp) {
-      consoleLog('info', `Made a request to updating api template...`);
+      log.info(`Made a request to updating api template...`);
       nfx.awsSDK.cf.waitFor('stackUpdateComplete',
         { StackName: nfx.stackName },
         function(err, data) {
@@ -60,14 +60,14 @@ module.exports.updateAPIs = function(nfx) {
             return;
           }
 
-          consoleLog('info', "Successfully updated API.");
+          log.info("Successfully updated API.");
           resolve(nfx);
         });
     });
 
     req.on('error', function(err, data) {
       if (err.message && err.message.indexOf('No updates are to be performed') !== -1) {
-        consoleLog('info', "No updates on API. Proceed to the next step");
+        log.info("No updates on API. Proceed to the next step");
         resolve(nfx);
       }
       reject(err);

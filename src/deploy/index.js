@@ -3,7 +3,7 @@
 const fs                    = require('fs'),
       path                  = require('path'),
       fsStat                = require('../utils/fs').fsStat,
-      consoleLog            = require('../utils/consoleLog').consoleLog,
+      log = require('../utils/log'),
       compressAndCompare    = require('../aws/compressAndCompare').compressAndCompare,
       uploadFunctions       = require('../aws/uploadFunctions').uploadFunctions,
       getStack              = require('../aws/getStack').getStack,
@@ -15,65 +15,20 @@ const fs                    = require('fs'),
       handleInterrupt       = require('../aws/handleInterrupt').handleInterrupt;
 
 module.exports = (nfx) => {
-  consoleLog('info', 'Checking stack...');
-
   // FIXME: It should be configurable.
   nfx.stage = 'staging';
-
-  let startTime = new Date().getTime();
   nfx.state = 'CREATING';
-  getBucket(nfx)
-    .then((updatedNFX) => {
-      const endTime = new Date().getTime();
-      console.log(`getting bucket took: ${(endTime - startTime)/1000}s`);
-      startTime = endTime;
-      return getStack(updatedNFX);
-    })
-    .then((updatedNFX) => {
-      const endTime = new Date().getTime();
-      console.log(`fetching stack took: ${(endTime - startTime)/1000}s`);
-      startTime = endTime;
-      return compressAndCompare(updatedNFX);
-    })
-    .then((updatedNFX) => {
-      nfx.state = 'UPLOADING';
-      const endTime = new Date().getTime();
-      console.log(`compressing and comparing took: ${(endTime - startTime)/1000}s`);
-      startTime = endTime;
-      return uploadFunctions(updatedNFX);
-    })
-    .then((updatedNFX) => { // Takes at least 30 secs
-      nfx.state = 'UPDATING';
-      const endTime = new Date().getTime();
-      console.log(`uploading functions took: ${(endTime - startTime)/1000}s`);
-      startTime = endTime;
-      return updateTemplate(updatedNFX);
-    })
-    .then((updatedNFX) => { // Takes at least 30 secs
-      nfx.state = 'DEPLOYING';
-      const endTime = new Date().getTime();
-      console.log(`updating stack took: ${(endTime - startTime)/1000}s`);
-      startTime = endTime;
-      return deployAPI(updatedNFX, {});
-    })
-    .then((updatedNFX) => {
-      nfx.state = 'SAVING';
-      const endTime = new Date().getTime();
-      console.log(`uploading stack took: ${(endTime - startTime)/1000}s`);
-      startTime = endTime;
 
-      nfx.nfxJSON.active_version = nfx.version;
-      return uploadNFXFiles(updatedNFX);
-    })
-    .catch((err) => {
-      if (err.stack) {
-        consoleLog('err', err.stack);
-      } else {
-        consoleLog('err', err);
-      }
-    });
+  getBucket(nfx)
+    .then(getStack(nfx))
+    .then(compressAndCompare(nfx))
+    .then(uploadFunctions(nfx))
+    .then(updateTemplate(nfx)) // Takes at least 30 secs
+    .then(deployAPI(nfx, {})) // Takes at least 30 secs
+    .then(uploadNFXFiles(nfx))
+    .catch(log.error);
 
   process.on('SIGINT', function () {
     handleInterrupt(nfx);
   });
-}
+};

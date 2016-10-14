@@ -4,7 +4,7 @@ const fs           = require('fs'),
       path         = require('path'),
       archiver     = require('archiver'),
       fetchVersion = require('../aws/fetchVersion').fetchVersion,
-      consoleLog   = require('../utils/consoleLog').consoleLog;
+      log = require('../utils/log');
 
 module.exports.compressAndCompare = function(nfx) {
   return new Promise((resolve, reject) => {
@@ -30,17 +30,17 @@ module.exports.compressAndCompare = function(nfx) {
         nfx.hasher.end();
         const checksumHex = nfx.hasher.read().toString('hex');
 
-        fetchVersion(nfx).then((updatedNFX) => {
-          const activeVersion = updatedNFX.nfxJSON.active_version;
-          const activeVersionHash = updatedNFX.nfxJSON.version_hashes[nfx.nfxJSON.active_version];
+        fetchVersion(nfx).then((nfx) => {
+          const activeVersion = nfx.nfxJSON.active_version;
+          const activeVersionHash = nfx.nfxJSON.version_hashes[nfx.nfxJSON.active_version];
 
           if (activeVersion == undefined) {
-            updatedNFX.version = 'v1';
-            consoleLog('info', `Deploying the first version`);
+            nfx.version = 'v1';
+            log.info(`Deploying the first version`);
           } else {
-            updatedNFX.previousVersion = activeVersion;
-            updatedNFX.version = `v${(parseInt(activeVersion.substr(1) || 0) + 1)}`;
-            consoleLog('info', `Current active version is "${activeVersion}". Deploying "${nfx.version}"`);
+            nfx.previousVersion = activeVersion;
+            nfx.version = `v${(parseInt(activeVersion.substr(1) || 0) + 1)}`;
+            log.info(`Current active version is "${activeVersion}". Deploying "${nfx.version}"`);
           }
 
           if (activeVersionHash === checksumHex) {
@@ -66,7 +66,7 @@ module.exports.compressAndCompare = function(nfx) {
 
 function compress(nfx, funcPath, funcName) {
   return new Promise((resolve, reject) => {
-    consoleLog('info', `Compressing ${funcName}...`);
+    log.info(`Compressing ${funcName}...`);
 
     const zipArchive = archiver.create('zip');
     const tempFileName = `/tmp/fn-${funcName}-${new Date().getTime()}.zip`;

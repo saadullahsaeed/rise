@@ -1,7 +1,7 @@
 "use strict";
 
 const AWS                   = require('aws-sdk'),
-      consoleLog            = require('../utils/consoleLog').consoleLog,
+      log = require('../utils/log'),
       loadYAML              = require('../utils/yaml').loadYAML;
 
 module.exports = function() {
@@ -9,12 +9,12 @@ module.exports = function() {
         functions = loadYAML('functions.yaml');
 
   if (!project) {
-    consoleLog('err', 'invalid project.yaml');
+    log.error('invalid project.yaml');
     process.exit(1);
   }
 
   if (!functions) {
-    consoleLog('err', 'invalid functions.yaml');
+    log.error('invalid functions.yaml');
     process.exit(1);
   }
 
@@ -25,20 +25,20 @@ module.exports = function() {
   };
 
 
-  consoleLog('info', `destroying stack ${functions.stack}`);
+  log.info(`destroying stack ${functions.stack}`);
   cf.deleteStack(params, function(err, data) {
     if (err) {
-      consoleLog('info', `errors on deleting stack: ${err}`, err);
+      log.info(`errors on deleting stack: ${err}`, err);
       process.exit(1)
     }
 
-    consoleLog('info', 'successfully make a request to delete a stack');
+    log.info('successfully make a request to delete a stack');
     cf.waitFor('stackDeleteComplete', params, function(err, data) {
       if (err) {
-        consoleLog('err', `failed to destroy the stack: ${err}`);
+        log.error(`failed to destroy the stack: ${err}`);
         process.exit(1);
       }
-      consoleLog('info', `successfully destroyed stack ${functions.stack}`);
+      log.info(`successfully destroyed stack ${functions.stack}`);
     });
   });
 }
