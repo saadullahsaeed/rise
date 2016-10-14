@@ -2,25 +2,25 @@
 
 const log = require('../utils/log');
 
-module.exports.fetchVersion = function(nfx) {
-  return new Promise((resolve, reject) => {
-    const params = {
-      Bucket: nfx.bucketName,
-      Key: 'nfx.json',
-    };
+module.exports = function fetchVersion(nfx) {
+  const params = {
+    Bucket: nfx.bucketName,
+    Key: 'nfx.json'
+  };
 
-    nfx.awsSDK.s3.getObject(params, function(err, data) {
-      if (err) {
-        if (err.message.indexOf('does not exist') > -1) {
-          nfx.nfxJSON.version_hashes = {}
-          resolve(nfx);
-        } else {
-          reject(err);
-        }
+  return nfx.aws.s3.getObject(params).promise()
+    .then(function(data) {
+      log.info("nfx.json found.");
+      nfx.nfxJSON = JSON.parse(data.Body);
+      return Promise.resolve(nfx);
+    })
+    .catch(function(err) {
+      if (err.message.indexOf('does not exist') > -1) {
+        log.info("nfx.json does not exist yet.");
+        nfx.nfxJSON.version_hashes = {};
+        return Promise.resolve(nfx);
       } else {
-        nfx.nfxJSON = JSON.parse(data.Body);
-        resolve(nfx);
+        return Promise.reject(err);
       }
     });
-  });
-}
+};
