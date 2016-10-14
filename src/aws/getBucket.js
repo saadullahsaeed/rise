@@ -1,38 +1,31 @@
 'use strict';
 
-module.exports.getBucket = function(nfx) {
-  return new Promise((resolve, reject) => {
-    let isBucketExist = false;
-    nfx.awsSDK.s3.headBucket({ Bucket: nfx.bucketName }, (err, data) => {
-      if (err) {
-        if (err.code === 'NotFound') {
-          create(nfx)
-            .then(() => resolve(nfx))
-            .catch((err) => reject(err));
-        } else {
-          reject(err);
-        }
+const log = require('../utils/log');
+
+module.exports = function getBucket(nfx) {
+  return nfx.aws.s3.headBucket({ Bucket: nfx.bucketName })
+    .promise()
+    .then(function(/* data */) {
+      log.info(`bucket "${nfx.bucketName}" found.`);
+      return Promise.resolve(nfx);
+    })
+    .catch(function(err) {
+      if (err.code === 'NotFound') {
+        log.info(`bucket "${nfx.bucketName}" could not be found. Creating...`);
+        return create(nfx);
       } else {
-        resolve(nfx);
+        return Promise.reject(err);
       }
     });
-  });
-}
+};
 
 function create(nfx) {
-  return new Promise((resolve, reject) => {
-    var params = {
-      Bucket: nfx.bucketName,
-      CreateBucketConfiguration: {
-        LocationConstraint: nfx.region
-      }
-    };
-    nfx.awsSDK.s3.createBucket(params, (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
+  const params = {
+    Bucket: nfx.bucketName,
+    CreateBucketConfiguration: {
+      LocationConstraint: nfx.region
+    }
+  };
+
+  return nfx.aws.s3.createBucket(params).promise();
 }

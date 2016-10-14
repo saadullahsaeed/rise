@@ -1,13 +1,10 @@
 "use strict";
 
-const fs                    = require('fs'),
-      path                  = require('path'),
-      fsStat                = require('../utils/fs').fsStat,
-      log = require('../utils/log'),
+const log = require('../utils/log'),
       compressAndCompare = require('../aws/compressAndCompare'),
       uploadFunctions       = require('../aws/uploadFunctions').uploadFunctions,
       getStack              = require('../aws/getStack').getStack,
-      getBucket             = require('../aws/getBucket').getBucket,
+      getBucket = require('../aws/getBucket'),
       fetchVersion = require('../aws/fetchVersion').fetchVersion,
       updateTemplate        = require('../aws/updateTemplate').updateTemplate,
       deployAPI             = require('../aws/deployAPI').deployAPI,
