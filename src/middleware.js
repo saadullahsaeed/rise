@@ -4,14 +4,15 @@ class Stack {
   constructor() {
     this._stack = [];
     this._currIndex = 0;
+    this._logStream = process.stderr;
   }
 
-  _defaultErrorHandler(err) {
-    if (err instanceof Error && typeof err.stack === 'string') {
-      process.stderr.write(err.stack + "\n");
-      return;
+  _defaultErrorHandler(err, req, res) {
+    this._logStream.write((err instanceof Error && typeof err.stack === 'string' ? err.stack : String(err)) + "\n");
+
+    if (!res.finished) {
+      res.status(500).send({ error: 'Internal Server Error' });
     }
-    process.stderr.write(String(err) + "\n");
   }
 
   push(middleware) {
@@ -39,7 +40,7 @@ class Stack {
           this._currIndex++;
           fn = stack[this._currIndex];
           if (!fn) {
-            this._defaultErrorHandler(err);
+            this._defaultErrorHandler(err, req, res);
             return;
           }
         } while (fn.length < 4);

@@ -175,8 +175,72 @@ describe("middleware", function() {
           expect(mw2).not.to.have.been.called;
 
           expect(stack._defaultErrorHandler).to.have.been.calledOnce;
-          expect(stack._defaultErrorHandler).to.have.been.calledWithExactly(myErr);
+          expect(stack._defaultErrorHandler).to.have.been.calledWithExactly(myErr, req, res);
           expect(stack._defaultErrorHandler).to.have.been.calledAfter(errMw);
+        });
+      });
+    });
+
+    describe('default error handler', function() {
+      beforeEach(function() {
+        stack._logStream = { write: sinon.spy() };
+        res.status = sinon.spy(() => res);
+        res.send = sinon.spy();
+      });
+
+      context('when res.finished is true', function() {
+        beforeEach(function() {
+          res.finished = true;
+        });
+
+        context('when the error is a string', function() {
+          it('logs the error', function() {
+            stack._defaultErrorHandler("error!!!", req, res);
+            expect(stack._logStream.write).to.have.been.calledOnce;
+            expect(stack._logStream.write).to.have.been.calledWithExactly("error!!!\n");
+            expect(res.status).not.to.have.been.called;
+            expect(res.send).not.to.have.been.called;
+          });
+        });
+
+        context('when the error is an error object with stack trace', function() {
+          it('logs the stack trace of the error', function() {
+            stack._defaultErrorHandler(myErr, req, res);
+            expect(stack._logStream.write).to.have.been.calledOnce;
+            expect(stack._logStream.write).to.have.been.calledWithExactly(myErr.stack + "\n");
+            expect(res.status).not.to.have.been.called;
+            expect(res.send).not.to.have.been.called;
+          });
+        });
+      });
+
+      context('when res.finished is false', function() {
+        beforeEach(function() {
+          res.finished = false;
+        });
+
+        context('when the error is a string', function() {
+          it('logs the error and sends 500 internal server error', function() {
+            stack._defaultErrorHandler(myErr, req, res);
+            expect(stack._logStream.write).to.have.been.calledOnce;
+            expect(stack._logStream.write).to.have.been.calledWithExactly(myErr.stack + "\n");
+            expect(res.status).to.have.been.calledOnce;
+            expect(res.status).to.have.been.calledWithExactly(500);
+            expect(res.send).to.have.been.calledOnce;
+            expect(res.send).to.have.been.calledWithExactly({error: 'Internal Server Error'});
+          });
+        });
+
+        context('when the error is an error object with stack trace', function() {
+          it('logs the stack trace of the error and sends 500 internal server error', function() {
+            stack._defaultErrorHandler("error!!!", req, res);
+            expect(stack._logStream.write).to.have.been.calledOnce;
+            expect(stack._logStream.write).to.have.been.calledWithExactly("error!!!\n");
+            expect(res.status).to.have.been.calledOnce;
+            expect(res.status).to.have.been.calledWithExactly(500);
+            expect(res.send).to.have.been.calledOnce;
+            expect(res.send).to.have.been.calledWithExactly({error: 'Internal Server Error'});
+          });
         });
       });
     });
