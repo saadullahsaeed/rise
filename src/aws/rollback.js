@@ -3,39 +3,35 @@
 const log = require('../utils/log');
 
 module.exports = function rollback(nfx, version) {
-  return new Promise((resolve, reject) => {
-    nfx.state = 'UPDATING';
+  const cf = nfx.aws.cf;
+  const params = {
+    StackName: nfx.stackName,
+    TemplateURL: `https://s3-${nfx.region}.amazonaws.com/${nfx.bucketName}/versions/${version}/aws/cf.json`,
+    Capabilities: ['CAPABILITY_IAM']
+  };
 
-    const cf = nfx.awsSDK.cf;
-    const params = {
-      StackName: nfx.stackName,
-      TemplateURL: `https://s3-${nfx.region}.amazonaws.com/${nfx.bucketName}/versions/${version}/aws/cf.json`,
-      Capabilities: ['CAPABILITY_IAM']
-    };
-    const req = cf.updateStack(params);
+  log.info(`Updating stack to version ${version}...`);
 
-    log.info(`Updating stack to version ${version}...`);
-    req.on('success', function(resp) {
-      log.info(`Successfully made a request to update stack to ${version}...`);
-      cf.waitFor('stackUpdateComplete',
-        { StackName: nfx.stackName },
-        function(err, data) {
-        if (err) {
-          log.error(`Failed to update stack to version ${version}: ${err}`);
-          return;
-        }
-
-        nfx.version = version;
-        log.info(`Successfully updated stack to version ${version}`);
-        resolve(nfx);
-      });
-    });
-
-    req.on('error', function(err, data) {
+  nfx.state = 'ROLLING_BACK';
+  return cf.updateStack(params).promise()
+    .then(function(/* data */) {
+      nfx.version = version;
+      return waitForUpdate(nfx);
+    })
+    .catch(function(err) {
       log.error(`Errors on making a request to update stack to version ${version}: ${err}`);
-      reject(err);
+      return Promise.reject(err);
     });
+};
 
-    req.send();
-  });
+function waitForUpdate(nfx) {
+  const cf = nfx.aws.cf;
+
+  log.info(`Rolling back stack [${nfx.stackName}]...`);
+  return cf.waitFor('stackUpdateComplete', { StackName: nfx.stackName }).promise()
+    .then(() => {
+      log.info(`Rolling back stack [${nfx.stackName}]...`);
+      nfx.state = 'ROLLED_BACK';
+      return Promise.resolve(nfx);
+    });
 }
