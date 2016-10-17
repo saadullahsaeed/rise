@@ -21,12 +21,11 @@ module.exports = function compressAndCompare(nfx) {
     compressPromises.push(compress(nfx, funcPath, funcName));
   }
 
-  const checksumPromises = [];
-  checksumPromises.push(checksum(nfx.hasher, 'api.yaml'));
-  checksumPromises.push(checksum(nfx.hasher, 'functions.yaml'));
-
+  // TODO: Sanity check with functions.yaml.
   return Promise.all(compressPromises)
-    .then(Promise.all(checksumPromises))
+    .then(function() {
+      return checksumAll(nfx.hasher, nfx.compressedFunctions);
+    })
     .then(() => {
       nfx.hasher.end();
       const checksumHex = nfx.hasher.read().toString('hex'),
@@ -64,8 +63,8 @@ function compress(nfx, funcPath, funcName) {
     const output = fs.createWriteStream(tempFileName);
 
     output.on('close', () => {
-      checksum(nfx.hasher, tempFileName).then(resolve).catch(log.error);
       log.info(`Compressed ${funcName}`);
+      resolve();
     });
 
     nfx.compressedFunctions.push({
@@ -82,14 +81,33 @@ function compress(nfx, funcPath, funcName) {
   });
 }
 
+function checksumAll(hasher, funcs) {
+  const files = ['api.yaml', 'functions.yaml'];
+  for (let i = 0; i < funcs.length; ++i) {
+    files.push(funcs[i].filePath);
+  }
+
+  return new Promise((resolve/*, reject*/) => {
+    let cp = checksum(hasher, files[0]);
+    for (let i = 1; i < files.length; ++i) {
+      const file = files[i];
+      cp = cp.then(function(hasher) {
+        return checksum(hasher, file);
+      });
+    }
+    cp.then(resolve).catch(log.error);
+  });
+}
+
 function checksum(hasher, file) {
   return new Promise((resolve/*, reject*/) => {
     log.info(`Calculating checksum of ${file}...`);
 
     const readStream = fs.createReadStream(file);
-    readStream.once('end', resolve);
     readStream.pipe(hasher, { end: false });
-
-    log.info(`Calculated checksum of ${file}`);
+    readStream.once('end', function() {
+      log.info(`Calculated checksum of ${file}. Resolved`);
+      resolve(hasher);
+    });
   });
 }
