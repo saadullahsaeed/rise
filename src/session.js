@@ -47,6 +47,9 @@ module.exports = class Session {
           cf: new AWS.CloudFormation({ apiVersion: '2010-05-15' }),
           cfTemplate: {}
         };
+
+        // FIXME: It should be configurable.
+        s.stage = 'staging';
         break;
 
       default:
