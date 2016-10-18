@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs'),
+      os = require('os'),
       path = require('path'),
       archiver = require('archiver'),
       titlecase = require('../utils/stringHelper'),
@@ -59,7 +60,7 @@ function compress(nfx, funcPath, funcName) {
     log.info(`Compressing ${funcName}...`);
 
     const zipArchive = archiver.create('zip');
-    const tempFileName = `/tmp/fn-${funcName}-${new Date().getTime()}.zip`;
+    const tempFileName = path.join(os.tmpdir(), `fn-${funcName}-${new Date().getTime()}.zip`);
     const output = fs.createWriteStream(tempFileName);
 
     output.on('close', () => {
