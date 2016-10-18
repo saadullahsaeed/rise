@@ -6,6 +6,8 @@ module.exports = function getBucket(nfx) {
   return nfx.aws.s3.headBucket({ Bucket: nfx.bucketName })
     .promise()
     .then(function(/* data */) {
+      // TODO: We need to make sure it belongs to current project by comparing uuid.
+      // Create unique project ID when stack gets created.
       log.info(`bucket "${nfx.bucketName}" found.`);
       return Promise.resolve(nfx);
     })
