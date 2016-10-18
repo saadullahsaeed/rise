@@ -40,4 +40,4 @@ module.exports = function(file) {
       process.exit(1);
       break;
   }
-}
+};

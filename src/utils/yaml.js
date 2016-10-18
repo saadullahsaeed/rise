@@ -9,4 +9,4 @@ module.exports.loadYAML = function(path) {
   } catch (err) {
     return false;
   }
-}
+};

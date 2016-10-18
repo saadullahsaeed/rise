@@ -56,8 +56,8 @@ module.exports = function(stackName, options) {
     profiles: {
       default: {
         provider: DEFAULT_PROVIDER,
-        region: region,
-        bucket: bucket
+        region,
+        bucket
       }
     }
   };
@@ -71,7 +71,7 @@ module.exports = function(stackName, options) {
   }
 
   fs.writeFileSync(projectPath, YAML.safeDump(project), 'utf8');
-  fs.writeFileSync(functionsPath, YAML.safeDump(functions), 'utf8')
+  fs.writeFileSync(functionsPath, YAML.safeDump(functions), 'utf8');
 
   const awsCredStat = fsStat(awsCredPath);
   if (!awsCredStat &&
@@ -79,7 +79,7 @@ module.exports = function(stackName, options) {
       process.env.AWS_SECRET_ACCESS_KEY === undefined) {
     log.info('Please setup your provider credentials.');
   }
-}
+};
 
 function fsStat(path) {
   try {
