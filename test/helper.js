@@ -29,3 +29,15 @@ root.waitUntil = function(conditionFunc, timeoutMs, intervalMs) {
     }, intervalMs);
   });
 };
+
+root.spyWithPromise = function(promiseFn) {
+  const promise = new Promise(promiseFn);
+  return sinon.spy(function() {
+    return {
+      promise() {
+        return promise;
+      }
+    };
+  });
+};
+
