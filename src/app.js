@@ -9,12 +9,56 @@ class App {
   constructor(props) {
     props = props || {};
 
-    this.settings = {};
-    this.locals = { settings: this.settings };
+    this.__settings = {};
+    this.__locals = { settings: this.__settings };
 
     const env = (props.stage && props.stage.NODE_ENV) || 'development';
     this.set('env', env);
     this.set('jsonp callback name', 'callback');
+  }
+
+  /**
+   * Object available to all functions. You can set properties in this object in your `exports.app` function in your `app.js`. However, the object is then turned read-only and can no longer be modified.
+   * @type {Object}
+   * @readonly
+   * @example
+   * // app.js
+   * exports.app = function(app) {
+   *   app.locals.title = 'ZomboCom';
+   *   app.locals.tagline = 'You can do anything at ZomboCom.';
+   * };
+   * // your function
+   * exports.handle = function(req, res) {
+   *   req.app.locals.title // => 'ZomboCom'
+   *   req.app.locals.newProp = 'not allowed'; // Not allowed. Properties can only be set in `exports.app` function in `app.js`.
+   * };
+   */
+  get locals() {
+    return this.__locals;
+  }
+
+  /**
+   * Settings for your application. You can set settings using [res.set()]{@link App#set} function in your `exports.app` function in your `app.js`. The settings object is then turned read-only and can no longer be modified.
+   * @type {Object}
+   * @readonly
+   * @example
+   * // app.js
+   * exports.app = function(app) {
+   *   app.set('x-powered-by', false);
+   * };
+   * // your function
+   * exports.handle = function(req, res) {
+   *   req.app.get('x-powered-by') // => false
+   *   req.app.set('newProp', 'not allowed'); // Not allowed. Settings can only be set in `exports.app` function in `app.js`.
+   * };
+   */
+  get settings() {
+    return this.__settings;
+  }
+
+  freeze() {
+    Object.freeze(this.__locals);
+    Object.freeze(this.__settings);
   }
 
   /**
@@ -31,7 +75,7 @@ class App {
       return this.get(name);
     }
 
-    this.settings[name] = value;
+    this.__settings[name] = value;
 
     return this;
   }
@@ -45,7 +89,7 @@ class App {
    * app.get('title'); // => 'My Awesome App'
    */
   get(name) {
-    return this.settings[name];
+    return this.__settings[name];
   }
 
   /**

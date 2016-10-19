@@ -17,7 +17,7 @@ class Stack {
 
   push(middleware) {
     if (typeof middleware !== 'function') {
-      throw new TypeError("'middleware' must be a function");
+      throw new TypeError(`'middleware' must be a function, got ${middleware}`);
     }
     this._stack.push(middleware);
     return this;

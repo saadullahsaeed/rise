@@ -85,7 +85,7 @@ describe("middleware", function() {
       });
 
       it('also skips to the next error-handling middleware when an error is thrown synchronously', function() {
-        const mw = sinon.spy(function(req, res, next) {
+        const mw = sinon.spy(function(req, res, next) { // eslint-disable-line no-unused-vars
           throw myErr;
         });
 
