@@ -8,7 +8,7 @@ module.exports = function uploadFunctions(nfx) {
   for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
     const compressFunction = nfx.compressedFunctions[i];
     uploadPromises.push(
-      upload(nfx, compressFunction)
+      upload(nfx.aws.s3, nfx.bucketName, compressFunction)
     );
   }
 
@@ -22,22 +22,21 @@ module.exports = function uploadFunctions(nfx) {
   });
 };
 
-function upload(nfx, compressFunction) {
-  const funcName = compressFunction.functionName,
-        s3Key = `versions/${nfx.version}/functions/${funcName}.zip`,
+function upload(s3, bucketName, compressFunction) {
+  const s3Key = compressFunction.uploadPath,
         params = {
-          Bucket: nfx.bucketName,
+          Bucket: bucketName,
           Key: s3Key,
           ACL: 'private',
           Body: fs.createReadStream(compressFunction.filePath),
           ContentType: 'application/zip'
         };
 
-  log.info(`Uploading ${s3Key} to bucket ${nfx.bucketName}...`);
-  return nfx.aws.s3.putObject(params).promise()
+  log.info(`Uploading ${s3Key} to bucket ${bucketName}...`);
+  return s3.putObject(params).promise()
     .then(function() {
       fs.unlinkSync(compressFunction.filePath);
-      log.info(`Uploaded ${s3Key} to bucket ${nfx.bucketName}...`);
+      log.info(`Uploaded ${s3Key} to bucket ${bucketName}...`);
       return Promise.resolve();
     })
     .catch(function(err) {

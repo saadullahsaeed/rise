@@ -10,10 +10,11 @@ module.exports = function updateStack(nfx) {
         bucketName = nfx.bucketName,
         version = nfx.version,
         functions = nfx.functions,
+        uploadedFunctions = nfx.compressedFunctions,
         paths = nfx.api.paths;
 
   nfx.cfTemplate = getBaseTemplate(stackName);
-  nfx.cfTemplate.Resources = Object.assign({}, nfx.cfTemplate.Resources, getFunctionResources(bucketName, version, functions));
+  nfx.cfTemplate.Resources = Object.assign({}, nfx.cfTemplate.Resources, getFunctionResources(bucketName, version, functions, uploadedFunctions));
   nfx.cfTemplate.Resources = Object.assign({}, nfx.cfTemplate.Resources, getAPIResources(paths));
 
   nfx.state = 'UPDATING';
@@ -36,9 +37,8 @@ module.exports = function updateStack(nfx) {
           // We need to share a deployment state globally and ignore the error when it is on canceling
           return Promise.resolve(nfx);
         }
-      } else {
-        return Promise.reject(err);
       }
+      return Promise.reject(err);
     });
 };
 
@@ -65,28 +65,30 @@ function getBaseTemplate(stackName) {
   return cfTemplate;
 }
 
-function getFunctionResources(bucketName, version, functions) {
+function getFunctionResources(bucketName, version, functions, uploadedFunctions) {
   const cfFunctionContent = fsReadFile(path.join(__dirname, 'cf-lambda-function.json'));
   const cfFunctionVersionContent = fsReadFile(path.join(__dirname, 'cf-lambda-version.json'));
   const cfFuncRoleContent = fsReadFile(path.join(__dirname, 'cf-lambda-role.json'));
   const resources = {};
 
   const defaultSetting = functions.default;
-  for (const funcPath in functions) {
+  for (let i = 0; i < uploadedFunctions.length; ++i) {
+    const uploadedFunction = uploadedFunctions[i],
+          funcPath = uploadedFunction.functionPath;
+
     if (funcPath === 'default') {
       continue;
     }
 
-    const func = functions[funcPath];
-    const funcName = titlecase(funcPath, path.sep);
-    const s3Key = `versions/${version}/functions/${funcName}.zip`;
-    const timeout = func.timeout || defaultSetting.timeout;
-    const memorySize = func.memory || defaultSetting.memory;
+    const func = functions[funcPath],
+          funcName = uploadedFunction.functionName,
+          timeout = func.timeout || defaultSetting.timeout,
+          memorySize = func.memory || defaultSetting.memory;
 
     resources[funcName] = JSON.parse(
       cfFunctionContent
       .replace('$HANDLER', func.handler)
-      .replace('$S3KEY', s3Key)
+      .replace('$S3KEY', uploadedFunction.uploadPath)
       .replace('$S3BUCKET', bucketName)
       .replace('$TIMEOUT', timeout)
       .replace('$MEMORY_SIZE', memorySize)

@@ -4,6 +4,7 @@ const fs = require('fs'),
       os = require('os'),
       path = require('path'),
       archiver = require('archiver'),
+      uuid = require('uuid'),
       titlecase = require('../utils/stringHelper'),
       log = require('../utils/log');
 
@@ -46,6 +47,13 @@ module.exports = function compressAndCompare(nfx) {
       } else {
         nfx.previousVersion = activeVersion;
         nfx.version = `v${(parseInt(activeVersion.substr(1) || 0) + 1)}`;
+        for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
+          const fileName = nfx.compressedFunctions[i].fileName,
+                uploadPath = `versions/${nfx.version}/functions/${fileName}`;
+
+          nfx.compressedFunctions[i].uploadPath = uploadPath;
+        }
+
         log.info(`Current active version is "${activeVersion}". Deploying "${nfx.version}"`);
       }
 
@@ -59,9 +67,10 @@ function compress(nfx, funcPath, funcName) {
   return new Promise((resolve/*, reject*/) => {
     log.info(`Compressing ${funcName}...`);
 
-    const zipArchive = archiver.create('zip');
-    const tempFileName = path.join(os.tmpdir(), `fn-${funcName}-${new Date().getTime()}.zip`);
-    const output = fs.createWriteStream(tempFileName);
+    const zipArchive = archiver.create('zip'),
+          fileName = `${funcName}-${uuid.v4()}.zip`,
+          tempFileName = path.join(os.tmpdir(), fileName),
+          output = fs.createWriteStream(tempFileName);
 
     output.on('close', () => {
       log.info(`Compressed ${funcName}`);
@@ -69,7 +78,9 @@ function compress(nfx, funcPath, funcName) {
     });
 
     nfx.compressedFunctions.push({
+      functionPath: funcPath,
       functionName: funcName,
+      fileName,
       filePath: tempFileName
     });
 
