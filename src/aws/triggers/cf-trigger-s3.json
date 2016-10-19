@@ -1,0 +1,16 @@
+{
+  "Type": "AWS::S3::Bucket",
+  "DependsOn": "$S3_TRIGGER_PERMISSION",
+  "Properties": {
+    "BucketName": "$BUCKET_NAME",
+    "NotificationConfiguration": {
+      "LambdaConfigurations": [
+        {
+          "Event": "$EVENT",
+          "Function": { "Fn::GetAtt": ["$FUNCTION_NAME", "Arn"] }
+        }
+      ]
+    }
+  }
+}
+

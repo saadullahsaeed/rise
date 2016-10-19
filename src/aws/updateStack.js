@@ -3,7 +3,12 @@
 const path = require('path'),
       titlecase = require('../utils/stringHelper'),
       log = require('../utils/log'),
-      fsReadFile = require('../utils/fs').fsReadFile;
+      fsReadFile = require('../utils/fs').fsReadFile,
+      getS3Trigger = require('./triggers/s3'),
+      getCloudWatchEventTrigger = require('./triggers/cloudWatchEvent'),
+      getCloudWatchLogsTrigger = require('./triggers/cloudWatchLogs'),
+      getStreamTrigger = require('./triggers/stream'),
+      getSNSTrigger = require('./triggers/sns');
 
 module.exports = function updateStack(nfx) {
   const stackName = nfx.stackName,
@@ -11,11 +16,15 @@ module.exports = function updateStack(nfx) {
         version = nfx.version,
         functions = nfx.functions,
         uploadedFunctions = nfx.compressedFunctions,
-        routes = nfx.routes;
+        routes = nfx.routes,
+        region = nfx.region;
 
   nfx.cfTemplate = getBaseTemplate(stackName);
   nfx.cfTemplate.Resources = Object.assign({}, nfx.cfTemplate.Resources, getFunctionResources(bucketName, version, functions, uploadedFunctions));
   nfx.cfTemplate.Resources = Object.assign({}, nfx.cfTemplate.Resources, getAPIResources(routes));
+
+  const roleResource = nfx.cfTemplate.Resources['NFXRole'];
+  nfx.cfTemplate.Resources = Object.assign(nfx.cfTemplate.Resources, getTriggerResources(functions, region, roleResource));
 
   nfx.state = 'UPDATING';
   return nfx.aws.cf.updateStack({
@@ -68,7 +77,7 @@ function getBaseTemplate(stackName) {
 function getFunctionResources(bucketName, version, functions, uploadedFunctions) {
   const cfFunctionContent = fsReadFile(path.join(__dirname, 'cf-lambda-function.json'));
   const cfFunctionVersionContent = fsReadFile(path.join(__dirname, 'cf-lambda-version.json'));
-  const cfFuncRoleContent = fsReadFile(path.join(__dirname, 'cf-lambda-role.json'));
+  const cfFuncPermissionContent = fsReadFile(path.join(__dirname, 'cf-lambda-permission.json'));
   const resources = {};
 
   const defaultSetting = functions.default;
@@ -98,8 +107,8 @@ function getFunctionResources(bucketName, version, functions, uploadedFunctions)
       cfFunctionVersionContent.replace('$FUNCTION_NAME', funcName)
     );
 
-    resources[`${funcName}Role`] = JSON.parse(
-      cfFuncRoleContent.replace('$FUNCTION_NAME', funcName)
+    resources[`${funcName}Permission`] = JSON.parse(
+      cfFuncPermissionContent.replace('$FUNCTION_NAME', funcName)
     );
   }
 
@@ -221,4 +230,66 @@ function createAPIMethod(methodTemplate, corsMethodTemplate, res, defaultSetting
   }
 
   return result;
+}
+
+
+function getTriggerResources(functions, region, roleResource) {
+  const resources = {};
+
+  for (let funcPath in functions) {
+    if (funcPath === 'default') {
+      continue;
+    }
+
+    const funcName = titlecase(funcPath, path.sep);
+    const triggers = functions[funcPath].triggers;
+    if (triggers) {
+      for (let i in triggers) {
+        const triggerName = Object.keys(triggers[i])[0];
+        const trigger = triggers[i][triggerName];
+        switch(triggerName) {
+          case 's3':
+            if (!trigger.event || !trigger.bucket) {
+              log.error(`Invalid trigger ${triggerName}.`);
+              break;
+            }
+            Object.assign(resources, getS3Trigger(trigger, funcName));
+            break;
+          case 'cloudwatch_events':
+            if (!trigger.schedule_expression) {
+              log.error(`Invalid trigger ${triggerName}.`);
+              break;
+            }
+            Object.assign(resources, getCloudWatchEventTrigger(trigger, funcName));
+            break;
+          case 'cloudwatch_logs':
+            if (!trigger.log_group_name || !trigger.filter_pattern) {
+              log.error(`Invalid trigger ${triggerName}.`);
+              break;
+            }
+            Object.assign(resources, getCloudWatchLogsTrigger(trigger, funcName, region));
+            break;
+          case 'stream':
+            if (!trigger.arn) {
+              log.error(`Invalid trigger ${triggerName}.`);
+              break;
+            }
+            Object.assign(resources, getStreamTrigger(trigger, funcName, roleResource));
+            break;
+          case 'sns':
+            if (!trigger.topic) {
+              log.error(`Invalid trigger ${triggerName}.`);
+              break;
+            }
+            Object.assign(resources, getSNSTrigger(trigger, funcName));
+            break;
+          default:
+            log.error(`Unknown trigger ${triggerName}.`);
+            break;
+        }
+      }
+    }
+  }
+
+  return resources;
 }

@@ -1,0 +1,12 @@
+{
+  "Type": "AWS::SNS::Topic",
+  "Properties": {
+    "TopicName": "$TOPIC_NAME",
+    "Subscription": [
+      {
+        "Endpoint": { "Fn::GetAtt": ["$FUNCTION_NAME", "Arn"] },
+        "Protocol": "lambda"
+      }
+    ]
+  }
+}

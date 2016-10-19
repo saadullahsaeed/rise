@@ -1,0 +1,10 @@
+{
+  "Type": "AWS::Logs::SubscriptionFilter",
+  "DependsOn": "$TRIGGER_PERMISSION",
+  "Properties": {
+    "LogGroupName": "$LOG_GROUP_NAME",
+    "FilterPattern": "$FILTER_PATTERN",
+    "DestinationArn": { "Fn::GetAtt": ["$FUNCTION_NAME", "Arn"] }
+  }
+}
+

@@ -1,0 +1,11 @@
+{
+  "Type": "AWS::Events::Rule",
+  "Properties": {
+    "ScheduleExpression": "$EXPRESSION",
+    "State": "ENABLED",
+    "Targets": [{
+      "Arn": { "Fn::GetAtt": ["$FUNCTION_NAME", "Arn"] },
+      "Id": "$TARGET_ID"
+    }]
+  }
+}
