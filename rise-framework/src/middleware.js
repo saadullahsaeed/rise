@@ -23,7 +23,13 @@ class Stack {
     return this;
   }
 
-  run(req, res, err) {
+  run(req, res) {
+    this._currIndex = 0;
+    this._run(req, res);
+    return this;
+  }
+
+  _run(req, res, err) {
     const stack = this._stack,
           fn = stack[this._currIndex];
 
@@ -48,7 +54,7 @@ class Stack {
         this._currIndex++;
       }
 
-      this.run(req, res, err);
+      this._run(req, res, err);
     };
 
     try {
