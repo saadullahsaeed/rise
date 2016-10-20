@@ -1,0 +1,84 @@
+env:
+  es6: true
+  node: true
+  mocha: true
+globals:
+  sinon: true
+  expect: true
+  waitUntil: true
+extends: 'eslint:recommended'
+rules:
+  indent:
+    - warn
+    - 2
+    -
+      SwitchCase: 1
+      VariableDeclarator:
+        var: 2
+        let: 2
+        const: 3
+  linebreak-style:
+    - warn
+    - unix
+  brace-style:
+    - warn
+    - 1tbs
+    -
+      allowSingleLine: true
+  curly:
+    - error
+  camelcase:
+    - error
+    -
+      properties: 'never'
+  object-shorthand:
+    - warn
+  semi:
+    - warn
+    - always
+  eqeqeq:
+    - error
+    - smart
+  valid-jsdoc:
+    - error
+    -
+      requireParamDescription: false
+      requireReturnDescription: false
+  comma-dangle:
+    - warn
+    - never
+  prefer-const:
+    - error
+  no-var:
+    - error
+  no-implicit-globals:
+    - error
+  strict:
+    - error
+  no-multi-spaces:
+    - warn
+    -
+      exceptions:
+        Property: true
+        VariableDeclarator: true
+        ImportDeclaration: true
+  no-trailing-spaces:
+    - warn
+  no-irregular-whitespace:
+    - warn
+  space-before-blocks:
+    - warn
+  space-before-function-paren:
+    - warn
+    - never
+  space-in-parens:
+    - warn
+    - never
+  space-infix-ops:
+    - warn
+  no-unused-vars:
+    - warn
+  no-unused-labels:
+    - warn
+  no-console:
+    - warn
