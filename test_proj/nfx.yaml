@@ -11,11 +11,12 @@ functions:
     memory: 128
     timeout: 3
 
-  todoIndex:
+  listTasks:
 
-  todoCreate:
+  createTask:
     memory: 256
     timeout: 5
 
-  todoVersion:
-  todoUpdate:
+  deleteTask:
+  updateTask:
+  home:

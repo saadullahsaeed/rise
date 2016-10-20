@@ -12,4 +12,4 @@ exports.handle = (req, res, next) => {
   </body>
 </html>`);
   next();
-});
+};
