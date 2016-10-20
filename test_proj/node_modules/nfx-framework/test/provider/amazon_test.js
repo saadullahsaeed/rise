@@ -96,6 +96,7 @@ describe('provider/amazon', function() {
               "cloudfront-is-smarttv-viewer": "false",
               "cloudfront-is-tablet-viewer": "false",
               "cloudfront-viewer-country": "US",
+              "content-length": "19", // automatically added
               "content-type": "application/x-www-form-urlencoded",
               "host": "abcdefg123.execute-api.us-west-2.amazonaws.com",
               "user-agent": "curl/7.43.0",

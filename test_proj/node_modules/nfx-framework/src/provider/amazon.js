@@ -10,6 +10,10 @@ module.exports = {
           hdrs = headers.toNode(event.headers || {}),
           httpVerMatch = (hdrs['via'] || '').match(/^\d+\.\d+?/);
 
+    if (!hdrs['content-length'] && typeof event.body === 'string') {
+      hdrs['content-length'] = String(event.body.length);
+    }
+
     return {
       route: event.resource,
       path: event.path,

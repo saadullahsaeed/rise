@@ -64,7 +64,8 @@ class Response extends EventEmitter {
    * res.statusCode // => 404
    */
   get statusCode() {
-    return this.__statusCode;
+    const status = this.__statusCode;
+    return status == null ? 200 : status;
   }
 
   /**
