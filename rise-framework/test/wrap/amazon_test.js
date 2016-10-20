@@ -81,7 +81,10 @@ describe('wrap/amazon', function() {
         expect(req.method).to.equal('POST');
         expect(req.path).to.equal('/foo/123');
         expect(req.route).to.deep.equal({ path: '/foo/{id}' });
-        expect(req.headers).to.deep.equal({ 'content-type': 'application/x-www-form-urlencoded' });
+        expect(req.headers).to.deep.equal({
+          'content-type': 'application/x-www-form-urlencoded',
+          'content-length': '7' // automatically added
+        });
         expect(req.rawBody).to.equal('foo=bar');
         expect(req.meta).to.deep.equal({
           provider: 'amazon',
