@@ -1,0 +1,33 @@
+# NFX routes definition is a subset of Swagger spec
+x-nfx:
+  default:
+    cors: true
+
+paths:
+  /:
+    get:
+      x-nfx:
+        function: home
+        cors: false
+
+  /tasks:
+    get:
+      x-nfx:
+        function: listTasks
+
+    post:
+      x-nfx:
+        function: createTask
+
+  /tasks/{taskId}:
+    delete:
+      x-nfx:
+        function: deleteTask
+
+    put:
+      x-nfx:
+        function: updateTask
+
+    patch:
+      x-nfx:
+        function: updateTask

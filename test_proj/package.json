@@ -2,8 +2,12 @@
   "name": "nfx_todo",
   "version": "1.0.0",
   "description": "test nfx serverless app project",
-  "scripts": {
-  },
+  "scripts": {},
   "author": "nfx",
   "license": "ISC"
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "cookie-parser": "^1.4.3",
+    "node-uuid": "^1.4.7"
+  }
 }

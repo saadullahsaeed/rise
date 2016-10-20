@@ -1,0 +1,21 @@
+profiles:
+  default:
+    provider: aws
+    region: us-west-2
+    bucket: nfx-test-proj
+
+stack: nfx-test-proj
+
+functions:
+  default:
+    memory: 128
+    timeout: 3
+
+  todoIndex:
+
+  todoCreate:
+    memory: 256
+    timeout: 5
+
+  todoVersion:
+  todoUpdate:
