@@ -32,7 +32,9 @@ exports.handle = (req, res, next) => {
   dynamodb.updateItem({
     TableName: tableName,
     Key: {
-      S: taskId
+      id: {
+        S: taskId
+      }
     },
     AttributeUpdates: {
       title: {
