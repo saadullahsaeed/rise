@@ -8,12 +8,12 @@ module.exports = function getBucket(nfx) {
     .then(function(/* data */) {
       // TODO: We need to make sure it belongs to current project by comparing uuid.
       // Create unique project ID when stack gets created.
-      log.info(`bucket "${nfx.bucketName}" found.`);
+      log.info(`Existing bucket "${nfx.bucketName}" found.`);
       return Promise.resolve(nfx);
     })
     .catch(function(err) {
       if (err.code === 'NotFound') {
-        log.info(`bucket "${nfx.bucketName}" could not be found. Creating...`);
+        log.info(`A bucket with the name "${nfx.bucketName}" doesn't already exist. Creating...`);
         return create(nfx);
       } else {
         return Promise.reject(err);

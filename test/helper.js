@@ -4,12 +4,12 @@ const chai = require('chai'),
       sinon = require('sinon'),
       sinonChai = require('sinon-chai');
 
-root.expect = chai.expect;
-root.sinon = sinon;
+global.expect = chai.expect;
+global.sinon = sinon;
 
 chai.use(sinonChai);
 
-root.waitUntil = function(conditionFunc, timeoutMs, intervalMs) {
+global.waitUntil = function(conditionFunc, timeoutMs, intervalMs) {
   timeoutMs = timeoutMs || 1000;
   intervalMs = intervalMs || 1;
 
@@ -30,7 +30,7 @@ root.waitUntil = function(conditionFunc, timeoutMs, intervalMs) {
   });
 };
 
-root.spyWithPromise = function(promiseFn) {
+global.spyWithPromise = function(promiseFn) {
   const promise = new Promise(promiseFn);
   return sinon.spy(function() {
     return {
@@ -40,4 +40,3 @@ root.spyWithPromise = function(promiseFn) {
     };
   });
 };
-

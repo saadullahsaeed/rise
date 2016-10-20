@@ -236,7 +236,7 @@ function createAPIMethod(methodTemplate, corsMethodTemplate, res, defaultSetting
 function getTriggerResources(functions, region, roleResource) {
   const resources = {};
 
-  for (let funcPath in functions) {
+  for (const funcPath in functions) {
     if (funcPath === 'default') {
       continue;
     }
@@ -244,7 +244,7 @@ function getTriggerResources(functions, region, roleResource) {
     const funcName = titlecase(funcPath, path.sep);
     const triggers = functions[funcPath].triggers;
     if (triggers) {
-      for (let i in triggers) {
+      for (const i in triggers) {
         const triggerName = Object.keys(triggers[i])[0];
         const trigger = triggers[i][triggerName];
         switch(triggerName) {

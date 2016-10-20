@@ -54,7 +54,7 @@ module.exports = function compressAndCompare(nfx) {
           nfx.compressedFunctions[i].uploadPath = uploadPath;
         }
 
-        log.info(`Current active version is "${activeVersion}". Deploying "${nfx.version}"`);
+        log.info(`Current active version is "${activeVersion}". Deploying "${nfx.version}"...`);
       }
 
       nfx.nfxJSON.version_hashes[nfx.version] = checksumHex;
@@ -81,7 +81,7 @@ function compress(nfx, functionName) {
           output = fs.createWriteStream(tempFileName);
 
     output.on('close', () => {
-      log.info(`Compressed ${functionName}`);
+      log.info(`Compressed ${functionName}.`);
       resolve();
     });
 
@@ -128,7 +128,7 @@ function checksum(hasher, file) {
     const readStream = fs.createReadStream(file);
     readStream.pipe(hasher, { end: false });
     readStream.once('end', function() {
-      log.info(`Calculated checksum of ${file}. Resolved`);
+      log.info(`Calculated checksum of ${file}. Resolved.`);
       resolve(hasher);
     });
   });

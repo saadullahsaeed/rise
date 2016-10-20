@@ -15,7 +15,7 @@ module.exports = function uploadFunctions(nfx) {
   nfx.state = 'UPLOADING';
   return Promise.all(uploadPromises).then(() => {
     nfx.state = 'UPLOADED';
-    log.info("All functions are uploaded");
+    log.info('All functions have been uploaded.');
     return Promise.resolve(nfx);
   }, (err) => {
     nfx.state = 'UPLOAD_FAILED';

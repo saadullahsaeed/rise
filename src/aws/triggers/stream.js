@@ -13,6 +13,7 @@ module.exports = function getResources(trigger, funcName, roleResource) {
   if (!roleResource.Properties.Policies) {
     roleResource.Properties.Policies = [];
   }
+
   if (streamType === 'dynamodb') {
     roleResource.Properties.Policies.push(
       {
@@ -36,7 +37,7 @@ module.exports = function getResources(trigger, funcName, roleResource) {
           }]
         }
       }
-    )
+    );
   } else if (streamType === 'kinesis') {
     roleResource.Properties.Policies.push(
       {
@@ -60,7 +61,7 @@ module.exports = function getResources(trigger, funcName, roleResource) {
           }]
         }
       }
-    )
+    );
   }
 
   resources[resourceName] = JSON.parse(
@@ -78,5 +79,6 @@ module.exports = function getResources(trigger, funcName, roleResource) {
   }
 
   resources['NFXRole'] = roleResource;
+
   return resources;
-}
+};

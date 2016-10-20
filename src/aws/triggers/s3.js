@@ -19,12 +19,12 @@ module.exports = function getResources(trigger, funcName) {
   );
 
   if (trigger.prefix || trigger.suffix) {
-    resources[resourceName].Properties.NotificationConfiguration.LambdaConfigurations[0].Filter = { S3Key: { Rules: [] } }
+    resources[resourceName].Properties.NotificationConfiguration.LambdaConfigurations[0].Filter = { S3Key: { Rules: [] } };
     if (trigger.prefix) {
-      resources[resourceName].Properties.NotificationConfiguration.LambdaConfigurations[0].Filter.S3Key.Rules.push({ Name: 'prefix', Value: trigger.prefix })
+      resources[resourceName].Properties.NotificationConfiguration.LambdaConfigurations[0].Filter.S3Key.Rules.push({ Name: 'prefix', Value: trigger.prefix });
     }
     if (trigger.suffix) {
-      resources[resourceName].Properties.NotificationConfiguration.LambdaConfigurations[0].Filter.S3Key.Rules.push({ Name: 'suffix', Value: trigger.suffix })
+      resources[resourceName].Properties.NotificationConfiguration.LambdaConfigurations[0].Filter.S3Key.Rules.push({ Name: 'suffix', Value: trigger.suffix });
     }
   }
 
@@ -37,4 +37,4 @@ module.exports = function getResources(trigger, funcName) {
   resources[permissionResourceName].Properties.SourceArn = `arn:aws:s3:::${trigger.bucket}`;
 
   return resources;
-}
+};

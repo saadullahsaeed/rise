@@ -16,7 +16,7 @@ module.exports = function fetchVersion(nfx) {
     })
     .catch(function(err) {
       if (err.message.indexOf('does not exist') > -1) {
-        log.info("nfx.json does not exist yet.");
+        log.info('nfx.json does not exist.');
         nfx.nfxJSON.version_hashes = {};
         return Promise.resolve(nfx);
       } else {

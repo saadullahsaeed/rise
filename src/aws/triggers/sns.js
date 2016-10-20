@@ -27,4 +27,4 @@ module.exports = function getResources(trigger, funcName) {
   );
 
   return resources;
-}
+};
