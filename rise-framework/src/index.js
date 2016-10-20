@@ -1,7 +1,7 @@
 'use strict';
 
-const Response = require('./Response'),
-      Request = require('./Request'),
+const Response = require('./response'),
+      Request = require('./request'),
       wrap = require('./wrap');
 
 module.exports = {

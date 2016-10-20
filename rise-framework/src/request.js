@@ -178,7 +178,7 @@ class Request extends Readable {
    * @type {Object}
    * @readonly
    * @example
-   * // Route: /tasks/{taskSlug}comments/{commentId}
+   * // Route: /tasks/{taskSlug}/comments/{commentId}
    * // GET /tasks/my-awesome-task/comments/2
    * req.params
    * // => {
