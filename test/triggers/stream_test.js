@@ -35,7 +35,7 @@ describe('Stream trigger getResources', function() {
       const policies = resources['NFXRole'].Properties.Policies;
       expect(policies).to.have.lengthOf(1);
       const policy = policies[0];
-      expect(policy).to.have.property('PolicyName', 'dynamodb-stream-access');
+      expect(policy).to.have.property('PolicyName', 'NFXAppHelloIndexdynamodbproductsEventSourceMapping-access');
 
       expect(policy).to.deep.have.property('PolicyDocument.Statement');
       const stmt = policy.PolicyDocument.Statement;
@@ -104,7 +104,7 @@ describe('Stream trigger getResources', function() {
       const policies = resources['NFXRole'].Properties.Policies;
       expect(policies).to.have.lengthOf(1);
       const policy = policies[0];
-      expect(policy).to.have.property('PolicyName', 'kinesis-stream-access');
+      expect(policy).to.have.property('PolicyName', 'NFXAppHelloIndexkinesistweetsEventSourceMapping-access');
 
       expect(policy).to.deep.have.property('PolicyDocument.Statement');
       const stmt = policy.PolicyDocument.Statement;

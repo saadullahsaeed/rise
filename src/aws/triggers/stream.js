@@ -28,7 +28,7 @@ module.exports = function getResources(trigger, funcName, roleResource) {
   if (streamType === 'dynamodb') {
     roleResource.Properties.Policies.push(
       {
-        PolicyName: "dynamodb-stream-access",
+        PolicyName: `${resourceName}-access`,
         PolicyDocument: {
           Version : "2012-10-17",
           Statement: [{
@@ -52,7 +52,7 @@ module.exports = function getResources(trigger, funcName, roleResource) {
   } else if (streamType === 'kinesis') {
     roleResource.Properties.Policies.push(
       {
-        PolicyName: "kinesis-stream-access",
+        PolicyName: `${resourceName}-access`,
         PolicyDocument: {
           Version : "2012-10-17",
           Statement: [{
