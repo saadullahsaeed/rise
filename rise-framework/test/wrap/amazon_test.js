@@ -13,7 +13,7 @@ describe('wrap/amazon', function() {
     appModule = {};
   });
 
-  context('when function module does not export a handle function', function() {
+  context('when function module does not export a handle or handler function', function() {
     it('throws an error', function() {
       expect(() => {
         wrap(functionModule, appModule);
@@ -135,6 +135,50 @@ describe('wrap/amazon', function() {
 
         expect(functionModule.after).to.have.been.calledOnce;
         expect(functionModule.after).to.have.been.calledAfter(functionModule.handle);
+
+        expect(appModule.after).to.have.been.calledOnce;
+        expect(appModule.after).to.have.been.calledAfter(functionModule.after);
+      });
+    });
+
+    context('when handle function is called "handler" instead', function() {
+      beforeEach(function() {
+        functionModule.handler = functionModule.handle;
+        delete functionModule.handle;
+        functionModule.before = sinon.spy(function(req, res, next) { next(); });
+        functionModule.after = sinon.spy(function(req, res, next) { next(); });
+
+        appModule.setup = sinon.spy(function(app) {}); // eslint-disable-line no-unused-vars
+        appModule.before = sinon.spy(function(req, res, next) { next(); });
+        appModule.after = sinon.spy(function(req, res, next) { next(); });
+      });
+
+      it('still works', function() {
+        const lambdaFunc = wrap(functionModule, appModule);
+
+        expect(appModule.setup).to.have.been.calledOnce;
+
+        lambdaFunc({}, {}, null); // already tested above
+
+        expect(functionModule.handler).to.have.been.calledOnce;
+
+        const req = functionModule.handler.getCall(0).args[0],
+              app = req.app;
+
+        expect(app).to.be.an.instanceof(App);
+        expect(app).to.equal(appModule.setup.getCall(0).args[0]);
+        expect(appModule.setup).not.to.have.been.calledTwice;
+
+        expect(appModule.before).to.have.been.calledOnce;
+
+        expect(functionModule.before).to.have.been.calledOnce;
+        expect(functionModule.before).to.have.been.calledAfter(appModule.before);
+
+        expect(functionModule.handler).to.have.been.calledOnce;
+        expect(functionModule.handler).to.have.been.calledAfter(functionModule.before);
+
+        expect(functionModule.after).to.have.been.calledOnce;
+        expect(functionModule.after).to.have.been.calledAfter(functionModule.handler);
 
         expect(appModule.after).to.have.been.calledOnce;
         expect(appModule.after).to.have.been.calledAfter(functionModule.after);

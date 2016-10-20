@@ -17,7 +17,7 @@ const arrayize = function(obj) {
 };
 
 module.exports = function wrap(functionModule, appModule) {
-  if (typeof functionModule.handle !== 'function') {
+  if (typeof functionModule.handle !== 'function' && typeof functionModule.handler !== 'function') {
     throw new Error('"handle" function not found');
   }
 
@@ -26,7 +26,7 @@ module.exports = function wrap(functionModule, appModule) {
 
   const mwFuncs = arrayize(appModule.before)
     .concat(arrayize(functionModule.before))
-    .concat(functionModule.handle)
+    .concat(functionModule.handle || functionModule.handler)
     .concat(arrayize(functionModule.after))
     .concat(arrayize(appModule.after));
 
