@@ -13,12 +13,12 @@ module.exports = function uploadNFXFiles(nfx) {
     body: JSON.stringify(nfx.cfTemplate, null, 2),
     contentType: 'application/json'
   }, {
-    key: `versions/${nfx.version}/api.yaml`,
-    body: fs.createReadStream('api.yaml'),
+    key: `versions/${nfx.version}/routes.yaml`,
+    body: fs.createReadStream('routes.yaml'),
     contentType: 'text/yaml'
   }, {
-    key: `versions/${nfx.version}/functions.yaml`,
-    body: fs.createReadStream('functions.yaml'),
+    key: `versions/${nfx.version}/nfx.yaml`,
+    body: fs.createReadStream('nfx.yaml'),
     contentType: 'text/yaml'
   }, {
     key: 'nfx.json',

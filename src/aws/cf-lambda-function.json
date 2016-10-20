@@ -1,7 +1,7 @@
 {
   "Type" : "AWS::Lambda::Function",
   "Properties" : {
-    "Handler" : "$HANDLER.handler",
+    "Handler" : "$HANDLER.handle",
     "Role" : {
       "Fn::GetAtt" : [
         "NFXRole",

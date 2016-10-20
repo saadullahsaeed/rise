@@ -12,7 +12,7 @@ module.exports = class Session {
     this.bucketName = null;
     this.provider = null;
     this.region = null;
-    this.api = null;
+    this.routes = null;
     this.hasher = null;
     this.compressedFunctions = {};
     this.nfxJSON = {};
@@ -23,17 +23,16 @@ module.exports = class Session {
   }
 
   static init() {
-    const project   = readConfig('project');
-    const functions = readConfig('functions');
-    const api       = readConfig('api');
+    const project = readConfig('nfx');
+    const routes  = readConfig('routes');
 
     const s = {
-      stackName: `NFX-${functions.stack}`,
-      functions: functions.functions,
+      stackName: `NFX-${project.stack}`,
+      functions: project.functions,
       bucketName: project.profiles.default.bucket,
       provider: project.profiles.default.provider,
       region: project.profiles.default.region,
-      api,
+      routes,
       hasher: crypto.createHash('sha256'),
       compressedFunctions : [],
       nfxJSON: {}

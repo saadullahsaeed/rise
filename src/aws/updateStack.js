@@ -11,11 +11,11 @@ module.exports = function updateStack(nfx) {
         version = nfx.version,
         functions = nfx.functions,
         uploadedFunctions = nfx.compressedFunctions,
-        paths = nfx.api.paths;
+        routes = nfx.routes;
 
   nfx.cfTemplate = getBaseTemplate(stackName);
   nfx.cfTemplate.Resources = Object.assign({}, nfx.cfTemplate.Resources, getFunctionResources(bucketName, version, functions, uploadedFunctions));
-  nfx.cfTemplate.Resources = Object.assign({}, nfx.cfTemplate.Resources, getAPIResources(paths));
+  nfx.cfTemplate.Resources = Object.assign({}, nfx.cfTemplate.Resources, getAPIResources(routes));
 
   nfx.state = 'UPDATING';
   return nfx.aws.cf.updateStack({
@@ -74,20 +74,20 @@ function getFunctionResources(bucketName, version, functions, uploadedFunctions)
   const defaultSetting = functions.default;
   for (let i = 0; i < uploadedFunctions.length; ++i) {
     const uploadedFunction = uploadedFunctions[i],
-          funcPath = uploadedFunction.functionPath;
-
-    if (funcPath === 'default') {
-      continue;
-    }
-
-    const func = functions[funcPath],
           funcName = uploadedFunction.functionName,
-          timeout = func.timeout || defaultSetting.timeout,
-          memorySize = func.memory || defaultSetting.memory;
+          func = functions[funcName];
+
+    let timeout = defaultSetting.timeout,
+        memorySize = defaultSetting.memory;
+
+    if (func) {
+      timeout = func.timeout != null ? func.timeout : timeout;
+      memorySize = func.memory != null ? func.memory : memorySize;
+    }
 
     resources[funcName] = JSON.parse(
       cfFunctionContent
-      .replace('$HANDLER', func.handler)
+      .replace('$HANDLER', 'index')
       .replace('$S3KEY', uploadedFunction.uploadPath)
       .replace('$S3BUCKET', bucketName)
       .replace('$TIMEOUT', timeout)
@@ -106,15 +106,21 @@ function getFunctionResources(bucketName, version, functions, uploadedFunctions)
   return resources;
 }
 
-function getAPIResources(paths) {
-  const resourceTemplate = fsReadFile(path.join(__dirname, 'cf-api-resource.json'));
-  const methodTemplate = fsReadFile(path.join(__dirname, 'cf-api-method.json'));
-  const corsMethodTemplate = fsReadFile(path.join(__dirname, 'cf-api-cors.json'));
-  const pathTree = {
-    name: 'NFXApiResource',
-    isRoot: true,
-    children: {}
-  };
+function getAPIResources(routes) {
+  const resourceTemplate = fsReadFile(path.join(__dirname, 'cf-api-resource.json')),
+        methodTemplate = fsReadFile(path.join(__dirname, 'cf-api-method.json')),
+        corsMethodTemplate = fsReadFile(path.join(__dirname, 'cf-api-cors.json')),
+        paths = routes.paths,
+        pathTree = {
+          name: 'NFXApiResource',
+          isRoot: true,
+          children: {}
+        };
+
+  let defaultSetting = {};
+  if (routes['x-nfx'] && routes['x-nfx'].default) {
+    defaultSetting = routes['x-nfx'].default;
+  }
 
   let result = {};
   for (const p in paths) {
@@ -133,12 +139,12 @@ function getAPIResources(paths) {
     let parent = pathTree;
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
-      const name = parent.name + titlecase(token);
+      const name = parent.name + titlecase(token.replace(/[\{\}]/g, ''));
 
       // This is when the path is '/'
       // We are not sure that '/' comes first.
       if (token === '') {
-        result = Object.assign({}, result, createAPIMethod(methodTemplate, corsMethodTemplate, parent, token, methods));
+        result = Object.assign({}, result, createAPIMethod(methodTemplate, corsMethodTemplate, parent, defaultSetting, methods));
         continue;
       }
 
@@ -149,7 +155,7 @@ function getAPIResources(paths) {
 
       // When it is last token, it creates methods for the api resource
       if (i === (tokens.length - 1)) {
-        result = Object.assign({}, result, createAPIMethod(methodTemplate, corsMethodTemplate, parent.children[token], token, methods));
+        result = Object.assign({}, result, createAPIMethod(methodTemplate, corsMethodTemplate, parent.children[token], defaultSetting, methods));
       }
 
       parent = parent.children[token];
@@ -172,7 +178,7 @@ function createAPIResource(resourceTemplate, parent, name, p) {
   return result;
 }
 
-function createAPIMethod(methodTemplate, corsMethodTemplate, res, urlPath, methods) {
+function createAPIMethod(methodTemplate, corsMethodTemplate, res, defaultSetting, methods) {
   const result = {};
   const corsMethods = [];
 
@@ -181,7 +187,7 @@ function createAPIMethod(methodTemplate, corsMethodTemplate, res, urlPath, metho
     const method = methods[m];
     const methodJSON = JSON.parse(methodTemplate
       .replace('$METHOD', m.toUpperCase())
-      .replace('$FUNCTION_NAME', titlecase(method['x-nfx'].handler, path.sep))
+      .replace('$FUNCTION_NAME', method['x-nfx'].function)
     );
 
     if (res.isRoot) {
@@ -190,7 +196,15 @@ function createAPIMethod(methodTemplate, corsMethodTemplate, res, urlPath, metho
       methodJSON.Properties.ResourceId = { Ref: res.name };
     }
     result[methodResourceName] = methodJSON;
-    if (method['x-nfx'].cors) {
+
+    let cors;
+    if (method['x-nfx'].cors != null) {
+      cors = method['x-nfx'].cors;
+    } else {
+      cors = defaultSetting.cors;
+    }
+
+    if (cors) {
       corsMethods.push(m.toUpperCase());
     }
   }

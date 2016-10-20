@@ -5,22 +5,22 @@ const fs = require('fs'),
       path = require('path'),
       archiver = require('archiver'),
       uuid = require('uuid'),
-      titlecase = require('../utils/stringHelper'),
-      log = require('../utils/log');
+      log = require('../utils/log'),
+      fsStat = require('../utils/fs').fsStat,
+      fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports = function compressAndCompare(nfx) {
-  const funcPaths = Object.keys(nfx.functions),
+  const funcNames = Object.keys(nfx.functions),
         compressPromises = [];
 
-  for (let i = 0; i < funcPaths.length; ++i) {
-    const funcPath = funcPaths[i];
-    const funcName = titlecase(funcPath, path.sep);
+  for (let i = 0; i < funcNames.length; ++i) {
+    const funcName = funcNames[i];
 
-    if (funcPath === 'default') {
+    if (funcName === 'default') {
       continue;
     }
 
-    compressPromises.push(compress(nfx, funcPath, funcName));
+    compressPromises.push(compress(nfx, funcName));
   }
 
   // TODO: Sanity check with functions.yaml.
@@ -63,38 +63,48 @@ module.exports = function compressAndCompare(nfx) {
     });
 };
 
-function compress(nfx, funcPath, funcName) {
-  return new Promise((resolve/*, reject*/) => {
-    log.info(`Compressing ${funcName}...`);
+function compress(nfx, functionName) {
+  return new Promise((resolve, reject) => {
+    log.info(`Compressing ${functionName}...`);
+
+    const functionPath = path.join('functions', functionName),
+          stat = fsStat(functionPath);
+
+    if (!stat || !stat.isDirectory()) {
+      reject(`functions folder for "${functionName}" is invalid`);
+      return;
+    }
 
     const zipArchive = archiver.create('zip'),
-          fileName = `${funcName}-${uuid.v4()}.zip`,
+          fileName = `${functionName}-${uuid.v4()}.zip`,
           tempFileName = path.join(os.tmpdir(), fileName),
           output = fs.createWriteStream(tempFileName);
 
     output.on('close', () => {
-      log.info(`Compressed ${funcName}`);
+      log.info(`Compressed ${functionName}`);
       resolve();
     });
 
     nfx.compressedFunctions.push({
-      functionPath: funcPath,
-      functionName: funcName,
+      functionName,
       fileName,
       filePath: tempFileName
     });
 
+    const indexJS = fsReadFile(path.join(__dirname, 'nfx-index.js.tmpl'))
+                      .replace(/\$\{functionPath\}/, functionPath);
+
     zipArchive.pipe(output);
-    zipArchive.bulk([
-      { src: [ '**/*' ], cwd: funcPath, expand: true }
-    ]);
+    zipArchive.directory(functionPath);
+    zipArchive.glob("**/*", { ignore: 'functions/**'});
+    zipArchive.append(indexJS, { name: 'index.js' });
 
     zipArchive.finalize();
   });
 }
 
 function checksumAll(hasher, funcs) {
-  const files = ['api.yaml', 'functions.yaml'];
+  const files = ['routes.yaml', 'nfx.yaml'];
   for (let i = 0; i < funcs.length; ++i) {
     files.push(funcs[i].filePath);
   }

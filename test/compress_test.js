@@ -20,18 +20,18 @@ describe('compressAndCompare', function() {
 
     process.chdir(tmpDir.name);
 
-    const apiJSON = {
+    const routesJSON = {
       paths: {
         '/': {
           get: {
             'x-nfx': {
-              handler: 'app/todoIndex',
+              handler: 'todoIndex',
               cors: true
             }
           },
           put: {
             'x-nfx': {
-              handler: 'app/todoCreate',
+              handler: 'todoCreate',
               cors: true
             }
           }
@@ -39,35 +39,44 @@ describe('compressAndCompare', function() {
       }
     };
 
+    const profilesJSON = {
+      default: {
+        provider: 'aws',
+        region: 'us-west-2',
+        bucket: 'test-bucket'
+      }
+    };
+
     const funcsJSON = {
-      functions: {
-        default: {
-          memory: 128,
-          timeout: 3
-        },
-        'app/index': {
-          handler: 'index',
-          memory: 128,
-          timeout: 1
-        },
-        'app/create': {
-          handler: 'create',
-          memory: 128,
-          timeout: 2
-        }
+      default: {
+        memory: 128,
+        timeout: 3
+      },
+      'index': {
+        handler: 'index',
+        memory: 128,
+        timeout: 1
+      },
+      'create': {
+        handler: 'create',
+        memory: 128,
+        timeout: 2
       }
     };
 
     // config yaml files
-    const apiYAMLPath = path.join(tmpDir.name, 'api.yaml');
-    const funcsYAMLPath = path.join(tmpDir.name, 'functions.yaml');
-    fs.writeFileSync(apiYAMLPath, yaml.safeDump(apiJSON), { encoding: 'utf8' });
-    fs.writeFileSync(funcsYAMLPath, yaml.safeDump(funcsJSON), { encoding: 'utf8' });
+    const routesYAMLPath = path.join(tmpDir.name, 'routes.yaml');
+    const funcsYAMLPath = path.join(tmpDir.name, 'nfx.yaml');
+    fs.writeFileSync(routesYAMLPath, yaml.safeDump(routesJSON), { encoding: 'utf8' });
+    fs.writeFileSync(funcsYAMLPath, yaml.safeDump({
+      profiles: profilesJSON,
+      functions: funcsJSON
+    }), { encoding: 'utf8' });
 
     // function files
-    const appDir = path.join(tmpDir.name, 'app');
-    const indexFnPath = path.join(tmpDir.name, 'app', 'index');
-    const createFnPath = path.join(tmpDir.name, 'app', 'create');
+    const appDir = path.join(tmpDir.name, 'functions');
+    const indexFnPath = path.join(tmpDir.name, 'functions', 'index');
+    const createFnPath = path.join(tmpDir.name, 'functions', 'create');
     const indexFile = path.join(indexFnPath, 'index.js');
     const createFile = path.join(createFnPath, 'create.js');
     fs.mkdirSync(appDir);
@@ -77,7 +86,7 @@ describe('compressAndCompare', function() {
     fs.writeFileSync(createFile, "console.log('create!');", { encoding: 'utf8' });
 
     // To cleanup later
-    funcFiles.push(apiYAMLPath);
+    funcFiles.push(routesYAMLPath);
     funcFiles.push(funcsYAMLPath);
     funcFiles.push(indexFile);
     funcFiles.push(createFile);
@@ -86,7 +95,7 @@ describe('compressAndCompare', function() {
     funcFiles.push(appDir);
 
     nfx = {
-      functions: funcsJSON.functions,
+      functions: funcsJSON,
       compressedFunctions:[],
       hasher: crypto.createHash('sha256'),
       nfxJSON: {
