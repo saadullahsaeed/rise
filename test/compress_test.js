@@ -96,7 +96,7 @@ describe('compressAndCompare', function() {
 
     nfx = {
       functions: funcsJSON,
-      compressedFunctions:[],
+      compressedFunctions: [],
       hasher: crypto.createHash('sha256'),
       nfxJSON: {
         active_version: 'v1',

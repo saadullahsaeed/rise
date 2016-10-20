@@ -18,6 +18,7 @@ module.exports = function uploadFunctions(nfx) {
     log.info("All functions are uploaded");
     return Promise.resolve(nfx);
   }, (err) => {
+    nfx.state = 'UPLOAD_FAILED';
     return Promise.reject(err);
   });
 };
