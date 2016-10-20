@@ -18,7 +18,9 @@ exports.handle = (req, res, next) => {
   dynamodb.deleteItem({
     "TableName": tableName,
     "Key": {
-      "S": taskId
+      "id": {
+        "S": taskId
+      }
     }
   }, (err, data) => {
     if (err) {
