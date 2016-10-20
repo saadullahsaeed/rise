@@ -38,10 +38,18 @@ class Stack {
     }
 
     const nextFn = (err) => {
-      if (err != null) {
-        const stack = this._stack;
-        let fn;
+      const stack = this._stack;
+      let fn;
 
+      if (err == null) {
+        do {
+          this._currIndex++;
+          fn = stack[this._currIndex];
+          if (!fn) {
+            return;
+          }
+        } while (fn.length > 3);
+      } else {
         do {
           this._currIndex++;
           fn = stack[this._currIndex];
@@ -50,8 +58,6 @@ class Stack {
             return;
           }
         } while (fn.length < 4);
-      } else {
-        this._currIndex++;
       }
 
       this._run(req, res, err);
