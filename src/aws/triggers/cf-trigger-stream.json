@@ -2,7 +2,7 @@
   "Type": "AWS::Lambda::EventSourceMapping",
   "Properties": {
     "EventSourceArn": "$EVENT_SOURCE_ARN",
-    "FunctionName": { "Fn::GetAtt": [ "$FUNCTION_NAME", "Arn" ] }
+    "FunctionName": { "Fn::GetAtt": [ "$FUNCTION_NAME", "Arn" ] },
+    "StartingPosition": "$STARTING_POSITION"
   }
 }
-

@@ -5,6 +5,10 @@ const fsReadFile = require('../../utils/fs').fsReadFile,
       crypto     = require('crypto');
 
 module.exports = function getResources(trigger, funcName) {
+  if (!trigger.schedule_expression) {
+    throw new Error('schedule_expression is required for CloudWatch Event triggers');
+  }
+
   const resources = {};
   const cfTriggerContent = fsReadFile(path.join(__dirname, 'cf-trigger-cloudwatch-event.json'));
   const cfFuncPermissionContent = fsReadFile(path.join(__dirname, 'cf-trigger-lambda-permission.json'));

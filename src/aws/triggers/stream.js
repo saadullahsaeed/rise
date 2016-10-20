@@ -4,12 +4,23 @@ const fsReadFile = require('../../utils/fs').fsReadFile,
       path       = require('path');
 
 module.exports = function getResources(trigger, funcName, roleResource) {
+  if (!trigger.arn) {
+    throw new Error('arn is required for stream triggers');
+  }
+  if (!trigger.starting_position) {
+    throw new Error('starting_position is required for stream triggers');
+  }
+
+
   const resources = {};
   const cfTriggerContent = fsReadFile(path.join(__dirname, 'cf-trigger-stream.json'));
   const streamType = trigger.arn.split(':')[2];
   const streamName = trigger.arn.split('/')[1].replace(/[^0-9a-z]/gi, '');
   const resourceName = `NFX${funcName}${streamType}${streamName}EventSourceMapping`;
 
+  if (!roleResource.Properties) {
+    roleResource.Properties = {};
+  }
   if (!roleResource.Properties.Policies) {
     roleResource.Properties.Policies = [];
   }
@@ -47,8 +58,8 @@ module.exports = function getResources(trigger, funcName, roleResource) {
           Statement: [{
             Effect: "Allow",
             Action: [
-              "kinesis:DescribeStream",
-              "kinesis:GetShardIterator"
+              "kinesis:GetShardIterator",
+              "kinesis:DescribeStream"
             ],
             Resource: trigger.arn
           }, {
@@ -68,16 +79,14 @@ module.exports = function getResources(trigger, funcName, roleResource) {
     cfTriggerContent
       .replace('$FUNCTION_NAME', funcName)
       .replace('$EVENT_SOURCE_ARN', trigger.arn)
+      .replace('$STARTING_POSITION', trigger.starting_position)
   );
 
   if (trigger.batch_size) {
     resources[resourceName].Properties.BatchSize = trigger.batch_size;
   }
 
-  if (trigger.starting_position) {
-    resources[resourceName].Properties.StartingPosition = trigger.starting_position;
-  }
-
+  // TODO Don't hardcode role resource name.
   resources['NFXRole'] = roleResource;
 
   return resources;

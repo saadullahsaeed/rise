@@ -5,6 +5,13 @@ const fsReadFile = require('../../utils/fs').fsReadFile,
       crypto     = require('crypto');
 
 module.exports = function getResources(trigger, funcName, region) {
+  if (!trigger.log_group_name) {
+    throw new Error('log_group_name is required for CloudWatch Logs triggers');
+  }
+  if (!trigger.filter_pattern) {
+    throw new Error('filter_pattern is required for CloudWatch Logs triggers');
+  }
+
   const resources = {};
   const cfTriggerContent = fsReadFile(path.join(__dirname, 'cf-trigger-cloudwatch-log.json'));
   const cfFuncPermissionContent = fsReadFile(path.join(__dirname, 'cf-trigger-lambda-permission.json'));

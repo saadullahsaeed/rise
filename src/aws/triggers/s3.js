@@ -1,9 +1,18 @@
 'use strict';
 
 const fsReadFile = require('../../utils/fs').fsReadFile,
+      log        = require('../../utils/log'),
       path       = require('path');
 
 module.exports = function getResources(trigger, funcName) {
+  if (!trigger.bucket) {
+    throw new Error('bucket is required for S3 triggers');
+  }
+  if (!trigger.event) {
+    trigger.event = 's3:ObjectCreated:*';
+    log.info(`"event" not specified for S3 bucket trigger for "${trigger.bucket}", using "${trigger.event}".`);
+  }
+
   const resources = {};
   const cfTriggerContent = fsReadFile(path.join(__dirname, 'cf-trigger-s3.json'));
   const cfFuncPermissionContent = fsReadFile(path.join(__dirname, 'cf-trigger-lambda-permission.json'));

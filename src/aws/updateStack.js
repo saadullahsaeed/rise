@@ -249,38 +249,18 @@ function getTriggerResources(functions, region, roleResource) {
         const trigger = triggers[i][triggerName];
         switch(triggerName) {
           case 's3':
-            if (!trigger.event || !trigger.bucket) {
-              log.error(`Invalid trigger ${triggerName}.`);
-              break;
-            }
             Object.assign(resources, getS3Trigger(trigger, funcName));
             break;
           case 'cloudwatch_events':
-            if (!trigger.schedule_expression) {
-              log.error(`Invalid trigger ${triggerName}.`);
-              break;
-            }
             Object.assign(resources, getCloudWatchEventTrigger(trigger, funcName));
             break;
           case 'cloudwatch_logs':
-            if (!trigger.log_group_name || !trigger.filter_pattern) {
-              log.error(`Invalid trigger ${triggerName}.`);
-              break;
-            }
             Object.assign(resources, getCloudWatchLogsTrigger(trigger, funcName, region));
             break;
           case 'stream':
-            if (!trigger.arn) {
-              log.error(`Invalid trigger ${triggerName}.`);
-              break;
-            }
             Object.assign(resources, getStreamTrigger(trigger, funcName, roleResource));
             break;
           case 'sns':
-            if (!trigger.topic) {
-              log.error(`Invalid trigger ${triggerName}.`);
-              break;
-            }
             Object.assign(resources, getSNSTrigger(trigger, funcName));
             break;
           default:
