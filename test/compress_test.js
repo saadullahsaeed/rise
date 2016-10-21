@@ -178,7 +178,7 @@ describe('compressAndCompare', function() {
 
           const paths = [];
           for (let j = 0; j < entries.length; j++) {
-            if (!entries[j].isDirectory && entries[j].entryName != 'index.js') {
+            if (!entries[j].isDirectory && entries[j].entryName !== 'index.js') {
               expect(fsReadFile(entries[j].entryName)).to.equal(entries[j].getData().toString());
             }
             paths.push(entries[j].entryName);
