@@ -7,12 +7,12 @@ const path = require('path'),
 module.exports = function deployAPI(nfx, options) {
   const cf = nfx.aws.cf;
 
-  nfx.cfTemplate.Resources = Object.assign({}, nfx.cfTemplate.Resources, getDeploymentResource(nfx.version, nfx.stage, options.rollback));
-  nfx.cfTemplate.Outputs = Object.assign({}, nfx.cfTemplate.Outputs, getDeploymentOutput(nfx.stage));
+  nfx.aws.cfTemplate.Resources = Object.assign({}, nfx.aws.cfTemplate.Resources, getDeploymentResource(nfx.version, nfx.stage, options.rollback));
+  nfx.aws.cfTemplate.Outputs = Object.assign({}, nfx.aws.cfTemplate.Outputs, getDeploymentOutput(nfx.stage));
 
   return cf.updateStack({
     StackName: nfx.stackName,
-    TemplateBody: JSON.stringify(nfx.cfTemplate, null, 2),
+    TemplateBody: JSON.stringify(nfx.aws.cfTemplate, null, 2),
     Capabilities: ['CAPABILITY_IAM']
   }).promise()
     .then(function() {

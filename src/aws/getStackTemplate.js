@@ -7,7 +7,7 @@ module.exports = function getStackTemplate(nfx) {
     { StackName: nfx.stackName }).promise()
       .then(function(data) {
         log.info(`Successfully fetched the template`);
-        nfx.cfTemplate = JSON.parse(data.TemplateBody);
+        nfx.aws.cfTemplate = JSON.parse(data.TemplateBody);
         return Promise.resolve(nfx);
       });
 };

@@ -10,7 +10,7 @@ module.exports = function uploadNFXFiles(nfx) {
 
   const nfxFiles = [{
     key: `versions/${nfx.version}/aws/cf.json`,
-    body: JSON.stringify(nfx.cfTemplate, null, 2),
+    body: JSON.stringify(nfx.aws.cfTemplate, null, 2),
     contentType: 'application/json'
   }, {
     key: `versions/${nfx.version}/routes.yaml`,

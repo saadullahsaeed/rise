@@ -19,9 +19,9 @@ module.exports = function updateStack(nfx) {
         routes = nfx.routes,
         region = nfx.region;
 
-  nfx.cfTemplate = getBaseTemplate(stackName);
-  nfx.cfTemplate.Resources = Object.assign({}, nfx.cfTemplate.Resources, getFunctionResources(bucketName, version, functions, uploadedFunctions));
-  nfx.cfTemplate.Resources = Object.assign({}, nfx.cfTemplate.Resources, getAPIResources(routes));
+  nfx.aws.cfTemplate = getBaseTemplate(stackName);
+  nfx.aws.cfTemplate.Resources = Object.assign({}, nfx.aws.cfTemplate.Resources, getFunctionResources(bucketName, version, functions, uploadedFunctions));
+  nfx.aws.cfTemplate.Resources = Object.assign({}, nfx.aws.cfTemplate.Resources, getAPIResources(routes));
 
   const roleResource = nfx.cfTemplate.Resources['NFXRole'];
   nfx.cfTemplate.Resources = Object.assign(nfx.cfTemplate.Resources, getTriggerResources(functions, region, roleResource));
@@ -29,7 +29,7 @@ module.exports = function updateStack(nfx) {
   nfx.state = 'UPDATING';
   return nfx.aws.cf.updateStack({
     StackName: nfx.stackName,
-    TemplateBody: JSON.stringify(nfx.cfTemplate, null, 2),
+    TemplateBody: JSON.stringify(nfx.aws.cfTemplate, null, 2),
     Capabilities: ['CAPABILITY_IAM']
   }).promise()
     .then(function() {
