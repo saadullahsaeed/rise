@@ -5,7 +5,9 @@ const compressAndCompare = require('../src/aws/compressAndCompare'),
       crypto = require('crypto'),
       yaml = require('js-yaml'),
       path = require('path'),
-      tmp = require('tmp');
+      tmp = require('tmp'),
+      unzip = require('adm-zip'),
+      fsReadFile = require('../src/utils/fs').fsReadFile;
 
 describe('compressAndCompare', function() {
   let nfx,
@@ -25,13 +27,13 @@ describe('compressAndCompare', function() {
         '/': {
           get: {
             'x-nfx': {
-              handler: 'todoIndex',
+              function: 'listTasks',
               cors: true
             }
           },
           put: {
             'x-nfx': {
-              handler: 'todoCreate',
+              function: 'createTasks',
               cors: true
             }
           }
@@ -52,13 +54,11 @@ describe('compressAndCompare', function() {
         memory: 128,
         timeout: 3
       },
-      'index': {
-        handler: 'index',
+      listTasks: {
         memory: 128,
         timeout: 1
       },
-      'create': {
-        handler: 'create',
+      createTasks: {
         memory: 128,
         timeout: 2
       }
@@ -75,8 +75,8 @@ describe('compressAndCompare', function() {
 
     // function files
     const appDir = path.join(tmpDir.name, 'functions');
-    const indexFnPath = path.join(tmpDir.name, 'functions', 'index');
-    const createFnPath = path.join(tmpDir.name, 'functions', 'create');
+    const indexFnPath = path.join(tmpDir.name, 'functions', 'listTasks');
+    const createFnPath = path.join(tmpDir.name, 'functions', 'createTasks');
     const indexFile = path.join(indexFnPath, 'index.js');
     const createFile = path.join(createFnPath, 'create.js');
     fs.mkdirSync(appDir);
@@ -84,6 +84,12 @@ describe('compressAndCompare', function() {
     fs.mkdirSync(createFnPath);
     fs.writeFileSync(indexFile, "console.log('index!');", { encoding: 'utf8' });
     fs.writeFileSync(createFile, "console.log('create!');", { encoding: 'utf8' });
+
+    // lib functions
+    const libDir = path.join(tmpDir.name, 'lib');
+    const libFnPath = path.join(tmpDir.name, 'lib', 'lib.js');
+    fs.mkdirSync(libDir);
+    fs.writeFileSync(libFnPath, "console.log('lib!');", { encoding: 'utf8' });
 
     // To cleanup later
     funcFiles.push(routesYAMLPath);
@@ -93,6 +99,8 @@ describe('compressAndCompare', function() {
     funcFiles.push(indexFnPath);
     funcFiles.push(createFnPath);
     funcFiles.push(appDir);
+    funcFiles.push(libFnPath);
+    funcFiles.push(libDir);
 
     nfx = {
       functions: funcsJSON,
@@ -111,31 +119,71 @@ describe('compressAndCompare', function() {
       for (let i = 0; i < funcFiles.length; ++i) {
         const p = funcFiles[i];
         if (fs.statSync(p).isDirectory()) {
-          fs.rmdir(p);
+          fs.rmdirSync(p);
         } else {
-          fs.unlink(p);
+          fs.unlinkSync(p);
         }
       }
 
       for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
         const p = nfx.compressedFunctions[i].filePath;
-        fs.unlink(p);
+        fs.unlinkSync(p);
       }
 
       tmpDir.removeCallback();
     }
   });
 
-  it('updates version and hash', function(done) {
+  it('updates version and hash for next version', function(done) {
     compressAndCompare(nfx)
       .then(function(nfx) {
         expect(nfx.version).to.equal('v2');
         expect(nfx.nfxJSON.active_version).to.equal('v1');
         expect(nfx.nfxJSON.version_hashes['v2']).to.not.be.null;
+        done();
+      })
+      .catch(done);
+  });
+
+  it('compresses files for each function', function(done) {
+    const expectedFiles = {
+      listTasks: [
+        "functions/listTasks/index.js",
+        "routes.yaml",
+        "nfx.yaml",
+        "index.js",
+        "lib/",
+        "lib/lib.js"
+      ],
+      createTasks: [
+        "functions/createTasks/create.js",
+        "routes.yaml",
+        "nfx.yaml",
+        "index.js",
+        "lib/",
+        "lib/lib.js"
+      ]
+    };
+
+    compressAndCompare(nfx)
+      .then(function(nfx) {
         expect(nfx.compressedFunctions).to.have.length(2);
         for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
           const p = nfx.compressedFunctions[i];
+          expect(p.filePath).to.not.be.null;
           expect(fs.statSync(p.filePath)).to.not.be.null;
+
+          const entries = new unzip(p.filePath).getEntries();
+          expect(entries).to.not.be.empty;
+
+          const paths = [];
+          for (let j = 0; j < entries.length; j++) {
+            if (!entries[j].isDirectory && entries[j].entryName != 'index.js') {
+              expect(fsReadFile(entries[j].entryName)).to.equal(entries[j].getData().toString());
+            }
+            paths.push(entries[j].entryName);
+          }
+          expect(paths).same.members(expectedFiles[p.functionName]);
         }
         done();
       })
