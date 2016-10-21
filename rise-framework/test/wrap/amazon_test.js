@@ -28,6 +28,9 @@ describe('wrap/amazon', function() {
       callbackSpy = sinon.spy();
 
       functionModule.handle = sinon.spy(function(req, res, next) {
+        res.cookie('username', 'pete');
+        res.cookie('rememberme', '1');
+        res.status(201).send({ created: true });
         next();
       });
     });
@@ -96,9 +99,20 @@ describe('wrap/amazon', function() {
 
         expect(res.app).to.be.an.instanceof(App);
         expect(res.req).to.equal(req);
-        expect(res.__done).to.equal(callbackSpy);
 
         expect(res.app).to.equal(req.app);
+
+        expect(callbackSpy).to.have.been.calledOnce;
+        expect(callbackSpy.getCall(0).args[0]).to.be.null;
+        expect(callbackSpy.getCall(0).args[1]).to.deep.equal({
+          body: `{"created":true}`,
+          headers: {
+            "set-cookie": "username=pete; Path=/",
+            "Set-cookie": "rememberme=1; Path=/", // workaround for api gateway cookie bug
+            "content-type": "application/json; charset=utf-8"
+          },
+          statusCode: 201
+        });
       });
     });
 

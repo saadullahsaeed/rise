@@ -289,4 +289,33 @@ describe('provider/amazon', function() {
       });
     });
   });
+
+  describe('fixHeader', function() {
+    it('transforms headers with multiple values to have unique header field names by manipulating text case', function() {
+      expect(amazon.fixHeader({
+        foo: 'bar',
+        baz: ['hello', 'world', 'lol', 'haha', 'wow'],
+        'a-b': ['hello', 'world', 'lol', 'haha', 'wow'],
+        a: ['hello', 'world', 'lol', 'haha', 'wow'],
+        a1: ['hello', 'world', 'lol', 'haha', 'wow'],
+        '-': ['hello', 'world', 'lol', 'haha', 'wow']
+      })).to.deep.equal({
+        foo: 'bar',
+        baz: 'hello',
+        Baz: 'world',
+        bAz: 'lol',
+        BAz: 'haha',
+        baZ: 'wow',
+        'a-b': 'hello',
+        'A-b': 'world',
+        'a-B': 'lol',
+        'A-B': 'haha', // 'wow' is dropped
+        a: 'hello',
+        A: 'world', // 'lol', 'haha' and 'wow' are dropped
+        a1: 'hello',
+        A1: 'world', // 'lol', 'haha' and 'wow' are dropped
+        '-': 'hello' // 'world', 'lol', 'haha' and 'wow' are dropped
+      });
+    });
+  });
 });

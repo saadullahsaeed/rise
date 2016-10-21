@@ -56,7 +56,12 @@ module.exports = function wrap(functionModule, appModule) {
     const res = new Response({
       app,
       req,
-      done: callback
+      done(err, data) {
+        data.headers = amazonProv.fixHeader(data.headers);
+        if (typeof callback === 'function') {
+          callback(err, data);
+        }
+      }
     });
 
     req.__app = app;

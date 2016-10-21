@@ -32,5 +32,40 @@ module.exports = {
         context: input.context || {}
       }
     };
+  },
+
+  fixHeader(headers) {
+    const hdrs = {};
+
+    for (const key in headers) {
+      const val = headers[key];
+      if (Array.isArray(val)) {
+        let j = 0;
+
+        const maxJ = Math.pow(2, key.length);
+
+        for (let i = 0; i < val.length; i++) {
+          for (; j < maxJ; j++) {
+            const bm = [];
+
+            for (let k = j; k > 0; k = Math.floor(k / 2)) {
+              bm.push(k % 2 === 1);
+            }
+
+            let newKey = bm.map((b, i) => b ? key.charAt(i).toUpperCase() : key.charAt(i)).join('');
+            newKey = newKey + key.substr(newKey.length, key.length - newKey.length);
+
+            if (!(newKey in hdrs)) {
+              hdrs[newKey] = val[i];
+              break;
+            }
+          }
+        }
+      } else {
+        hdrs[key] = val;
+      }
+    }
+
+    return hdrs;
   }
 };
