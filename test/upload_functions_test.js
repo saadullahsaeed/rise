@@ -64,12 +64,12 @@ describe('uploadFunctions', function() {
 
     it('cleans up temp function zip file', function(done) {
       uploadFunctions(nfx)
-        .then(function(nfx) {
-          expect(fsStat(funcFilePath1)).to.equal(false);
-          expect(fsStat(funcFilePath2)).to.equal(false);
-          done();
-        })
-        .catch((err) => console.log(err));
+      .then(function(/* nfx */) {
+        expect(fsStat(funcFilePath1)).to.equal(false);
+        expect(fsStat(funcFilePath2)).to.equal(false);
+        done();
+      })
+      .catch(done);
     });
   });
 
@@ -80,7 +80,7 @@ describe('uploadFunctions', function() {
 
     it('updates state to UPLOAD_FAILED', function(done) {
       uploadFunctions(nfx)
-        .then(function(nfx) {
+        .then(function() {
           done('unexpected then');
         })
         .catch(function() {
@@ -91,14 +91,14 @@ describe('uploadFunctions', function() {
 
     it('cleans up temp function zip file', function(done) {
       uploadFunctions(nfx)
-        .then(function(nfx) {
+        .then(function() {
           done('unexpected then');
         })
         .catch(function() {
           expect(fsStat(funcFilePath1)).to.equal(false);
           expect(fsStat(funcFilePath2)).to.equal(false);
           done();
-        });;
+        });
     });
   });
 });
