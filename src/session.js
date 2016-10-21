@@ -44,6 +44,7 @@ module.exports = class Session {
           s3: new AWS.S3(),
           cf: new AWS.CloudFormation({ apiVersion: '2010-05-15' }),
           lambda: new AWS.Lambda({ apiVersion: '2015-03-31' }),
+          cwl: new AWS.CloudWatchLogs({ apiVersion: '2014-03-28' }),
           cfTemplate: {}
         };
 

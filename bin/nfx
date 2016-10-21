@@ -7,7 +7,9 @@ const path = require('path'),
       deploy = require('../src/deploy'),
       rollback = require('../src/rollback'),
       newProject = require('../src/new'),
-      generate = require('../src/generate');
+      generate = require('../src/generate'),
+      logs = require('../src/logs'),
+      session = require('../src/session').init();
 
 const pkgJSON = require(path.join(__dirname, '..', 'package.json'));
 
@@ -26,7 +28,7 @@ program
 
 program
   .command('generate <functionName>')
-  .description('rollback to the specified version')
+  .description('scaffold a function.')
   .action((functionName) => {
     generate(functionName);
   });
@@ -35,18 +37,27 @@ program
   .command('deploy')
   .description('deploy a project')
   .action(() => {
-    deploy(require('../src/session').init());
+    deploy(session);
   });
 
 program
   .command('rollback [version]')
   .description('rollback to the specified version')
   .action((version) => {
-    rollback(require('../src/session').init(), version);
+    rollback(session, version);
+  });
+
+program
+  .command('logs <functionName>')
+  .description('output logs of a function')
+  .option('-f, --follow', 'Follow log output (i.e. tail function log)')
+  .option('--since [since]', 'Show logs since this timestamp')
+  .action((functionName, options) => {
+    logs(session, functionName, options);
   });
 
 program.parse(process.argv);
 
-if (program.args.length === 0) {
+if (process.argv.length === 2) {
   program.outputHelp();
 }
