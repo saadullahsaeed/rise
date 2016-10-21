@@ -1,5 +1,7 @@
 'use strict';
 
+process.env.NODE_ENV = 'test';
+
 const chai = require('chai'),
       sinon = require('sinon'),
       sinonChai = require('sinon-chai');

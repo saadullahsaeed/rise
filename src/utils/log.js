@@ -35,6 +35,11 @@ function log(type) {
 
   const msg = log.join(' ');
 
+  if (process.env.NODE_ENV === 'test') {
+    // Don't log in tests.
+    return;
+  }
+
   if (type === 'error') {
     process.stderr.write(msg);
   } else {
