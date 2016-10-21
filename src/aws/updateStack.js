@@ -23,8 +23,8 @@ module.exports = function updateStack(nfx) {
   nfx.aws.cfTemplate.Resources = Object.assign({}, nfx.aws.cfTemplate.Resources, getFunctionResources(bucketName, version, functions, uploadedFunctions));
   nfx.aws.cfTemplate.Resources = Object.assign({}, nfx.aws.cfTemplate.Resources, getAPIResources(routes));
 
-  const roleResource = nfx.cfTemplate.Resources['NFXRole'];
-  nfx.cfTemplate.Resources = Object.assign(nfx.cfTemplate.Resources, getTriggerResources(functions, region, roleResource));
+  const roleResource = nfx.aws.cfTemplate.Resources['NFXRole'];
+  nfx.aws.cfTemplate.Resources = Object.assign(nfx.aws.cfTemplate.Resources, getTriggerResources(functions, region, roleResource));
 
   nfx.state = 'UPDATING';
   return nfx.aws.cf.updateStack({
@@ -234,15 +234,19 @@ function createAPIMethod(methodTemplate, corsMethodTemplate, res, defaultSetting
 
 
 function getTriggerResources(functions, region, roleResource) {
-  const resources = {};
+  const resources = {},
+        defaultSetting = functions.default;
 
-  for (const funcPath in functions) {
-    if (funcPath === 'default') {
+  for (const funcName in functions) {
+    if (funcName === 'default') {
       continue;
     }
 
-    const funcName = titlecase(funcPath, path.sep);
-    const triggers = functions[funcPath].triggers;
+    let triggers = defaultSetting.triggers;
+    if (functions[funcName] != null) {
+      triggers = functions[funcName].triggers;
+    }
+
     if (triggers) {
       for (const i in triggers) {
         const triggerName = Object.keys(triggers[i])[0];
