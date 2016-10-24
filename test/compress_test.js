@@ -15,6 +15,15 @@ describe('compressAndCompare', function() {
       tmpDir,
       funcFiles;
 
+  const createFolder = function(path) {
+          fs.mkdirSync(path);
+          funcFiles.push(path);
+        },
+        writeFile = function(path, content) {
+          fs.writeFileSync(path, content, { encoding: 'utf8' });
+          funcFiles.push(path);
+        };
+
   beforeEach(function() {
     cwdOrig = process.cwd();
     tmpDir = tmp.dirSync();
@@ -27,14 +36,12 @@ describe('compressAndCompare', function() {
         '/': {
           get: {
             'x-nfx': {
-              function: 'listTasks',
-              cors: true
+              function: 'listTasks'
             }
           },
           put: {
             'x-nfx': {
-              function: 'createTasks',
-              cors: true
+              function: 'createTasks'
             }
           }
         }
@@ -52,55 +59,45 @@ describe('compressAndCompare', function() {
     const funcsJSON = {
       default: {
         memory: 128,
-        timeout: 3
+        timeout: 3,
+        exclude: 'CHANGELOG.*'
       },
       listTasks: {
         memory: 128,
-        timeout: 1
+        timeout: 1,
+        exclude: 'README.*'
       },
-      createTasks: {
-        memory: 128,
-        timeout: 2
-      }
+      createTasks: null
     };
 
     // config yaml files
-    const routesYAMLPath = path.join(tmpDir.name, 'routes.yaml');
-    const funcsYAMLPath = path.join(tmpDir.name, 'nfx.yaml');
-    fs.writeFileSync(routesYAMLPath, yaml.safeDump(routesJSON), { encoding: 'utf8' });
-    fs.writeFileSync(funcsYAMLPath, yaml.safeDump({
+    writeFile(path.join(tmpDir.name, 'routes.yaml'), yaml.safeDump(routesJSON));
+    writeFile(path.join(tmpDir.name, 'nfx.yaml'), yaml.safeDump({
       profiles: profilesJSON,
       functions: funcsJSON
-    }), { encoding: 'utf8' });
+    }));
 
     // function files
     const appDir = path.join(tmpDir.name, 'functions');
     const indexFnPath = path.join(tmpDir.name, 'functions', 'listTasks');
     const createFnPath = path.join(tmpDir.name, 'functions', 'createTasks');
-    const indexFile = path.join(indexFnPath, 'index.js');
-    const createFile = path.join(createFnPath, 'create.js');
-    fs.mkdirSync(appDir);
-    fs.mkdirSync(indexFnPath);
-    fs.mkdirSync(createFnPath);
-    fs.writeFileSync(indexFile, "console.log('index!');", { encoding: 'utf8' });
-    fs.writeFileSync(createFile, "console.log('create!');", { encoding: 'utf8' });
+
+    createFolder(appDir);
+    createFolder(indexFnPath);
+    createFolder(createFnPath);
+    writeFile(path.join(indexFnPath, 'index.js'), "console.log('index!');");
+    writeFile(path.join(createFnPath, 'create.js'), "console.log('create!');");
 
     // lib functions
     const libDir = path.join(tmpDir.name, 'lib');
-    const libFnPath = path.join(tmpDir.name, 'lib', 'lib.js');
-    fs.mkdirSync(libDir);
-    fs.writeFileSync(libFnPath, "console.log('lib!');", { encoding: 'utf8' });
+    createFolder(libDir);
+    writeFile(path.join(libDir, 'lib.js'), "console.log('lib!');");
 
-    // To cleanup later
-    funcFiles.push(routesYAMLPath);
-    funcFiles.push(funcsYAMLPath);
-    funcFiles.push(indexFile);
-    funcFiles.push(createFile);
-    funcFiles.push(indexFnPath);
-    funcFiles.push(createFnPath);
-    funcFiles.push(appDir);
-    funcFiles.push(libFnPath);
-    funcFiles.push(libDir);
+    // README.md
+    writeFile(path.join(tmpDir.name, 'README.md'), "# README");
+
+    // CHANGELOG.md
+    writeFile(path.join(tmpDir.name, 'CHANGELOG.md'), "# No updates");
 
     nfx = {
       functions: funcsJSON,
@@ -115,19 +112,19 @@ describe('compressAndCompare', function() {
 
   afterEach(function() {
     process.chdir(cwdOrig);
+    for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
+      const p = nfx.compressedFunctions[i].filePath;
+      fs.unlinkSync(p);
+    }
+
     if (tmpDir) {
-      for (let i = 0; i < funcFiles.length; ++i) {
+      for (let i = funcFiles.length - 1; i >= 0; --i) {
         const p = funcFiles[i];
         if (fs.statSync(p).isDirectory()) {
           fs.rmdirSync(p);
         } else {
           fs.unlinkSync(p);
         }
-      }
-
-      for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
-        const p = nfx.compressedFunctions[i].filePath;
-        fs.unlinkSync(p);
       }
 
       tmpDir.removeCallback();
@@ -161,7 +158,8 @@ describe('compressAndCompare', function() {
         "nfx.yaml",
         "index.js",
         "lib/",
-        "lib/lib.js"
+        "lib/lib.js",
+        "README.md"
       ]
     };
 

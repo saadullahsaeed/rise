@@ -11,7 +11,8 @@ const fs = require('fs'),
 
 module.exports = function compressAndCompare(nfx) {
   const funcNames = Object.keys(nfx.functions),
-        compressPromises = [];
+        compressPromises = [],
+        defaultFuncSetting = nfx.functions.default;
 
   for (let i = 0; i < funcNames.length; ++i) {
     const funcName = funcNames[i];
@@ -20,7 +21,16 @@ module.exports = function compressAndCompare(nfx) {
       continue;
     }
 
-    compressPromises.push(compress(nfx, funcName));
+    const excludePatterns = [];
+    if (typeof defaultFuncSetting.exclude === 'string') {
+      excludePatterns.push(defaultFuncSetting.exclude);
+    }
+
+    if (nfx.functions[funcName] && typeof nfx.functions[funcName].exclude === 'string') {
+      excludePatterns.push(nfx.functions[funcName].exclude);
+    }
+
+    compressPromises.push(compress(nfx, funcName, excludePatterns));
   }
 
   // TODO: Sanity check with functions.yaml.
@@ -63,7 +73,7 @@ module.exports = function compressAndCompare(nfx) {
     });
 };
 
-function compress(nfx, functionName) {
+function compress(nfx, functionName, excludePatterns) {
   return new Promise((resolve, reject) => {
     log.info(`Compressing ${functionName}...`);
 
@@ -96,7 +106,8 @@ function compress(nfx, functionName) {
 
     zipArchive.pipe(output);
     zipArchive.directory(functionPath);
-    zipArchive.glob("**/*", { ignore: 'functions/**'});
+
+    zipArchive.glob("**/*", { ignore: excludePatterns.concat(['functions/**']) });
     zipArchive.append(indexJS, { name: 'index.js' });
 
     zipArchive.finalize();

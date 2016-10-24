@@ -10,8 +10,10 @@ functions:
   default:
     memory: 128
     timeout: 3
+    exclude: README.md
 
   listTasks:
+    exclude: CHANGELOG.md
 
   createTask:
     memory: 256
