@@ -13,8 +13,8 @@ const path = require('path'),
 module.exports = function updateStack(nfx) {
   const stackName = nfx.stackName,
         bucketName = nfx.bucketName,
-        version = nfx.version,
         functions = nfx.functions,
+        version = nfx.version,
         uploadedFunctions = nfx.compressedFunctions,
         routes = nfx.routes,
         region = nfx.region;
@@ -219,6 +219,7 @@ function createAPIMethod(methodTemplate, corsMethodTemplate, res, defaultSetting
   }
 
   if (corsMethods.length > 0) {
+    corsMethods.push('OPTIONS');
     const methodResourceName = `${res.name}OPTIONS`;
     const methodJSON = JSON.parse(corsMethodTemplate.replace(/\$CORS_METHODS/g, corsMethods.join(',')));
     if (res.isRoot) {
