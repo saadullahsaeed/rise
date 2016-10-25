@@ -1,9 +1,9 @@
 "use strict";
 
-const fs           = require('fs'),
-      YAML         = require('js-yaml'),
-      os           = require('os'),
-      path         = require('path'),
+const fs = require('fs'),
+      yaml = require('js-yaml'),
+      os = require('os'),
+      path = require('path'),
       readlineSync = require('readline-sync'),
       log = require('../utils/log');
 
@@ -13,8 +13,8 @@ module.exports = function(stackName, options) {
   let region = options.region,
       bucket = options.bucketName;
 
-  const projectPath   = path.join(stackName, 'project.yaml'),
-        functionsPath = path.join(stackName, 'functions.yaml'),
+  const projectPath   = path.join(stackName, 'nfx.yaml'),
+        routesPath = path.join(stackName, 'routes.yaml'),
         awsCredPath   = path.join(os.homedir(), '.aws', 'credentials');
 
   const dirStat = fsStat(stackName);
@@ -25,9 +25,9 @@ module.exports = function(stackName, options) {
       process.exit(1);
     }
 
-    const projectStat   = fsStat(projectPath),
-          functionsStat = fsStat(functionsPath);
-    if (projectStat || functionsStat) {
+    const projectStat = fsStat(projectPath),
+          routesStat = fsStat(routesPath);
+    if (projectStat || routesStat) {
       log.error('Project directory exist.');
       process.exit(1);
     }
@@ -59,19 +59,22 @@ module.exports = function(stackName, options) {
         region,
         bucket
       }
-    }
+    },
+    stack: stackName,
+    functions: {}
   };
 
-  const functions = {
-    stack: stackName
+  const routes = {
+    'x-nfx': {},
+    paths: {}
   };
 
   if (!folderExists) {
     fs.mkdirSync(stackName, 0o755);
   }
 
-  fs.writeFileSync(projectPath, YAML.safeDump(project), 'utf8');
-  fs.writeFileSync(functionsPath, YAML.safeDump(functions), 'utf8');
+  fs.writeFileSync(projectPath, yaml.safeDump(project), 'utf8');
+  fs.writeFileSync(routesPath, yaml.safeDump(routes), 'utf8');
 
   const awsCredStat = fsStat(awsCredPath);
   if (!awsCredStat &&

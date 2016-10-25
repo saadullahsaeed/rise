@@ -6,8 +6,7 @@ const path = require('path'),
       program = require('commander'),
       deploy = require('../src/deploy'),
       rollback = require('../src/rollback'),
-      newProject = require('../src/new'),
-      session = require('../src/session').init();
+      newProject = require('../src/new');
 
 const pkgJSON = require(path.join(__dirname, '..', 'package.json'));
 
@@ -16,27 +15,26 @@ program
   .usage('[command]');
 
 program
+  .command('new [stackName]')
+  .description('setup provider credential')
+  .option('-r, --region [region]', 'AWS region')
+  .option('-b, --bucket-name [bucketName]', 'AWS bucket name')
+  .action((stackName, options) => {
+    newProject(stackName, options);
+  });
+
+program
   .command('deploy')
   .description('deploy a project')
   .action(() => {
-    deploy(session);
+    deploy(require('../src/session').init());
   });
 
 program
   .command('rollback [version]')
   .description('rollback to the specified version')
   .action((version) => {
-    rollback(session, version);
-  });
-
-
-program
-  .command('new [stackName]')
-  .description('setup provider credential')
-  .option('-r, --region [region]', 'AWS region')
-  .option('-b, --bucket-name [bucketName]', 'AWS bucket name')
-  .action((stackName, options) => {
-    newProject(session, stackName, options);
+    rollback(require('../src/session').init(), version);
   });
 
 program.parse(process.argv);
