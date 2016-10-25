@@ -7,7 +7,11 @@ const chai = require('chai'),
       sinonChai = require('sinon-chai');
 
 global.expect = chai.expect;
+global.assert = chai.assert;
 global.sinon = sinon;
+global.fail = function(msg) {
+  assert.fail(0, 0, msg);
+};
 
 chai.use(sinonChai);
 

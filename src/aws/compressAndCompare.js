@@ -3,16 +3,19 @@
 const fs = require('fs'),
       os = require('os'),
       path = require('path'),
-      archiver = require('archiver'),
       uuid = require('uuid'),
+      archiver = require('archiver'),
       log = require('../utils/log'),
       checksum = require('../utils/checksum'),
       fsStat = require('../utils/fs').fsStat,
       fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports = function compressAndCompare(nfx) {
+  if (!nfx.functions || Object.keys(nfx.functions).length === 0) {
+    return Promise.reject("No functions found in nfx.yaml.");
+  }
+
   const funcNames = Object.keys(nfx.functions),
-        compressPromises = [],
         defaultFuncSetting = nfx.functions.default;
 
   let globalExcludePattern = null;
@@ -24,7 +27,8 @@ module.exports = function compressAndCompare(nfx) {
   return checksum(globalExcludePattern)
     .then((checksumHex) => {
       const activeVersion = nfx.nfxJSON.active_version,
-            activeVersionHash = nfx.nfxJSON.version_hashes[nfx.nfxJSON.active_version];
+            activeVersionHash = nfx.nfxJSON.version_hashes[nfx.nfxJSON.active_version],
+            compressPromises = [];
 
       if (activeVersionHash === checksumHex) {
         for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
@@ -45,13 +49,13 @@ module.exports = function compressAndCompare(nfx) {
       nfx.nfxJSON.version_hashes[nfx.version] = checksumHex;
 
       for (let i = 0; i < funcNames.length; ++i) {
-        const funcName = funcNames[i];
+        const funcName = funcNames[i],
+              excludePatterns = [];
 
         if (funcName === 'default') {
           continue;
         }
 
-        const excludePatterns = [];
         if (globalExcludePattern != null) {
           excludePatterns.push(globalExcludePattern);
         }
@@ -79,40 +83,46 @@ module.exports = function compressAndCompare(nfx) {
 
 function compress(nfx, functionName, excludePatterns) {
   return new Promise((resolve, reject) => {
-    log.info(`Compressing ${functionName}...`);
+    process.nextTick(function() {
+      log.info(`Compressing ${functionName}...`);
 
-    const functionPath = path.join('functions', functionName),
-          stat = fsStat(functionPath);
+      const functionPath = path.join('functions', functionName),
+            stat = fsStat(functionPath);
 
-    if (!stat || !stat.isDirectory()) {
-      reject(`functions folder for "${functionName}" is invalid`);
-      return;
-    }
+      if (!stat || !stat.isDirectory()) {
+        reject(`"${functionPath}" is invalid or does not exist`);
+        return;
+      }
 
-    const zipArchive = archiver.create('zip'),
-          fileName = `${functionName}-${uuid.v4()}.zip`,
-          tempFileName = path.join(os.tmpdir(), fileName),
-          output = fs.createWriteStream(tempFileName);
+      const zipArchive = archiver.create('zip'),
+            fileName = `${functionName}-${uuid.v4()}.zip`,
+            tempFileName = path.join(os.tmpdir(), fileName),
+            output = fs.createWriteStream(tempFileName);
 
-    output.on('close', () => {
-      log.info(`Compressed ${functionName}.`);
-      resolve();
+      output.on('close', function() {
+        log.info(`Compressed ${functionName}.`);
+        resolve();
+      });
+
+      zipArchive.on('error', function(err) {
+        reject(err);
+      });
+
+      nfx.compressedFunctions.push({
+        functionName,
+        fileName,
+        filePath: tempFileName
+      });
+
+      zipArchive.pipe(output);
+      zipArchive.directory(functionPath);
+      zipArchive.glob("**/*", { ignore: excludePatterns.concat(['functions/**']) });
+
+      const indexJS = fsReadFile(path.join(__dirname, 'nfx-index.js.tmpl'))
+      .replace(/\$\{functionPath\}/, functionPath);
+
+      zipArchive.append(indexJS, { name: 'index.js' });
+      zipArchive.finalize();
     });
-
-    nfx.compressedFunctions.push({
-      functionName,
-      fileName,
-      filePath: tempFileName
-    });
-
-    zipArchive.pipe(output);
-    zipArchive.directory(functionPath);
-    zipArchive.glob("**/*", { ignore: excludePatterns.concat(['functions/**']) });
-
-    const indexJS = fsReadFile(path.join(__dirname, 'nfx-index.js.tmpl'))
-                      .replace(/\$\{functionPath\}/, functionPath);
-
-    zipArchive.append(indexJS, { name: 'index.js' });
-    zipArchive.finalize();
   });
 }

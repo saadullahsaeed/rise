@@ -5,8 +5,10 @@ env:
 globals:
   sinon: true
   expect: true
+  assert: true
   waitUntil: true
   spyWithPromise: true
+  fail: true
 extends: 'eslint:recommended'
 rules:
   indent:

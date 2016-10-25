@@ -227,4 +227,37 @@ describe('compressAndCompare', function() {
         .catch(done);
     });
   });
+
+  context("when there are no functions", function() {
+    beforeEach(function() {
+      nfx.functions = {};
+    });
+
+    it("returns an error", function() {
+      return compressAndCompare(nfx)
+        .then(function() {
+          fail('this promise should not have been resolved');
+        })
+        .catch(function(err) {
+          expect(err).to.contain('No functions found in nfx.yaml');
+        });
+    });
+  });
+
+  context("when folders don't exist for functions", function() {
+    beforeEach(function() {
+      nfx.functions.thisIsNotFunc = null;
+    });
+
+    it("returns an error", function() {
+      return compressAndCompare(nfx)
+        .then(function() {
+          fail('this promise should not have been resolved');
+        })
+        .catch(function(err) {
+          expect(err).to.contain('"functions/thisIsNotFunc" is invalid or does not exist');
+        });
+    });
+  });
 });
+
