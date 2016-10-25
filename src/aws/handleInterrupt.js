@@ -7,7 +7,7 @@ const log = require('../utils/log'),
 module.exports = function handleInterrupt(nfx) {
   log.info(`SIGINT fired at ${nfx.state}`);
   if (nfx.state === 'CREATING') {
-    log.info('Creating stack is still in progress. Please run `nfx destroy`.');
+    log.info('Creating stack is still in progress.');
     process.exit(1);
   } else if (nfx.state === 'UPDATING') {
     // Users could send Ctrl+c again.
