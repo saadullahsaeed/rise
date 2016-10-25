@@ -5,9 +5,11 @@ const fs = require('fs'),
       os = require('os'),
       path = require('path'),
       readlineSync = require('readline-sync'),
-      log = require('../utils/log');
+      log = require('../utils/log'),
+      fsStat = require('../utils/fs').fsStat;
 
-const DEFAULT_PROVIDER = 'aws';
+const DEFAULT_PROVIDER = 'aws',
+      REGIONS = ['us-east-1', 'us-west-1', 'eu-west-1', 'ap-southeast-1', 'Other'];
 
 module.exports = function(stackName, options) {
   let region = options.region,
@@ -35,16 +37,15 @@ module.exports = function(stackName, options) {
     folderExists = true;
   }
 
-  const regions = ['us-east-1', 'us-west-1', 'eu-west-1', 'ap-southeast-1', 'Other'];
   while(!region) {
-    const regionIndex = readlineSync.keyInSelect(regions, 'Region: ');
+    const regionIndex = readlineSync.keyInSelect(REGIONS, 'Region: ');
     if (regionIndex === 4) {
       region = readlineSync.question('Region: ');
     } else if (regionIndex === -1) {
       log.error('Invalid region.');
       process.exit(1);
     } else {
-      region = regions[regionIndex];
+      region = REGIONS[regionIndex];
     }
   }
 
@@ -83,11 +84,3 @@ module.exports = function(stackName, options) {
     log.info('Please setup your provider credentials.');
   }
 };
-
-function fsStat(path) {
-  try {
-    return fs.statSync(path);
-  } catch (err) {
-    return false;
-  }
-}
