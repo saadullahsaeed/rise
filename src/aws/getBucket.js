@@ -29,5 +29,8 @@ function create(nfx) {
     }
   };
 
-  return nfx.aws.s3.createBucket(params).promise();
+  return nfx.aws.s3.createBucket(params).promise()
+    .then(function() {
+      return Promise.resolve(nfx);
+    });
 }

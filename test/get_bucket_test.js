@@ -13,7 +13,7 @@ describe('getBucket', function() {
     bucketName = 'foo-bar';
     region = 'somewhere';
     createBucketFn = spyWithPromise(function(resolve, reject) { // eslint-disable-line no-unused-vars
-      resolve({});
+      resolve();
     });
 
     nfx = {
@@ -30,7 +30,7 @@ describe('getBucket', function() {
   context('when a bucket exists', function() {
     beforeEach(function() {
       headBucketFn = spyWithPromise(function(resolve, reject) { // eslint-disable-line no-unused-vars
-        resolve({});
+        resolve();
       });
 
       nfx.aws.s3.headBucket = headBucketFn;
@@ -39,7 +39,7 @@ describe('getBucket', function() {
     it('calls headBucket with bucketName', function(done) {
       getBucket(nfx)
         .then(function(nfx) {
-          expect(nfx).to.not.be.null;
+          expect(nfx).to.exist;
           expect(headBucketFn).to.have.been.calledOnce;
           expect(headBucketFn).to.have.been.calledWith({ Bucket: bucketName });
           expect(createBucketFn).to.not.have.been.called;
@@ -61,7 +61,7 @@ describe('getBucket', function() {
     it('makes a request to create a bucket', function(done) {
       getBucket(nfx)
         .then(function(nfx) {
-          expect(nfx).to.not.be.null;
+          expect(nfx).to.exist;
           expect(headBucketFn).to.have.been.calledOnce;
           expect(headBucketFn).to.have.been.calledWith({ Bucket: bucketName });
           expect(createBucketFn).to.have.been.calledOnce;
@@ -93,7 +93,7 @@ describe('getBucket', function() {
           done('unexpected then');
         })
         .catch(function(err) {
-          expect(err).to.not.be.null;
+          expect(err).to.exist;
           expect(headBucketFn).to.have.been.calledOnce;
           expect(headBucketFn).to.have.been.calledWith({ Bucket: bucketName });
           expect(createBucketFn).to.not.have.been.called;
