@@ -7,7 +7,6 @@ const path = require('path'),
       deploy = require('../src/deploy'),
       rollback = require('../src/rollback'),
       newProject = require('../src/new'),
-      destroy = require('../src/destroy'),
       session = require('../src/session').init();
 
 const pkgJSON = require(path.join(__dirname, '..', 'package.json'));
@@ -30,12 +29,6 @@ program
     rollback(session, version);
   });
 
-program
-  .command('destroy')
-  .description('destroy a project')
-  .action(() => {
-    destroy(session);
-  });
 
 program
   .command('new [stackName]')
