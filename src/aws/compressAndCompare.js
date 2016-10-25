@@ -6,6 +6,7 @@ const fs = require('fs'),
       archiver = require('archiver'),
       uuid = require('uuid'),
       log = require('../utils/log'),
+      checksum = require('../utils/checksum'),
       fsStat = require('../utils/fs').fsStat,
       fsReadFile = require('../utils/fs').fsReadFile;
 
@@ -14,34 +15,15 @@ module.exports = function compressAndCompare(nfx) {
         compressPromises = [],
         defaultFuncSetting = nfx.functions.default;
 
-  for (let i = 0; i < funcNames.length; ++i) {
-    const funcName = funcNames[i];
+  let globalExcludePattern = null;
 
-    if (funcName === 'default') {
-      continue;
-    }
-
-    const excludePatterns = [];
-    if (typeof defaultFuncSetting.exclude === 'string') {
-      excludePatterns.push(defaultFuncSetting.exclude);
-    }
-
-    if (nfx.functions[funcName] && typeof nfx.functions[funcName].exclude === 'string') {
-      excludePatterns.push(nfx.functions[funcName].exclude);
-    }
-
-    compressPromises.push(compress(nfx, funcName, excludePatterns));
+  if (defaultFuncSetting && typeof defaultFuncSetting.exclude === 'string') {
+    globalExcludePattern = defaultFuncSetting.exclude;
   }
 
-  // TODO: Sanity check with functions.yaml.
-  return Promise.all(compressPromises)
-    .then(function() {
-      return checksumAll(nfx.hasher, nfx.compressedFunctions);
-    })
-    .then(() => {
-      nfx.hasher.end();
-      const checksumHex = nfx.hasher.read().toString('hex'),
-            activeVersion = nfx.nfxJSON.active_version,
+  return checksum(globalExcludePattern)
+    .then((checksumHex) => {
+      const activeVersion = nfx.nfxJSON.active_version,
             activeVersionHash = nfx.nfxJSON.version_hashes[nfx.nfxJSON.active_version];
 
       if (activeVersionHash === checksumHex) {
@@ -57,17 +39,39 @@ module.exports = function compressAndCompare(nfx) {
       } else {
         nfx.previousVersion = activeVersion;
         nfx.version = `v${(parseInt(activeVersion.substr(1) || 0) + 1)}`;
-        for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
-          const fileName = nfx.compressedFunctions[i].fileName,
-                uploadPath = `versions/${nfx.version}/functions/${fileName}`;
-
-          nfx.compressedFunctions[i].uploadPath = uploadPath;
-        }
-
-        log.info(`Current active version is "${activeVersion}". Deploying "${nfx.version}"...`);
+        log.info(`Current active version is "${activeVersion}". Uploading "${nfx.version}"...`);
       }
 
       nfx.nfxJSON.version_hashes[nfx.version] = checksumHex;
+
+      for (let i = 0; i < funcNames.length; ++i) {
+        const funcName = funcNames[i];
+
+        if (funcName === 'default') {
+          continue;
+        }
+
+        const excludePatterns = [];
+        if (globalExcludePattern != null) {
+          excludePatterns.push(globalExcludePattern);
+        }
+
+        if (nfx.functions[funcName] && typeof nfx.functions[funcName].exclude === 'string') {
+          excludePatterns.push(nfx.functions[funcName].exclude);
+        }
+
+        compressPromises.push(compress(nfx, funcName, excludePatterns));
+      }
+
+      return Promise.all(compressPromises);
+    })
+    .then(() => {
+      for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
+        const fileName = nfx.compressedFunctions[i].fileName,
+              uploadPath = `versions/${nfx.version}/functions/${fileName}`;
+
+        nfx.compressedFunctions[i].uploadPath = uploadPath;
+      }
 
       return Promise.resolve(nfx);
     });
@@ -101,46 +105,14 @@ function compress(nfx, functionName, excludePatterns) {
       filePath: tempFileName
     });
 
+    zipArchive.pipe(output);
+    zipArchive.directory(functionPath);
+    zipArchive.glob("**/*", { ignore: excludePatterns.concat(['functions/**']) });
+
     const indexJS = fsReadFile(path.join(__dirname, 'nfx-index.js.tmpl'))
                       .replace(/\$\{functionPath\}/, functionPath);
 
-    zipArchive.pipe(output);
-    zipArchive.directory(functionPath);
-
-    zipArchive.glob("**/*", { ignore: excludePatterns.concat(['functions/**']) });
     zipArchive.append(indexJS, { name: 'index.js' });
-
     zipArchive.finalize();
-  });
-}
-
-function checksumAll(hasher, funcs) {
-  const files = ['routes.yaml', 'nfx.yaml'];
-  for (let i = 0; i < funcs.length; ++i) {
-    files.push(funcs[i].filePath);
-  }
-
-  return new Promise((resolve/*, reject*/) => {
-    let cp = checksum(hasher, files[0]);
-    for (let i = 1; i < files.length; ++i) {
-      const file = files[i];
-      cp = cp.then(function(hasher) {
-        return checksum(hasher, file);
-      });
-    }
-    cp.then(resolve).catch(log.error);
-  });
-}
-
-function checksum(hasher, file) {
-  return new Promise((resolve/*, reject*/) => {
-    log.info(`Calculating checksum of ${file}...`);
-
-    const readStream = fs.createReadStream(file);
-    readStream.pipe(hasher, { end: false });
-    readStream.once('end', function() {
-      log.info(`Calculated checksum of ${file}. Resolved.`);
-      resolve(hasher);
-    });
   });
 }

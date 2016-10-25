@@ -2,8 +2,7 @@
 
 const readConfig = require('./utils/readConfig'),
       log = require('./utils/log'),
-      AWS = require('aws-sdk'),
-      crypto = require('crypto');
+      AWS = require('aws-sdk');
 
 module.exports = class Session {
   constructor() {
@@ -33,7 +32,6 @@ module.exports = class Session {
       provider: project.profiles.default.provider,
       region: project.profiles.default.region,
       routes,
-      hasher: crypto.createHash('sha256'),
       compressedFunctions : [],
       nfxJSON: {}
     };

@@ -30,7 +30,8 @@
     "commander": "^2.9.0",
     "js-yaml": "^3.6.1",
     "readline-sync": "^1.4.4",
-    "uuid": "^2.0.0"
+    "uuid": "^2.0.0",
+    "glob": "^7.1.1"
   },
   "devDependencies": {
     "chai": "^3.5.0",

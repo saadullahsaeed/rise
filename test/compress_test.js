@@ -168,8 +168,9 @@ describe('compressAndCompare', function() {
         expect(nfx.compressedFunctions).to.have.length(2);
         for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
           const p = nfx.compressedFunctions[i];
-          expect(p.filePath).to.not.be.null;
+          expect(p.filePath).to.exist;
           expect(fs.statSync(p.filePath)).to.not.be.null;
+          expect(p.uploadPath).to.exist;
 
           const entries = new unzip(p.filePath).getEntries();
           expect(entries).to.not.be.empty;
@@ -186,5 +187,44 @@ describe('compressAndCompare', function() {
         done();
       })
       .catch(done);
+  });
+
+  context("when the checksum is same as current version", function() {
+    beforeEach(function(done) {
+      const checksum = require('../src/utils/checksum');
+      checksum('CHANGELOG.md')
+        .then(function(checksumResult) {
+          nfx.nfxJSON.version_hashes['v1'] = checksumResult;
+          done();
+        })
+        .catch(done);
+    });
+
+    it("does not continue to compress files", function(done) {
+      compressAndCompare(nfx)
+        .then(function() {
+          done('Unexpected then');
+        })
+        .catch(function(err) {
+          expect(err).to.equal('No change is present');
+          expect(nfx.compressedFunctions).to.have.length(0);
+          done();
+        });
+    });
+  });
+
+  context("when the checksum is not same as current version", function() {
+    beforeEach(function() {
+      nfx.nfxJSON.version_hashes['v1'] = '123456';
+    });
+
+    it("does not continue to compress files", function(done) {
+      compressAndCompare(nfx)
+        .then(function(nfx) {
+          expect(nfx.compressedFunctions).to.have.length(2);
+          done();
+        })
+        .catch(done);
+    });
   });
 });
