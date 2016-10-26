@@ -7,8 +7,15 @@ const fs = require('fs'),
       archiver = require('archiver'),
       log = require('../utils/log'),
       checksum = require('../utils/checksum'),
-      fsStat = require('../utils/fs').fsStat,
-      fsReadFile = require('../utils/fs').fsReadFile;
+      fsStat = require('../utils/fs').fsStat;
+
+const nfxIndexJSTemplate = `
+const nfx = require('nfx-framework');
+
+const appModule = require('./app'),
+      functionModule = require('./#{FUNCTION_PATH}');
+
+exports.handle = nfx.wrap.amazon(functionModule, appModule, {});`;
 
 module.exports = function compressAndCompare(nfx) {
   if (!nfx.functions || Object.keys(nfx.functions).length === 0) {
@@ -118,8 +125,7 @@ function compress(nfx, functionName, excludePatterns) {
       zipArchive.directory(functionPath);
       zipArchive.glob("**/*", { ignore: excludePatterns.concat(['functions/**']) });
 
-      const indexJS = fsReadFile(path.join(__dirname, 'nfx-index.js.tmpl'))
-      .replace(/\$\{functionPath\}/, functionPath);
+      const indexJS = nfxIndexJSTemplate.replace(/\#\{FUNCTION_PATH\}/, functionPath);
 
       zipArchive.append(indexJS, { name: 'index.js' });
       zipArchive.finalize();

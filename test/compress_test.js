@@ -175,8 +175,18 @@ describe('compressAndCompare', function() {
 
           const paths = [];
           for (let j = 0; j < entries.length; j++) {
+            const content = entries[j].getData().toString();
             if (!entries[j].isDirectory && entries[j].entryName !== 'index.js') {
-              expect(fsReadFile(entries[j].entryName)).to.equal(entries[j].getData().toString());
+              expect(fsReadFile(entries[j].entryName)).to.equal(content);
+            } else if (entries[j].entryName === 'index.js') {
+              const expected = `
+const nfx = require('nfx-framework');
+
+const appModule = require('./app'),
+      functionModule = require('./functions/${p.functionName}');
+
+exports.handle = nfx.wrap.amazon(functionModule, appModule, {});`;
+              expect(content).to.equal(expected);
             }
             paths.push(entries[j].entryName);
           }
