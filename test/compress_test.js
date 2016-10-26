@@ -131,18 +131,16 @@ describe('compressAndCompare', function() {
     }
   });
 
-  it('updates version and hash for next version', function(done) {
-    compressAndCompare(nfx)
+  it('updates version and hash for next version', function() {
+    return compressAndCompare(nfx)
       .then(function(nfx) {
         expect(nfx.version).to.equal('v2');
         expect(nfx.nfxJSON.active_version).to.equal('v1');
         expect(nfx.nfxJSON.version_hashes['v2']).to.not.be.null;
-        done();
-      })
-      .catch(done);
+      });
   });
 
-  it('compresses files for each function', function(done) {
+  it('compresses files for each function', function() {
     const expectedFiles = {
       listTasks: [
         "functions/listTasks/index.js",
@@ -163,7 +161,7 @@ describe('compressAndCompare', function() {
       ]
     };
 
-    compressAndCompare(nfx)
+    return compressAndCompare(nfx)
       .then(function(nfx) {
         expect(nfx.compressedFunctions).to.have.length(2);
         for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
@@ -184,31 +182,26 @@ describe('compressAndCompare', function() {
           }
           expect(paths).same.members(expectedFiles[p.functionName]);
         }
-        done();
-      })
-      .catch(done);
+      });
   });
 
   context("when the checksum is same as current version", function() {
-    beforeEach(function(done) {
+    beforeEach(function() {
       const checksum = require('../src/utils/checksum');
-      checksum('CHANGELOG.md')
+      return checksum('CHANGELOG.md')
         .then(function(checksumResult) {
           nfx.nfxJSON.version_hashes['v1'] = checksumResult;
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it("does not continue to compress files", function(done) {
-      compressAndCompare(nfx)
+    it("does not continue to compress files", function() {
+      return compressAndCompare(nfx)
         .then(function() {
-          done('Unexpected then');
+          fail('this promise should not have been resolved');
         })
         .catch(function(err) {
-          expect(err).to.equal('No change is present');
+          expect(err).to.contain('No change is present');
           expect(nfx.compressedFunctions).to.have.length(0);
-          done();
         });
     });
   });
@@ -218,13 +211,11 @@ describe('compressAndCompare', function() {
       nfx.nfxJSON.version_hashes['v1'] = '123456';
     });
 
-    it("does not continue to compress files", function(done) {
-      compressAndCompare(nfx)
+    it("does not continue to compress files", function() {
+      return compressAndCompare(nfx)
         .then(function(nfx) {
           expect(nfx.compressedFunctions).to.have.length(2);
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 

@@ -54,22 +54,19 @@ describe('uploadFunctions', function() {
   });
 
   context('when upload success', function() {
-    it('updates state to UPLOADING', function(done) {
-      uploadFunctions(nfx)
+    it('updates state to UPLOADING', function() {
+      return uploadFunctions(nfx)
         .then(function(nfx) {
           expect(nfx.state).to.equal('UPLOADED');
-          done();
         });
     });
 
-    it('cleans up temp function zip file', function(done) {
-      uploadFunctions(nfx)
-      .then(function(/* nfx */) {
-        expect(fsStat(funcFilePath1)).to.equal(false);
-        expect(fsStat(funcFilePath2)).to.equal(false);
-        done();
-      })
-      .catch(done);
+    it('cleans up temp function zip file', function() {
+      return uploadFunctions(nfx)
+        .then(function(/* nfx */) {
+          expect(fsStat(funcFilePath1)).to.equal(false);
+          expect(fsStat(funcFilePath2)).to.equal(false);
+        });
     });
   });
 
@@ -78,26 +75,24 @@ describe('uploadFunctions', function() {
       nfx.aws.s3.putObject = putObjectErrFn;
     });
 
-    it('updates state to UPLOAD_FAILED', function(done) {
-      uploadFunctions(nfx)
+    it('updates state to UPLOAD_FAILED', function() {
+      return uploadFunctions(nfx)
         .then(function() {
-          done('unexpected then');
+          fail('this promise should not have been resolved');
         })
         .catch(function() {
           expect(nfx.state).to.equal('UPLOAD_FAILED');
-          done();
         });
     });
 
-    it('cleans up temp function zip file', function(done) {
-      uploadFunctions(nfx)
+    it('cleans up temp function zip file', function() {
+      return uploadFunctions(nfx)
         .then(function() {
-          done('unexpected then');
+          fail('this promise should not have been resolved');
         })
         .catch(function() {
           expect(fsStat(funcFilePath1)).to.equal(false);
           expect(fsStat(funcFilePath2)).to.equal(false);
-          done();
         });
     });
   });

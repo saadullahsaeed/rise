@@ -70,8 +70,8 @@ describe('updateStack', function() {
     };
   });
 
-  it('updates stack', function(done) {
-    updateStack(nfx, {})
+  it('updates stack', function() {
+    return updateStack(nfx, {})
       .then(function(nfx) {
         expect(nfx.state).to.equal('UPDATED');
         expect(updateStackFn).to.have.been.calledOnce;
@@ -82,13 +82,11 @@ describe('updateStack', function() {
 
         expect(waitForFn).to.have.been.calledOnce;
         expect(waitForFn).to.have.been.calledAfter(updateStackFn);
-        done();
-      })
-      .catch(done);
+      });
   });
 
-  it('updates stack with role', function(done) {
-    updateStack(nfx, {})
+  it('updates stack with role', function() {
+    return updateStack(nfx, {})
     .then(function(/* nfx */) {
       const p = updateStackFn.getCall(0).args[0],
             cfTemplate = JSON.parse(p.TemplateBody);
@@ -113,14 +111,12 @@ describe('updateStack', function() {
         "logs:PutLogEvents"
       ]);
       expect(rolePolicyStatement.Resource).to.equal("arn:aws:logs:*:*:*");
-      done();
-    })
-    .catch(done);
+    });
   });
 
   describe('routes', function() {
-    it('updates stack with routes', function(done) {
-      updateStack(nfx, {})
+    it('updates stack with routes', function() {
+      return updateStack(nfx, {})
       .then(function(/* nfx */) {
         const p = updateStackFn.getCall(0).args[0],
               cfTemplate = JSON.parse(p.TemplateBody);
@@ -132,10 +128,7 @@ describe('updateStack', function() {
         expect(cfTemplate.Resources.NFXApiResourcePUT).to.exist;
         const putMethod = cfTemplate.Resources.NFXApiResourcePUT;
         expect(putMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] });
-
-        done();
-      })
-      .catch(done);
+      });
     });
 
     context('when cors option is set', function() {
@@ -144,8 +137,8 @@ describe('updateStack', function() {
         nfx.routes = routesJSON;
       });
 
-      it('adds "OPTIONS" route', function(done) {
-        updateStack(nfx, {})
+      it('adds "OPTIONS" route', function() {
+        return updateStack(nfx, {})
           .then(function(/* nfx */) {
             const p = updateStackFn.getCall(0).args[0],
                   cfTemplate = JSON.parse(p.TemplateBody);
@@ -155,9 +148,7 @@ describe('updateStack', function() {
             expect(optionsMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] });
             const responseParams = optionsMethod.Properties.Integration.IntegrationResponses[0].ResponseParameters;
             expect(responseParams["method.response.header.Access-Control-Allow-Methods"]).to.equal("'GET,OPTIONS'");
-            done();
-          })
-          .catch(done);
+          });
       });
     });
 
@@ -171,8 +162,8 @@ describe('updateStack', function() {
         nfx.routes = routesJSON;
       });
 
-      it('adds "OPTIONS" route for methods that does not specify cors option', function(done) {
-        updateStack(nfx, {})
+      it('adds "OPTIONS" route for methods that does not specify cors option', function() {
+        return updateStack(nfx, {})
           .then(function(/* nfx */) {
             const p = updateStackFn.getCall(0).args[0],
                   cfTemplate = JSON.parse(p.TemplateBody);
@@ -182,9 +173,7 @@ describe('updateStack', function() {
             expect(optionsMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] });
             const responseParams = optionsMethod.Properties.Integration.IntegrationResponses[0].ResponseParameters;
             expect(responseParams["method.response.header.Access-Control-Allow-Methods"]).to.equal("'GET,PUT,OPTIONS'");
-            done();
-          })
-          .catch(done);
+          });
       });
 
       context("when some cors options are false", function() {
@@ -193,8 +182,8 @@ describe('updateStack', function() {
           nfx.routes = routesJSON;
         });
 
-        it("excludes from options routes", function(done) {
-          updateStack(nfx, {})
+        it("excludes from options routes", function() {
+          return updateStack(nfx, {})
             .then(function(/* nfx */) {
               const p = updateStackFn.getCall(0).args[0],
                     cfTemplate = JSON.parse(p.TemplateBody);
@@ -204,9 +193,7 @@ describe('updateStack', function() {
               expect(optionsMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] });
               const responseParams = optionsMethod.Properties.Integration.IntegrationResponses[0].ResponseParameters;
               expect(responseParams["method.response.header.Access-Control-Allow-Methods"]).to.equal("'PUT,OPTIONS'");
-              done();
-            })
-            .catch(done);
+            });
         });
       });
     });
@@ -220,8 +207,8 @@ describe('updateStack', function() {
         nfx.routes = routesJSON;
       });
 
-      it("creates api resources and methods accordingly", function(done) {
-        updateStack(nfx, {})
+      it("creates api resources and methods accordingly", function() {
+        return updateStack(nfx, {})
           .then(function(/* nfx */) {
             const p = updateStackFn.getCall(0).args[0],
                   cfTemplate = JSON.parse(p.TemplateBody);
@@ -265,10 +252,7 @@ describe('updateStack', function() {
             expect(cfTemplate.Resources.NFXApiResourceUsersAboutGET).to.exist;
             const getUsersAboutMethod = cfTemplate.Resources.NFXApiResourceUsersAboutGET;
             expect(getUsersAboutMethod.Properties.ResourceId).to.deep.equal({ Ref: 'NFXApiResourceUsersAbout' });
-
-            done();
-          })
-          .catch(done);
+          });
       });
     });
   });

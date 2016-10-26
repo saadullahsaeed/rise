@@ -27,15 +27,13 @@ describe('fetchVersion', function() {
   });
 
   context('when a nfx file exists', function() {
-    it('fetch the file and set it to nfxJSON', function(done) {
-      fetchVersion(nfx)
+    it('fetch the file and set it to nfxJSON', function() {
+      return fetchVersion(nfx)
         .then(function(nfx) {
           expect(nfx.nfxJSON).to.deep.equal({ SomeKey: 'SomeValue' });
           expect(getObjectFn).to.have.been.calledOnce;
           expect(getObjectFn).to.have.been.calledWith({ Bucket: bucketName, Key: 'nfx.json' });
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
@@ -48,15 +46,13 @@ describe('fetchVersion', function() {
       nfx.aws.s3.getObject = getObjectFn;
     });
 
-    it('sets empty object to nfxJSON.version_hashes', function(done) {
-      fetchVersion(nfx)
+    it('sets empty object to nfxJSON.version_hashes', function() {
+      return fetchVersion(nfx)
         .then(function(nfx) {
           expect(nfx.nfxJSON.version_hashes).to.deep.equal({});
           expect(getObjectFn).to.have.been.calledOnce;
           expect(getObjectFn).to.have.been.calledWith({ Bucket: bucketName, Key: 'nfx.json' });
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
@@ -69,17 +65,16 @@ describe('fetchVersion', function() {
       nfx.aws.s3.getObject = getObjectFn;
     });
 
-    it('returns an error', function(done) {
-      fetchVersion(nfx)
+    it('returns an error', function() {
+      return fetchVersion(nfx)
         .then(function() {
-          done('unexpected then');
+          fail('this promise should not have been resolved');
         })
         .catch(function(err) {
           expect(err).to.not.be.null;
           expect(nfx.nfxJSON).to.deep.equal({});
           expect(getObjectFn).to.have.been.calledOnce;
           expect(getObjectFn).to.have.been.calledWith({ Bucket: bucketName, Key: 'nfx.json' });
-          done();
         });
     });
   });

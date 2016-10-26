@@ -36,16 +36,14 @@ describe('getBucket', function() {
       nfx.aws.s3.headBucket = headBucketFn;
     });
 
-    it('calls headBucket with bucketName', function(done) {
-      getBucket(nfx)
+    it('calls headBucket with bucketName', function() {
+      return getBucket(nfx)
         .then(function(nfx) {
           expect(nfx).to.exist;
           expect(headBucketFn).to.have.been.calledOnce;
           expect(headBucketFn).to.have.been.calledWith({ Bucket: bucketName });
           expect(createBucketFn).to.not.have.been.called;
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
@@ -58,8 +56,8 @@ describe('getBucket', function() {
       nfx.aws.s3.headBucket = headBucketFn;
     });
 
-    it('makes a request to create a bucket', function(done) {
-      getBucket(nfx)
+    it('makes a request to create a bucket', function() {
+      return getBucket(nfx)
         .then(function(nfx) {
           expect(nfx).to.exist;
           expect(headBucketFn).to.have.been.calledOnce;
@@ -72,9 +70,7 @@ describe('getBucket', function() {
             }
           });
           expect(createBucketFn).to.have.been.calledAfter(headBucketFn);
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
@@ -87,17 +83,16 @@ describe('getBucket', function() {
       nfx.aws.s3.headBucket = headBucketFn;
     });
 
-    it('returns an error', function(done) {
-      getBucket(nfx)
+    it('returns an error', function() {
+      return getBucket(nfx)
         .then(function() {
-          done('unexpected then');
+          fail('this promise should not have been resolved');
         })
         .catch(function(err) {
           expect(err).to.exist;
           expect(headBucketFn).to.have.been.calledOnce;
           expect(headBucketFn).to.have.been.calledWith({ Bucket: bucketName });
           expect(createBucketFn).to.not.have.been.called;
-          done();
         });
     });
   });

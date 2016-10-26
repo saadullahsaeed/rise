@@ -39,16 +39,14 @@ describe('getStack', function() {
       nfx.aws.cf.describeStacks = describeStacksFn;
     });
 
-    it('calls describeStacks with stackName', function(done) {
-      getStack(nfx)
+    it('calls describeStacks with stackName', function() {
+      return getStack(nfx)
         .then(function(nfx) {
           expect(nfx).to.not.be.null;
           expect(describeStacksFn).to.have.been.calledOnce;
           expect(describeStacksFn).to.have.been.calledWith({ StackName: stackName });
           expect(createStackFn).to.not.have.been.called;
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
@@ -61,8 +59,8 @@ describe('getStack', function() {
       nfx.aws.cf.describeStacks = describeStacksFn;
     });
 
-    it('makes a request to create a stack', function(done) {
-      getStack(nfx)
+    it('makes a request to create a stack', function() {
+      return getStack(nfx)
         .then(function(nfx) {
           expect(nfx).to.not.be.null;
           expect(describeStacksFn).to.have.been.calledOnce;
@@ -75,9 +73,7 @@ describe('getStack', function() {
           expect(waitForFn).to.have.been.calledOnce;
           expect(waitForFn).to.have.been.calledWith('stackCreateComplete', { StackName: stackName });
           expect(waitForFn).to.have.been.calledAfter(createStackFn);
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
@@ -90,10 +86,10 @@ describe('getStack', function() {
       nfx.aws.cf.describeStacks = describeStacksFn;
     });
 
-    it('returns an error', function(done) {
-      getStack(nfx)
+    it('returns an error', function() {
+      return getStack(nfx)
         .then(function() {
-          done('unexpected then');
+          fail('this promise should not have been resolved');
         })
         .catch(function(err) {
           expect(err).to.not.be.null;
@@ -101,7 +97,6 @@ describe('getStack', function() {
           expect(describeStacksFn).to.have.been.calledWith({ StackName: stackName });
           expect(createStackFn).to.not.have.been.called;
           expect(waitForFn).to.not.have.been.called;
-          done();
         });
     });
   });

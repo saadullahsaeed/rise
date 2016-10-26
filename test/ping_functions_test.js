@@ -36,8 +36,8 @@ describe('pingFunctions', function() {
     };
   });
 
-  it('pings deployed functions', function(done) {
-    pingFunctions(nfx)
+  it('pings deployed functions', function() {
+    return pingFunctions(nfx)
       .then(function(nfx) {
         expect(nfx).to.not.be.null;
         expect(listFunctionsFn).to.have.been.calledOnce;
@@ -51,8 +51,6 @@ describe('pingFunctions', function() {
           FunctionName: 'foo-stack-AppCreate-789012',
           Payload: JSON.stringify({nfxTest: 1})
         });
-        done();
-      })
-      .catch(done);
+      });
   });
 });

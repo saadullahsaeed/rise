@@ -31,8 +31,8 @@ describe('deployAPI', function() {
     };
   });
 
-  it('updates stack', function(done) {
-    deployAPI(nfx, {})
+  it('updates stack', function() {
+    return deployAPI(nfx, {})
       .then(function(nfx) {
         expect(nfx.state).to.equal('DEPLOYED');
         expect(updateStackFn).to.have.been.calledOnce;
@@ -43,46 +43,38 @@ describe('deployAPI', function() {
 
         expect(waitForFn).to.have.been.calledOnce;
         expect(waitForFn).to.have.been.calledAfter(updateStackFn);
-        done();
-      })
-      .catch(done);
+      });
   });
 
-  it('sets new deployment tag as resource', function(done) {
-    deployAPI(nfx, {})
+  it('sets new deployment tag as resource', function() {
+    return deployAPI(nfx, {})
       .then(function(/* nfx */) {
         const p = updateStackFn.getCall(0).args[0],
               cfTemplate = JSON.parse(p.TemplateBody);
 
         expect(cfTemplate.Resources).to.have.key('NFXDeploymentv2');
-        done();
-      })
-      .catch(done);
+      });
   });
 
-  it('sets base url as output', function(done) {
-    deployAPI(nfx, {})
+  it('sets base url as output', function() {
+    return deployAPI(nfx, {})
       .then(function(/* nfx */) {
         const p = updateStackFn.getCall(0).args[0],
               cfTemplate = JSON.parse(p.TemplateBody);
 
         expect(cfTemplate.Outputs).to.have.key('NFXBaseURL');
-        done();
-      })
-      .catch(done);
+      });
   });
 
   context("when rollback is true", function() {
-    it("appends `Rollback` to new deployment tag name", function(done) {
-      deployAPI(nfx, {rollback: true})
+    it("appends `Rollback` to new deployment tag name", function() {
+      return deployAPI(nfx, {rollback: true})
         .then(function(/* nfx */) {
           const p = updateStackFn.getCall(0).args[0],
                 cfTemplate = JSON.parse(p.TemplateBody);
 
           expect(cfTemplate.Resources).to.have.key('NFXDeploymentv2Rollback');
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
@@ -95,14 +87,12 @@ describe('deployAPI', function() {
       nfx.aws.cf.updateStack = updateStackFn;
     });
 
-    it("proceeds to next step", function(done) {
-      deployAPI(nfx, {})
+    it("proceeds to next step", function() {
+      return deployAPI(nfx, {})
         .then(function(/* nfx */) {
           expect(updateStackFn).to.have.been.calledOnce;
           expect(waitForFn).to.not.have.been.called;
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
@@ -115,16 +105,15 @@ describe('deployAPI', function() {
       nfx.aws.cf.updateStack = updateStackFn;
     });
 
-    it("returns an error", function(done) {
-      deployAPI(nfx, {})
+    it("returns an error", function() {
+      return deployAPI(nfx, {})
         .then(function() {
-          done('unexpected then');
+          fail('this promise should not have been resolved');
         })
         .catch(function(err) {
           expect(err).not.to.be.null;
           expect(updateStackFn).to.have.been.calledOnce;
           expect(waitForFn).to.not.have.been.called;
-          done();
         });
     });
   });
