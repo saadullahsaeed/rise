@@ -8,8 +8,42 @@ const fs = require('fs'),
       log = require('../utils/log'),
       fsStat = require('../utils/fs').fsStat;
 
-const DEFAULT_PROVIDER = 'aws',
-      REGIONS = ['us-east-1', 'us-east-2', 'us-west-2', 'eu-central-1', 'eu-west-1', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1', 'ap-northeast-2'];
+const defaultProvider = 'aws',
+      regions = ['us-east-1', 'us-east-2', 'us-west-2', 'eu-central-1', 'eu-west-1', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1', 'ap-northeast-2'],
+      appJSTemplate = `
+'use strict';
+
+const cookieParser = require('cookie-parser'),
+      bodyParser = require('body-parser');
+
+exports.setup = (app) => {
+  // you should not use any asynchronous calls here
+  app.locals.title = '#{STACK_NAME}';
+};
+
+// global "before" middleware
+exports.before = [
+  cookieParser('s3cr3t_k3y'),
+  bodyParser.json(),
+  bodyParser.urlencoded({ extended: true })
+/* To enable CORS
+  function(req, res, next) {
+    res.set('Access-Control-Allow-Origin', '*');
+    next();
+  }
+*/
+];
+
+// global "after" middleware
+exports.after = [
+/* To log each request
+  function(req, res, next) {
+    console.log(\`\${req.method} \${req.path} => \${req.statusCode}\`);
+    next();
+  }
+*/
+];
+`
 
 module.exports = function(stackName, options) {
   let region = options.region,
@@ -17,6 +51,7 @@ module.exports = function(stackName, options) {
 
   const projectPath   = path.join(stackName, 'nfx.yaml'),
         routesPath = path.join(stackName, 'routes.yaml'),
+        appJSPath = path.join(stackName, 'app.js'),
         awsCredPath   = path.join(os.homedir(), '.aws', 'credentials');
 
   const dirStat = fsStat(stackName);
@@ -38,14 +73,14 @@ module.exports = function(stackName, options) {
   }
 
   while(!region) {
-    const regionIndex = readlineSync.keyInSelect(REGIONS, 'Region: ');
+    const regionIndex = readlineSync.keyInSelect(regions, 'Region: ');
     if (regionIndex === 4) {
       region = readlineSync.question('Region: ');
     } else if (regionIndex === -1) {
       log.error('Invalid region.');
       process.exit(1);
     } else {
-      region = REGIONS[regionIndex];
+      region = regions[regionIndex];
     }
   }
 
@@ -56,7 +91,7 @@ module.exports = function(stackName, options) {
   const project = {
     profiles: {
       default: {
-        provider: DEFAULT_PROVIDER,
+        provider: defaultProvider,
         region,
         bucket
       }
@@ -76,6 +111,7 @@ module.exports = function(stackName, options) {
 
   fs.writeFileSync(projectPath, yaml.safeDump(project), 'utf8');
   fs.writeFileSync(routesPath, yaml.safeDump(routes), 'utf8');
+  fs.writeFileSync(appJSPath, appJSTemplate.replace(/\#\{STACK_NAME\}/, stackName), 'utf8');
 
   const awsCredStat = fsStat(awsCredPath);
   if (!awsCredStat &&
