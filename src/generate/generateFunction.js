@@ -1,15 +1,19 @@
 'use strict';
 
 const fs = require('fs'),
-      yaml = require('js-yaml'),
       path = require('path'),
       log = require('../utils/log'),
       config = require('../utils/manageConfig'),
       fsStat = require('../utils/fs').fsStat,
-      fsReadFile = require('../utils/fs').fsReadFile;
+      indexTemplate = `'use strict';
+
+exports.handle = (req, res, next) => {
+  res.send({status: 'ok'});
+  next();
+};`;
 
 module.exports = function generateFunction(functionName) {
-  let err;
+  const project = config.read('nfx'),
         routes = config.read('routes');
 
   if (functionName.length < 3) {
@@ -20,26 +24,25 @@ module.exports = function generateFunction(functionName) {
     return 'Function name should be alphanumeric.';
   }
 
+  let err;
   err = createFolderIfNotExist('functions');
   if (err !== null) {
     return err;
   }
 
   const functionFolderPath = path.join('functions', functionName),
-        functionPath = path.join(functionFolderPath, 'index.js'),
-        basicIndexPath = path.join(__dirname, 'basic-index.js');
+        functionPath = path.join(functionFolderPath, 'index.js');
 
   err = createFolderIfNotExist(functionFolderPath);
   if (err !== null) {
     return err;
   }
 
-  const content = fsReadFile(basicIndexPath),
-        stat = fsStat(functionPath);
+  const stat = fsStat(functionPath);
 
   if (!stat) {
     try {
-      fs.writeFileSync(functionPath, content, 'utf8');
+      fs.writeFileSync(functionPath, indexTemplate, 'utf8');
     } catch(e) {
       return `Could not create "${functionPath}" folder`;
     }
@@ -49,7 +52,16 @@ module.exports = function generateFunction(functionName) {
 
   project.functions = project.functions || {};
   project.functions[functionName] = project.functions[functionName] || {};
-  fs.writeFileSync('nfx.yaml', yaml.safeDump(project), 'utf8');
+  config.write('nfx', project);
+
+  routes.paths[`/${functionName}`] = routes.paths[`/${functionName}`] || {
+    get: {
+      'x-nfx': {
+        'function': functionName
+      }
+    }
+  };
+  config.write('routes', routes);
 
   return null;
 };

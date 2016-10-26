@@ -8,7 +8,8 @@ const generateFunction = require('../src/generate/generateFunction'),
 
 describe('compressAndCompare', function() {
   let cwdOrig,
-      profilesJSON,
+      routes,
+      profiles,
       tmpDir;
 
   beforeEach(function() {
@@ -16,7 +17,12 @@ describe('compressAndCompare', function() {
     tmpDir = tmp.dirSync();
 
     process.chdir(tmpDir.name);
-    profilesJSON = {
+    routes = {
+      'x-nfx': {},
+      paths: {}
+    };
+
+    profiles = {
       default: {
         provider: 'aws',
         region: 'us-west-2',
@@ -25,8 +31,9 @@ describe('compressAndCompare', function() {
     };
 
     // config yaml files
+    fs.writeFileSync(path.join(tmpDir.name, 'routes.yaml'), yaml.safeDump(routes), { encoding: 'utf8'});
     fs.writeFileSync(path.join(tmpDir.name, 'nfx.yaml'), yaml.safeDump({
-      profiles: profilesJSON,
+      profiles,
       stack: 'my-test-stack',
       functions: {}
     }), { encoding: 'utf8' });
@@ -37,18 +44,28 @@ describe('compressAndCompare', function() {
     fs.removeSync(tmpDir.name);
   });
 
-  it('creates index.js file and updates nfx.yaml file', function() {
+  it('creates index.js file and updates nfx.yaml and routes.yaml file', function() {
     const err = generateFunction('testfunction');
     expect(err).not.to.exist;
 
-    const origIndexContent = fs.readFileSync(path.join(__dirname, '..', 'src', 'generate', 'basic-index.js'), {encoding: 'utf8'}),
-          indexFileContent = fs.readFileSync('functions/testfunction/index.js', {encoding: 'utf8'});
+    const indexFileContent = fs.readFileSync('functions/testfunction/index.js', {encoding: 'utf8'});
+    expect(indexFileContent).to.equal(`'use strict';
 
-    expect(indexFileContent).to.exist;
-    expect(indexFileContent).to.equal(origIndexContent);
-
-    const nfxYAML = yaml.safeLoad(fs.readFileSync(path.join('nfx.yaml'), {encoding: 'utf8'}));
+exports.handle = (req, res, next) => {
+  res.send({status: 'ok'});
+  next();
+};`);
+    const nfxYAML = yaml.safeLoad(fs.readFileSync(path.join('nfx.yaml'), { encoding: 'utf8' }));
     expect(nfxYAML.functions.testfunction).to.exist;
+
+    const routesYAML = yaml.safeLoad(fs.readFileSync(path.join('routes.yaml'), { encoding: 'utf8' }));
+    expect(routesYAML.paths['/testfunction']).to.deep.equal({
+      get: {
+        'x-nfx': {
+          'function': 'testfunction'
+        }
+      }
+    });
   });
 
   context('when the folder exist', function() {
@@ -61,11 +78,13 @@ describe('compressAndCompare', function() {
       const err = generateFunction('testfunction');
       expect(err).not.to.exist;
 
-      const origIndexContent = fs.readFileSync(path.join(__dirname, '..', 'src', 'generate', 'basic-index.js'), {encoding: 'utf8'}),
-            indexFileContent = fs.readFileSync('functions/testfunction/index.js', {encoding: 'utf8'});
+      const indexFileContent = fs.readFileSync('functions/testfunction/index.js', {encoding: 'utf8'});
+      expect(indexFileContent).to.equal(`'use strict';
 
-      expect(indexFileContent).to.exist;
-      expect(indexFileContent).to.equal(origIndexContent);
+exports.handle = (req, res, next) => {
+  res.send({status: 'ok'});
+  next();
+};`);
 
       const nfxYAML = yaml.safeLoad(fs.readFileSync(path.join('nfx.yaml'), {encoding: 'utf8'}));
       expect(nfxYAML.functions.testfunction).to.exist;
@@ -89,32 +108,74 @@ describe('compressAndCompare', function() {
         expect(nfxYAML.functions.testfunction).to.exist;
       });
     });
+  });
 
-    context('when the function exists in nfx.json', function() {
-      beforeEach(function() {
-        fs.writeFileSync(path.join(tmpDir.name, 'nfx.yaml'), yaml.safeDump({
-          profiles: profilesJSON,
-          stack: 'my-test-stack',
-          functions: {
-            testfunction: {
-              timeout: 8
+  context('when the function exists in nfx.yaml', function() {
+    beforeEach(function() {
+      fs.writeFileSync(path.join(tmpDir.name, 'nfx.yaml'), yaml.safeDump({
+        profiles,
+        stack: 'my-test-stack',
+        functions: {
+          testfunction: {
+            timeout: 8
+          }
+        }
+      }), { encoding: 'utf8' });
+    });
+
+    it("does not the settting in nfx.yaml", function() {
+      const err = generateFunction('testfunction');
+      expect(err).not.to.exist;
+
+      const indexFileContent = fs.readFileSync('functions/testfunction/index.js', {encoding: 'utf8'});
+      expect(indexFileContent).to.equal(`'use strict';
+
+exports.handle = (req, res, next) => {
+  res.send({status: 'ok'});
+  next();
+};`);
+
+      const nfxYAML = yaml.safeLoad(fs.readFileSync(path.join('nfx.yaml'), { encoding: 'utf8' }));
+      expect(nfxYAML.functions.testfunction).to.deep.equal({ timeout: 8 });
+    });
+  });
+
+  context('when the function exists in routes.yaml', function() {
+    beforeEach(function() {
+      fs.writeFileSync(path.join(tmpDir.name, 'routes.yaml'), yaml.safeDump({
+        paths: {
+          '/testfunction': {
+            put: {
+              'x-nfx': {
+                'function': 'testfunction',
+                cors: true
+              }
             }
           }
-        }), { encoding: 'utf8' });
-      });
+        }
+      }), { encoding: 'utf8' });
+    });
 
-      it("does not the settting in nfx.json", function() {
-        const err = generateFunction('testfunction');
-        expect(err).not.to.exist;
+    it("does not the settting in nfx.yaml", function() {
+      const err = generateFunction('testfunction');
+      expect(err).not.to.exist;
 
-        const origIndexContent = fs.readFileSync(path.join(__dirname, '..', 'src', 'generate', 'basic-index.js'), {encoding: 'utf8'}),
-              indexFileContent = fs.readFileSync('functions/testfunction/index.js', {encoding: 'utf8'});
+      const indexFileContent = fs.readFileSync('functions/testfunction/index.js', {encoding: 'utf8'});
+      expect(indexFileContent).to.equal(`'use strict';
 
-        expect(indexFileContent).to.exist;
-        expect(indexFileContent).to.equal(origIndexContent);
+exports.handle = (req, res, next) => {
+  res.send({status: 'ok'});
+  next();
+};`);
 
-        const nfxYAML = yaml.safeLoad(fs.readFileSync(path.join('nfx.yaml'), {encoding: 'utf8'}));
-        expect(nfxYAML.functions.testfunction).to.deep.equal({ timeout: 8 });
+      const routesYAML = yaml.safeLoad(fs.readFileSync(path.join('routes.yaml'), { encoding: 'utf8' }));
+      expect(routesYAML.paths['/testfunction']).to.deep.equal({
+        put: {
+          'x-nfx': {
+            'function': 'testfunction',
+            cors: true
+          }
+        }
       });
     });
   });
@@ -148,4 +209,3 @@ describe('compressAndCompare', function() {
     });
   });
 });
-
