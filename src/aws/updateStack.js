@@ -80,7 +80,11 @@ function getFunctionResources(bucketName, version, functions, uploadedFunctions)
   const cfFuncPermissionContent = fsReadFile(path.join(__dirname, 'cf-lambda-permission.json'));
   const resources = {};
 
-  const defaultSetting = functions.default;
+  const defaultSetting = functions.default || {
+    timeout: 3,
+    memory: 128
+  };
+
   for (let i = 0; i < uploadedFunctions.length; ++i) {
     const uploadedFunction = uploadedFunctions[i],
           funcName = uploadedFunction.functionName,
@@ -236,7 +240,7 @@ function createAPIMethod(methodTemplate, corsMethodTemplate, res, defaultSetting
 
 function getTriggerResources(functions, region, roleResource) {
   const resources = {},
-        defaultSetting = functions.default;
+        defaultSetting = functions.default || {};
 
   for (const funcName in functions) {
     if (funcName === 'default') {
