@@ -1,6 +1,6 @@
 'use strict';
 
-const readConfig = require('./utils/readConfig'),
+const config = require('./utils/manageConfig'),
       log = require('./utils/log'),
       AWS = require('aws-sdk');
 
@@ -22,8 +22,8 @@ module.exports = class Session {
   }
 
   static init() {
-    const project = readConfig('nfx');
-    const routes  = readConfig('routes');
+    const project = config.read('nfx');
+    const routes  = config.read('routes');
 
     const s = {
       stackName: `NFX-${project.stack}`,

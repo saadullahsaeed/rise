@@ -4,13 +4,13 @@ const fs = require('fs'),
       yaml = require('js-yaml'),
       path = require('path'),
       log = require('../utils/log'),
-      readConfig = require('../utils/readConfig'),
+      config = require('../utils/manageConfig'),
       fsStat = require('../utils/fs').fsStat,
       fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports = function generateFunction(functionName) {
-  const project = readConfig('nfx');
   let err;
+        routes = config.read('routes');
 
   if (functionName.length < 3) {
     return 'Function name is too short.';
