@@ -13,7 +13,20 @@ describe('deployAPI', function() {
     });
 
     waitForFn = spyWithPromise(function(resolve, reject) { // eslint-disable-line no-unused-vars
-      resolve({});
+      resolve({
+        Stacks: [
+          {
+            StackId: "arn:aws:cloudformation:somewhere:123456:stack/my-test-stack/67890",
+            StackName: "NFX-my-test-stack",
+            Outputs: [
+              {
+                OutputKey: "NFXBaseURL",
+                OutputValue: "https://123456.execute-api.somewhere.amazonaws.com/"
+              }
+            ]
+          }
+        ]
+      });
     });
 
     nfx = {

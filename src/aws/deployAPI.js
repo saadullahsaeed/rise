@@ -34,8 +34,10 @@ function waitForDeploy(nfx) {
   nfx.state = 'DEPLOYING';
   log.info(`Updating stack [${nfx.stackName}] to deploy API...`);
   return cf.waitFor('stackUpdateComplete', { StackName: nfx.stackName }).promise()
-    .then(() => {
+    .then((data) => {
+      const output = data.Stacks[0].Outputs[0];
       log.info(`Updated stack [${nfx.stackName}] to deploy API...`);
+      log.info(`${output.OutputKey}: ${output.OutputValue}`);
       nfx.nfxJSON.active_version = nfx.version;
       nfx.state = 'DEPLOYED';
       return Promise.resolve(nfx);
