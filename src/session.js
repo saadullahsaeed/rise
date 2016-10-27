@@ -26,6 +26,7 @@ module.exports = class Session {
     const routes  = config.read('routes');
 
     const s = {
+      uuid: project.uuid,
       stackName: `NFX-${project.stack}`,
       functions: project.functions,
       bucketName: project.profiles.default.bucket,

@@ -6,6 +6,7 @@ const fs = require('fs'),
       path = require('path'),
       readlineSync = require('readline-sync'),
       log = require('../utils/log'),
+      uuid = require('uuid'),
       fsStat = require('../utils/fs').fsStat;
 
 const defaultProvider = 'aws',
@@ -42,8 +43,7 @@ exports.after = [
     next();
   }
 */
-];
-`
+];`;
 
 module.exports = function(stackName, options) {
   let region = options.region,
@@ -89,6 +89,7 @@ module.exports = function(stackName, options) {
   }
 
   const project = {
+    uuid: uuid.v4(),
     profiles: {
       default: {
         provider: defaultProvider,
