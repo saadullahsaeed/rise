@@ -9,19 +9,17 @@ const path = require('path'),
       newProject = require('../src/new'),
       generate = require('../src/generate'),
       logs = require('../src/logs'),
-      session = require('../src/session').init();
-
-const pkgJSON = require(path.join(__dirname, '..', 'package.json'));
+      pkgJSON = require(path.join(__dirname, '..', 'package.json'));
 
 program
   .version(pkgJSON.version)
   .usage('[command]');
 
 program
-  .command('new [stackName]')
+  .command('new <stackName>')
   .description('setup provider credential')
-  .option('-r, --region [region]', 'AWS region')
-  .option('-b, --bucket-name [bucketName]', 'AWS bucket name')
+  .option('-r, --region <region>', 'AWS region')
+  .option('-b, --bucket-name <bucketName>', 'AWS bucket name')
   .action((stackName, options) => {
     newProject(stackName, options);
   });
@@ -37,13 +35,15 @@ program
   .command('deploy')
   .description('deploy a project')
   .action(() => {
+    const session = require('../src/session').init();
     deploy(session);
   });
 
 program
-  .command('rollback [version]')
+  .command('rollback <version>')
   .description('rollback to the specified version')
   .action((version) => {
+    const session = require('../src/session').init();
     rollback(session, version);
   });
 
@@ -53,6 +53,7 @@ program
   .option('-f, --follow', 'Follow log output (i.e. tail function log)')
   .option('--since [since]', 'Show logs since this timestamp')
   .action((functionName, options) => {
+    const session = require('../src/session').init();
     logs(session, functionName, options);
   });
 
