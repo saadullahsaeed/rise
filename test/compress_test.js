@@ -134,6 +134,8 @@ describe('compressAndCompare', function() {
   it('updates version and hash for next version', function() {
     return compressAndCompare(nfx)
       .then(function(nfx) {
+        expect(nfx).to.exist;
+        expect(nfx.state).to.equal('COMPRESSED');
         expect(nfx.version).to.equal('v2');
         expect(nfx.nfxJSON.active_version).to.equal('v1');
         expect(nfx.nfxJSON.version_hashes['v2']).to.not.be.null;

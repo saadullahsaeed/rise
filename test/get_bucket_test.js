@@ -40,6 +40,7 @@ describe('getBucket', function() {
       return getBucket(nfx)
         .then(function(nfx) {
           expect(nfx).to.exist;
+          expect(nfx.state).to.equal('FETCHED_BUCKET');
           expect(headBucketFn).to.have.been.calledOnce;
           expect(headBucketFn).to.have.been.calledWith({ Bucket: bucketName });
           expect(createBucketFn).to.not.have.been.called;
@@ -60,6 +61,7 @@ describe('getBucket', function() {
       return getBucket(nfx)
         .then(function(nfx) {
           expect(nfx).to.exist;
+          expect(nfx.state).to.equal('CREATED_BUCKET');
           expect(headBucketFn).to.have.been.calledOnce;
           expect(headBucketFn).to.have.been.calledWith({ Bucket: bucketName });
           expect(createBucketFn).to.have.been.calledOnce;

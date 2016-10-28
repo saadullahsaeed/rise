@@ -31,6 +31,7 @@ module.exports = function compressAndCompare(nfx) {
     globalExcludePattern = defaultFuncSetting.exclude;
   }
 
+  nfx.state = 'VERIFYING';
   return checksum(globalExcludePattern)
     .then((checksumHex) => {
       const activeVersion = nfx.nfxJSON.active_version,
@@ -71,6 +72,7 @@ module.exports = function compressAndCompare(nfx) {
           excludePatterns.push(nfx.functions[funcName].exclude);
         }
 
+        nfx.state = 'COMPRESSING';
         compressPromises.push(compress(nfx, funcName, excludePatterns));
       }
 
@@ -84,6 +86,7 @@ module.exports = function compressAndCompare(nfx) {
         nfx.compressedFunctions[i].uploadPath = uploadPath;
       }
 
+      nfx.state = 'COMPRESSED';
       return Promise.resolve(nfx);
     });
 };

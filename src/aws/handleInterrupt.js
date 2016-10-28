@@ -5,6 +5,7 @@ const log = require('../utils/log'),
       rollback = require('../aws/rollback');
 
 module.exports = function handleInterrupt(nfx) {
+  // remove compressed files
   log.info(`SIGINT fired at ${nfx.state}`);
   if (nfx.state === 'CREATING') {
     log.info('Creating stack is still in progress.');
@@ -45,7 +46,7 @@ module.exports = function handleInterrupt(nfx) {
         }
         process.exit(1);
       });
-  } else if (nfx.state === 'DEPLOYING') {
+  } else if (nfx.state === 'DEPLOYING' /* || nfx.state === 'PINGING' */) {
     cancelUpdateStack(nfx)
       .then(function(nfx) {
         // Nothing to rollback if this is the first deployment.

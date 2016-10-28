@@ -8,6 +8,7 @@ module.exports = function fetchVersion(nfx) {
     Key: 'nfx.json'
   };
 
+  nfx.state = 'FETCHING_VERSION';
   return nfx.aws.s3.getObject(params).promise()
     .then(function(data) {
       log.info("nfx.json found.");
@@ -17,6 +18,7 @@ module.exports = function fetchVersion(nfx) {
         return Promise.reject('The uuid does not match. Please check your bucket name.');
       }
 
+      nfx.state = 'FETCHED_VERSION';
       nfx.nfxJSON = nfxJSON;
       return Promise.resolve(nfx);
     })
@@ -25,6 +27,7 @@ module.exports = function fetchVersion(nfx) {
         log.info('nfx.json does not exist.');
         nfx.nfxJSON.version_hashes = {};
         nfx.nfxJSON.uuid = nfx.uuid;
+        nfx.state = 'FETCHED_VERSION';
         return Promise.resolve(nfx);
       } else {
         return Promise.reject(err);

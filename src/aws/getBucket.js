@@ -3,11 +3,11 @@
 const log = require('../utils/log');
 
 module.exports = function getBucket(nfx) {
+  nfx.state = 'FETCHING_BUCKET';
   return nfx.aws.s3.headBucket({ Bucket: nfx.bucketName })
     .promise()
     .then(function(/* data */) {
-      // TODO: We need to make sure it belongs to current project by comparing uuid.
-      // Create unique project ID when stack gets created.
+      nfx.state = 'FETCHED_BUCKET';
       log.info(`Existing bucket "${nfx.bucketName}" found.`);
       return Promise.resolve(nfx);
     })
@@ -29,8 +29,10 @@ function create(nfx) {
     }
   };
 
+  nfx.state = 'CREATING_BUCKET';
   return nfx.aws.s3.createBucket(params).promise()
     .then(function() {
+      nfx.state = 'CREATED_BUCKET';
       return Promise.resolve(nfx);
     });
 }

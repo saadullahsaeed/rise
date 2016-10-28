@@ -42,7 +42,8 @@ describe('getStack', function() {
     it('calls describeStacks with stackName', function() {
       return getStack(nfx)
         .then(function(nfx) {
-          expect(nfx).to.not.be.null;
+          expect(nfx).to.exist;
+          expect(nfx.state).to.equal('FETCHED_STACK');
           expect(describeStacksFn).to.have.been.calledOnce;
           expect(describeStacksFn).to.have.been.calledWith({ StackName: stackName });
           expect(createStackFn).to.not.have.been.called;
@@ -62,7 +63,8 @@ describe('getStack', function() {
     it('makes a request to create a stack', function() {
       return getStack(nfx)
         .then(function(nfx) {
-          expect(nfx).to.not.be.null;
+          expect(nfx).to.exist;
+          expect(nfx.state).to.equal('CREATED');
           expect(describeStacksFn).to.have.been.calledOnce;
           expect(describeStacksFn).to.have.been.calledWith({ StackName: stackName });
 

@@ -97,7 +97,8 @@ describe('uploadNFXFiles', function() {
 
   it('uploads cf.json to s3', function() {
     return uploadNFXFiles(nfx)
-      .then(function() {
+      .then(function(nfx) {
+        expect(nfx.state).to.equal('UPLOADED_NFX_FILES');
         expect(putObjectFn.callCount).to.equal(4);
 
         const args = putObjectFn.getCall(0).args[0];
@@ -111,7 +112,8 @@ describe('uploadNFXFiles', function() {
 
   it('uploads routes.yaml to s3', function() {
     return uploadNFXFiles(nfx)
-      .then(function() {
+      .then(function(nfx) {
+        expect(nfx.state).to.equal('UPLOADED_NFX_FILES');
         expect(putObjectFn.callCount).to.equal(4);
 
         const args = putObjectFn.getCall(1).args[0];
@@ -141,7 +143,8 @@ describe('uploadNFXFiles', function() {
 
   it('uploads nfx.yaml to s3', function() {
     return uploadNFXFiles(nfx)
-      .then(function() {
+      .then(function(nfx) {
+        expect(nfx.state).to.equal('UPLOADED_NFX_FILES');
         expect(putObjectFn.callCount).to.equal(4);
 
         const args = putObjectFn.getCall(2).args[0];
@@ -175,7 +178,8 @@ describe('uploadNFXFiles', function() {
 
   it('uploads nfx.json to s3', function() {
     return uploadNFXFiles(nfx)
-      .then(function() {
+      .then(function(nfx) {
+        expect(nfx.state).to.equal('UPLOADED_NFX_FILES');
         expect(putObjectFn.callCount).to.equal(4);
 
         const args = putObjectFn.getCall(3).args[0];

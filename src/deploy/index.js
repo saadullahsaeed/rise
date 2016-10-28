@@ -26,7 +26,7 @@ module.exports = function(nfx) {
     .then(uploadNFXFiles)
     .catch(function(err) {
       log.error(err);
-      // handleInterrupt(nfx);
+      handleInterrupt(nfx);
     });
 
   process.on('SIGINT', function() {

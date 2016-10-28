@@ -4,10 +4,12 @@ module.exports = function pingFunctions(nfx) {
   const lambda = nfx.aws.lambda,
         stackName = nfx.stackName;
 
+  nfx.state = 'PINGING';
   return lambda.listFunctions({}).promise()
     .then(function(data) {
       return pingPromiseAll(lambda, stackName, nfx.compressedFunctions, data.Functions).
         then(function() {
+          nfx.state = 'PINGED';
           return Promise.resolve(nfx);
         });
     });

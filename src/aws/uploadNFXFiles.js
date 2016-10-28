@@ -8,6 +8,7 @@ module.exports = function uploadNFXFiles(nfx) {
         bucketName = nfx.bucketName,
         uploadS3Promises = [];
 
+  nfx.state = 'UPLOADING_NFX_FILES';
   const nfxFiles = [{
     key: `versions/${nfx.version}/aws/cf.json`,
     body: JSON.stringify(nfx.aws.cfTemplate, null, 2),
@@ -34,6 +35,7 @@ module.exports = function uploadNFXFiles(nfx) {
 
   return Promise.all(uploadS3Promises)
         .then(function() {
+          nfx.state = 'UPLOADED_NFX_FILES';
           return Promise.resolve(nfx);
         });
 };

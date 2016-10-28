@@ -5,10 +5,13 @@ const path = require('path'),
       fsReadFile = require('../utils/fs').fsReadFile;
 
 module.exports = function getStack(nfx) {
+  nfx.state = 'FETCHING_STACK';
+
   return nfx.aws.cf.describeStacks({
     StackName: nfx.stackName
   }).promise()
     .then(function() {
+      nfx.state = 'FETCHED_STACK';
       return Promise.resolve(nfx);
     })
     .catch(function(err) {
@@ -37,7 +40,6 @@ function createStack(nfx) {
         .then(function() {
           return waitForCreate(nfx);
         });
-
 }
 
 function waitForCreate(nfx) {
