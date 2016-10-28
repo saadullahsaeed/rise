@@ -1,7 +1,7 @@
 'use strict';
 
 const log = require('../utils/log'),
-      cancelUpdateTemplate = require('../aws/cancelUpdateTemplate'),
+      cancelUpdateStack = require('../aws/cancelUpdateStack'),
       rollback = require('../aws/rollback');
 
 module.exports = function handleInterrupt(nfx) {
@@ -12,7 +12,7 @@ module.exports = function handleInterrupt(nfx) {
   } else if (nfx.state === 'UPDATING') {
     // Users could send Ctrl+c again.
     nfx.state = 'REVERTING';
-    cancelUpdateTemplate(nfx)
+    cancelUpdateStack(nfx)
       .then(function(nfx) {
         if (nfx.state === 'UNEXPECTEDLY_UPDATED') {
           // When the stack is updated before cancelling,
@@ -46,7 +46,7 @@ module.exports = function handleInterrupt(nfx) {
         process.exit(1);
       });
   } else if (nfx.state === 'DEPLOYING') {
-    cancelUpdateTemplate(nfx)
+    cancelUpdateStack(nfx)
       .then(function(nfx) {
         // Nothing to rollback if this is the first deployment.
         if (nfx.version !== 'v1') {

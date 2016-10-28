@@ -19,12 +19,15 @@ module.exports = function(nfx) {
     .then(compressAndCompare)
     .then(uploadFunctions)
     .then(updateStack)
+    .then(pingFunctions)
     .then(function(nfx) {
       return deployAPI(nfx, {});
     })
-    .then(pingFunctions)
     .then(uploadNFXFiles)
-    .catch(log.error);
+    .catch(function(err) {
+      log.error(err);
+      // handleInterrupt(nfx);
+    });
 
   process.on('SIGINT', function() {
     handleInterrupt(nfx);
