@@ -1,3 +1,5 @@
+uuid: 1778d59d-df0b-45aa-83a0-4027bee8925d
+
 profiles:
   default:
     provider: aws
