@@ -1,7 +1,6 @@
 "use strict";
 
 const log = require('../utils/log'),
-      chalk = require('chalk'),
       getFunctionPhysicalResourceName = require('../aws/getFunctionPhysicalResourceName'),
       functionLogs = require('../aws/functionLogs');
 
@@ -12,7 +11,7 @@ module.exports = function(nfx, functionName, options) {
     process.exit(1);
   }
 
-  let functionPhysicalResourceName, lastEventTime;
+  let functionPhysicalResourceName;
   getFunctionPhysicalResourceName(nfx, functionName)
     .then((name) => {
       functionPhysicalResourceName = name;
@@ -45,7 +44,7 @@ function followLog(nfx, functionPhysicalResourceName, lastEventTime) {
 function handleLogs(nfx, logs, functionPhysicalResourceName, follow, startTime) {
   print(logs);
   if (logs.length > 0) {
-    startTime = logs[logs.length-1].timestamp + 1;
+    startTime = logs[logs.length - 1].timestamp + 1;
   }
 
   if (follow) {

@@ -27,7 +27,7 @@ describe('functionLogs', function() {
           { timestamp: 1477366195, message: 'END RequestId: 123' }
         ]
       });
-    })
+    });
 
     nfx = {
       aws: {

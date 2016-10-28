@@ -1,7 +1,5 @@
 'use strict';
 
-const log = require('../utils/log');
-
 module.exports = function functionLogs(nfx, functionPhysicalResourceName, startTime) {
   const cwl = nfx.aws.cwl,
         lgn = logGroupName(functionPhysicalResourceName);
