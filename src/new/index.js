@@ -7,10 +7,12 @@ const fs = require('fs'),
       readlineSync = require('readline-sync'),
       log = require('../utils/log'),
       uuid = require('uuid'),
-      fsStat = require('../utils/fs').fsStat;
+      fsStat = require('../utils/fs').fsStat,
+      validateBucketName = require('../utils/validateBucketName');
 
 const defaultProvider = 'aws',
-      regions = ['us-east-1', 'us-east-2', 'us-west-2', 'eu-central-1', 'eu-west-1', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1', 'ap-northeast-2'],
+      regionsArr = ['us-east-1', 'us-east-2', 'us-west-2', 'eu-central-1', 'eu-west-1', 'ap-southeast-1', 'ap-southeast-2', 'ap-northeast-1', 'ap-northeast-2'],
+      regions = new Set(regionsArr),
       appJSTemplate = `
 'use strict';
 
@@ -72,20 +74,41 @@ module.exports = function(stackName, options) {
     folderExists = true;
   }
 
-  while(!region) {
-    const regionIndex = readlineSync.keyInSelect(regions, 'Region: ');
-    if (regionIndex === 4) {
-      region = readlineSync.question('Region: ');
-    } else if (regionIndex === -1) {
-      log.error('Invalid region.');
+  if (region && !regions.has(region)) {
+    log.error('Invalid or not supported regions.');
+    process.exit(1);
+  }
+
+  if (bucket) {
+    const err = validateBucketName(bucket);
+    if (err) {
+      log.error(err.message);
       process.exit(1);
-    } else {
-      region = regions[regionIndex];
     }
   }
 
+  while(!region) {
+    log.info('Supported regions:', regionsArr.join(', '));
+    const input = readlineSync.question('Region: ').trim();
+    if (regions.has(input)) {
+      region = input;
+      break;
+    }
+
+    log.error('Invalid or not supported regions.');
+  }
+
+  // http://docs.aws.amazon.com/AmazonS3/latest/dev/BucketRestrictions.html
   while(!bucket) {
-    bucket = readlineSync.question('Bucket: ');
+    const input = readlineSync.question('Bucket: '),
+          err = validateBucketName(input);
+
+    if (err) {
+      log.error(err.message);
+    } else {
+      bucket = input;
+      break;
+    }
   }
 
   const project = {
