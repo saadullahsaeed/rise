@@ -48,7 +48,7 @@ program
   });
 
 program
-  .command('logs <functionName>')
+  .command('logs [functionName]')
   .description('output logs of a function')
   .option('-f, --follow', 'Follow log output (i.e. tail function log)')
   .option('--since [since]', 'Show logs since this timestamp')

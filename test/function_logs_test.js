@@ -41,10 +41,12 @@ describe('functionLogs', function() {
 
   context('when log group name exists', function() {
     it('responds all logs from cloudwatch log', function() {
-      return functionLogs(nfx, functionPhysicalResourceName, null)
+      return functionLogs(nfx, [functionPhysicalResourceName], null)
         .then(function(logs) {
           expect(logs).to.not.be.null;
-          expect(logs).to.have.lengthOf(3);
+          expect(logs).to.have.lengthOf(1);
+          expect(logs[0].logGroupName).to.equal('/aws/lambda/resourceName');
+          expect(logs[0].allLogs).to.have.lengthOf(3);
           expect(describeLogStreamsFn).to.have.been.calledOnce;
           expect(describeLogStreamsFn).to.have.been.calledWith({
             logGroupName: `/aws/lambda/${functionPhysicalResourceName}`,
@@ -72,7 +74,7 @@ describe('functionLogs', function() {
     });
 
     it('returns an error', function() {
-      return functionLogs(nfx, 'pitbull', null)
+      return functionLogs(nfx, ['pitbull'], null)
         .then(function() {
           fail('unexpected then');
         })

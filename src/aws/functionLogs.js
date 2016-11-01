@@ -1,40 +1,64 @@
 'use strict';
 
-module.exports = function functionLogs(nfx, functionPhysicalResourceName, startTime) {
+module.exports = function functionLogs(nfx, names, startTime) {
   const cwl = nfx.aws.cwl,
-        lgn = logGroupName(functionPhysicalResourceName);
+        logGroupNames = lambdaLogGroupNames(names),
+        describeLogStreamPromises = [];
 
+  for (let i = 0; i < logGroupNames.length; ++i) {
+    describeLogStreamPromises.push(
+      describeLogStream(cwl, logGroupNames[i])
+    );
+  }
+
+  return Promise.all(describeLogStreamPromises).then((groups) => {
+    const getAllLogPromises = [];
+    for (let i = 0; i < groups.length; i++) {
+      const logGroupName = groups[i].logGroupName
+      const logStreamNames = groups[i].logStreamNames
+      const params = {
+        logGroupName,
+        interleaved: false,
+        logStreamNames,
+        startTime
+      };
+      getAllLogPromises.push(
+        getAllLogs(cwl, params, [])
+      );
+    }
+
+    return Promise.all(getAllLogPromises).then((logs) => {
+      return Promise.resolve(logs);
+    })
+  });
+};
+
+function lambdaLogGroupNames(names) {
+  return names.map((name) => {
+    return `/aws/lambda/${name}`;
+  });
+}
+
+function describeLogStream(cwl, name) {
   const params = {
-    logGroupName: lgn,
+    logGroupName: name,
     descending: true,
     orderBy: 'LastEventTime'
   };
+
   return cwl.describeLogStreams(params).promise()
     .then((data) => {
       const logStreamNames = data.logStreams.map((stream) => {
         return stream.logStreamName;
       });
-
-      const params = {
-        logGroupName: lgn,
-        interleaved: false,
-        logStreamNames,
-        startTime
-      };
-      return getAllLogs(cwl, params, []).then((logs) => {
-        return Promise.resolve(logs);
-      })
-      .catch((err) => {
-        return Promise.reject(err);
+      return Promise.resolve({
+        logGroupName: name,
+        logStreamNames
       });
     })
-  .catch((err) => {
-    return Promise.reject(err);
-  });
-};
-
-function logGroupName(functionName) {
-  return `/aws/lambda/${functionName}`;
+    .catch((err) => {
+      return Promise.reject(err);
+    });
 }
 
 function getAllLogs(cwl, params, allLogs) {
@@ -50,10 +74,11 @@ function getAllLogs(cwl, params, allLogs) {
         return getAllLogs(cwl, params, allLogs);
       }
 
-      return Promise.resolve(allLogs);
+      return Promise.resolve({
+        logGroupName: params.logGroupName, allLogs
+      });
     })
     .catch((err) => {
       return Promise.reject(err);
     });
-
 }

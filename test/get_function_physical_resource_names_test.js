@@ -1,8 +1,8 @@
 'use strict';
 
-const getFunctionPhysicalResourceName = require('../src/aws/getFunctionPhysicalResourceName');
+const getFunctionPhysicalResourceNames = require('../src/aws/getFunctionPhysicalResourceNames');
 
-describe('getFunctionPhysicalResourceName', function() {
+describe('getFunctionPhysicalResourceNames', function() {
   let nfx,
       functionName,
       stackName,
@@ -31,10 +31,11 @@ describe('getFunctionPhysicalResourceName', function() {
 
   context('when a resource exists', function() {
     it('calls describeStackResource with resourceName', function() {
-      return getFunctionPhysicalResourceName(nfx, functionName)
+      return getFunctionPhysicalResourceNames(nfx, [functionName])
         .then(function(physicalResourceId) {
           expect(physicalResourceId).to.not.be.null;
-          expect(physicalResourceId).to.equal('resourceid');
+          expect(physicalResourceId[0].physicalResourceName).to.equal('resourceid');
+          expect(physicalResourceId[0].resourceName).to.equal('appIndex');
           expect(describeStackResourceFn).to.have.been.calledOnce;
           expect(describeStackResourceFn).to.have.been.calledWith({
             LogicalResourceId: functionName,
@@ -54,7 +55,7 @@ describe('getFunctionPhysicalResourceName', function() {
     });
 
     it('returns an error', function() {
-      getFunctionPhysicalResourceName(nfx, functionName)
+      return getFunctionPhysicalResourceNames(nfx, [functionName])
         .then(function() {
           fail('unexpected then');
         })
