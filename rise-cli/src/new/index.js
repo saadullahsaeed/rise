@@ -63,6 +63,13 @@ exports.after = [
 */
 ];`;
 
+const helloJs = `'use strict';
+
+exports.handle = (req, res, next) => {
+  res.send({status: 'Hello, World!'});
+  next();
+};`;
+
 module.exports = function(stackName, options) {
   let region = options.region,
       bucket = options.bucketName;
@@ -72,6 +79,7 @@ module.exports = function(stackName, options) {
         routesYamlPath = path.join(projectPath, 'routes.yaml'),
         packageJsonPath = path.join(projectPath, 'package.json'),
         appJsPath = path.join(projectPath, 'app.js'),
+        helloJsPath = path.join(projectPath, 'functions', 'hello', 'index.js'),
         awsCredPath = path.join(os.homedir(), '.aws', 'credentials');
 
   const dirStat = fsStat(projectPath);
@@ -139,24 +147,37 @@ module.exports = function(stackName, options) {
       }
     },
     stack: stackName,
-    functions: {}
+    functions: {
+      hello: {}
+    }
   };
 
   const routesYaml = {
     'x-rise': {},
-    paths: {}
+    paths: {
+      '/': {
+        get: {
+          'x-rise': {
+            'function': 'hello'
+          }
+        }
+      }
+    }
   };
 
   if (!folderExists) {
     fs.mkdirSync(stackName, 0o755);
+    fs.mkdirSync(path.join(stackName, 'functions'), 0o755);
+    fs.mkdirSync(path.join(stackName, 'functions', 'hello'), 0o755);
   }
 
   fs.writeFileSync(riseYamlPath, yaml.safeDump(riseYaml), 'utf8');
   fs.writeFileSync(routesYamlPath, yaml.safeDump(routesYaml), 'utf8');
   fs.writeFileSync(packageJsonPath, packageJsonTemplate.replace(/\#\{STACK_NAME\}/g, stackName), 'utf8');
   fs.writeFileSync(appJsPath, appJsTemplate.replace(/\#\{STACK_NAME\}/g, stackName), 'utf8');
+  fs.writeFileSync(helloJsPath, helloJs, 'utf8');
 
-  console.log('Running npm install...');
+  log.info('Running npm install...');
   childProcess.execSync('npm install --loglevel=error', { cwd: projectPath });
 
   log.info(`Project successfully created at "${projectPath}"!`);
