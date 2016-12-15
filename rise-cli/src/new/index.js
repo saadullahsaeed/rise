@@ -24,7 +24,7 @@ const packageJsonTemplate = `{
   "description": "#{STACK_NAME}, a rise app",
   "scripts": {},
   "dependencies": {
-    "rise-framework": "^0.0.1",
+    "rise-framework": "^0.0.2",
     "body-parser": "^1.15.2",
     "cookie-parser": "^1.4.3"
   }

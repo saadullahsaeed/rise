@@ -7,9 +7,9 @@
   },
   "scripts": {},
   "author": "nfx",
-  "license": "ISC"
+  "license": "ISC",
   "dependencies": {
-    "rise-framework": "^0.0.1",
+    "rise-framework": "^0.0.2",
     "body-parser": "^1.15.2",
     "cookie-parser": "^1.4.3",
     "node-uuid": "^1.4.7"
