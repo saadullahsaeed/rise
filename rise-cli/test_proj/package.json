@@ -1,11 +1,15 @@
 {
-  "name": "nfx_todo",
+  "name": "rise_test_proj",
   "version": "1.0.0",
-  "description": "test nfx serverless app project",
+  "description": "test rise project",
+  "engines": {
+    "node": ">=4.3"
+  },
   "scripts": {},
   "author": "nfx",
   "license": "ISC"
   "dependencies": {
+    "rise-framework": "^0.0.1",
     "body-parser": "^1.15.2",
     "cookie-parser": "^1.4.3",
     "node-uuid": "^1.4.7"

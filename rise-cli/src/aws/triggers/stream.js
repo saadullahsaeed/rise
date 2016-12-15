@@ -16,7 +16,7 @@ module.exports = function getResources(trigger, funcName, roleResource) {
   const cfTriggerContent = fsReadFile(path.join(__dirname, 'cf-trigger-stream.json'));
   const streamType = trigger.arn.split(':')[2];
   const streamName = trigger.arn.split('/')[1].replace(/[^0-9a-z]/gi, '');
-  const resourceName = `NFX${funcName}${streamType}${streamName}EventSourceMapping`;
+  const resourceName = `Rise${funcName}${streamType}${streamName}EventSourceMapping`;
 
   if (!roleResource.Properties) {
     roleResource.Properties = {};
@@ -87,7 +87,7 @@ module.exports = function getResources(trigger, funcName, roleResource) {
   }
 
   // TODO Don't hardcode role resource name.
-  resources['NFXRole'] = roleResource;
+  resources['RiseRole'] = roleResource;
 
   return resources;
 };

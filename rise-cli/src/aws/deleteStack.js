@@ -2,26 +2,26 @@
 
 const log = require('../utils/log');
 
-module.exports = function deleteStack(nfx) {
-  const cf = nfx.aws.cf;
+module.exports = function deleteStack(session) {
+  const cf = session.aws.cf;
 
-  nfx.state = 'DELETING';
+  session.state = 'DELETING';
   return cf.deleteStack({
-    StackName: nfx.stackName
+    StackName: session.stackName
   }).promise()
   .then(function() {
-    return waitForDelete(nfx);
+    return waitForDelete(session);
   });
 };
 
-function waitForDelete(nfx) {
-  const cf = nfx.aws.cf;
+function waitForDelete(session) {
+  const cf = session.aws.cf;
 
-  log.info(`Deleting stack [${nfx.stackName}]...`);
-  return cf.waitFor('stackDeleteComplete', { StackName: nfx.stackName }).promise()
+  log.info(`Deleting stack [${session.stackName}]...`);
+  return cf.waitFor('stackDeleteComplete', { StackName: session.stackName }).promise()
     .then(() => {
-      log.info(`Deleted stack [${nfx.stackName}]...`);
-      nfx.state = 'DELETED';
-      return Promise.resolve(nfx);
+      log.info(`Deleted stack [${session.stackName}]...`);
+      session.state = 'DELETED';
+      return Promise.resolve(session);
     });
 }

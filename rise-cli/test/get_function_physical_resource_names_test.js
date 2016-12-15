@@ -3,7 +3,7 @@
 const getFunctionPhysicalResourceNames = require('../src/aws/getFunctionPhysicalResourceNames');
 
 describe('getFunctionPhysicalResourceNames', function() {
-  let nfx,
+  let session,
       functionName,
       stackName,
       describeStackResourceFn;
@@ -19,7 +19,7 @@ describe('getFunctionPhysicalResourceNames', function() {
       });
     });
 
-    nfx = {
+    session = {
       stackName,
       aws: {
         cf: {
@@ -31,7 +31,7 @@ describe('getFunctionPhysicalResourceNames', function() {
 
   context('when a resource exists', function() {
     it('calls describeStackResource with resourceName', function() {
-      return getFunctionPhysicalResourceNames(nfx, [functionName])
+      return getFunctionPhysicalResourceNames(session, [functionName])
         .then(function(physicalResourceId) {
           expect(physicalResourceId).to.not.be.null;
           expect(physicalResourceId[0].physicalResourceName).to.equal('resourceid');
@@ -51,11 +51,11 @@ describe('getFunctionPhysicalResourceNames', function() {
         reject({ message: 'does not exist' });
       });
 
-      nfx.aws.cf.describeStackResource = describeStackResourceFn;
+      session.aws.cf.describeStackResource = describeStackResourceFn;
     });
 
     it('returns an error', function() {
-      return getFunctionPhysicalResourceNames(nfx, [functionName])
+      return getFunctionPhysicalResourceNames(session, [functionName])
         .then(function() {
           fail('unexpected then');
         })

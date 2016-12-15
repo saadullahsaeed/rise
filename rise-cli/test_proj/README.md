@@ -1,7 +1,7 @@
-Sample NFX Project
+Sample Rise Project
 ==================
 
 ```
 $ npm install
-$ nfx deploy
+$ rise deploy
 ```

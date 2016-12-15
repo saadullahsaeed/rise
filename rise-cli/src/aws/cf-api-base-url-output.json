@@ -1,10 +1,10 @@
 {
-  "Description": "NFXAPI Base URL",
+  "Description": "RiseAPI Base URL",
   "Value": {
     "Fn::Join": [
       "", [
         "https://",
-        { "Ref": "NFXApi" },
+        { "Ref": "RiseAPI" },
         ".execute-api.",
         { "Ref": "AWS::Region" },
         ".amazonaws.com/",

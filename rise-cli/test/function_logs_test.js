@@ -3,7 +3,7 @@
 const functionLogs = require('../src/aws/functionLogs');
 
 describe('functionLogs', function() {
-  let nfx,
+  let session,
       functionPhysicalResourceName,
       describeLogStreamsFn,
       filterLogEventsFn;
@@ -29,7 +29,7 @@ describe('functionLogs', function() {
       });
     });
 
-    nfx = {
+    session = {
       aws: {
         cwl: {
           describeLogStreams: describeLogStreamsFn,
@@ -41,7 +41,7 @@ describe('functionLogs', function() {
 
   context('when log group name exists', function() {
     it('responds all logs from cloudwatch log', function() {
-      return functionLogs(nfx, [functionPhysicalResourceName], null)
+      return functionLogs(session, [functionPhysicalResourceName], null)
         .then(function(logs) {
           expect(logs).to.not.be.null;
           expect(logs).to.have.lengthOf(1);
@@ -70,11 +70,11 @@ describe('functionLogs', function() {
         reject({ message: 'does not exist' });
       });
 
-      nfx.aws.cwl.describeLogStreams = describeLogStreamsFn;
+      session.aws.cwl.describeLogStreams = describeLogStreamsFn;
     });
 
     it('returns an error', function() {
-      return functionLogs(nfx, ['pitbull'], null)
+      return functionLogs(session, ['pitbull'], null)
         .then(function() {
           fail('unexpected then');
         })

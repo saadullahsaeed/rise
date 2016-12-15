@@ -2,12 +2,12 @@
 
 const log = require('../utils/log');
 
-module.exports = function getStackTemplate(nfx) {
-  return nfx.aws.cf.getTemplate(
-    { StackName: nfx.stackName }).promise()
+module.exports = function getStackTemplate(session) {
+  return session.aws.cf.getTemplate(
+    { StackName: session.stackName }).promise()
       .then(function(data) {
         log.info(`Successfully fetched the template`);
-        nfx.aws.cfTemplate = JSON.parse(data.TemplateBody);
-        return Promise.resolve(nfx);
+        session.aws.cfTemplate = JSON.parse(data.TemplateBody);
+        return Promise.resolve(session);
       });
 };

@@ -1,7 +1,7 @@
 'use strict';
 
-module.exports = function functionLogs(nfx, names, startTime) {
-  const cwl = nfx.aws.cwl,
+module.exports = function functionLogs(session, names, startTime) {
+  const cwl = session.aws.cwl,
         logGroupNames = lambdaLogGroupNames(names),
         describeLogStreamPromises = [];
 
@@ -14,8 +14,8 @@ module.exports = function functionLogs(nfx, names, startTime) {
   return Promise.all(describeLogStreamPromises).then((groups) => {
     const getAllLogPromises = [];
     for (let i = 0; i < groups.length; i++) {
-      const logGroupName = groups[i].logGroupName
-      const logStreamNames = groups[i].logStreamNames
+      const logGroupName = groups[i].logGroupName;
+      const logStreamNames = groups[i].logStreamNames;
       const params = {
         logGroupName,
         interleaved: false,
@@ -29,7 +29,7 @@ module.exports = function functionLogs(nfx, names, startTime) {
 
     return Promise.all(getAllLogPromises).then((logs) => {
       return Promise.resolve(logs);
-    })
+    });
   });
 };
 

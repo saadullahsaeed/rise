@@ -11,7 +11,7 @@ module.exports = function getResources(trigger, funcName) {
   const resources = {};
   const cfTriggerContent = fsReadFile(path.join(__dirname, 'cf-trigger-sns.json'));
   const cfFuncPermissionContent = fsReadFile(path.join(__dirname, 'cf-trigger-lambda-permission.json'));
-  const resourceName = `NFX${trigger.topic_name.replace(/[^0-9a-z]/gi, '')}SNS`;
+  const resourceName = `Rise${trigger.topic_name.replace(/[^0-9a-z]/gi, '')}SNS`;
   const permissionResourceName = `${resourceName}TriggerLambdaPermission`;
 
   resources[resourceName] = JSON.parse(

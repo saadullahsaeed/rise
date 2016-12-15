@@ -3,7 +3,7 @@
 const getStack = require('../src/aws/getStack');
 
 describe('getStack', function() {
-  let nfx,
+  let session,
       stackName,
       describeStacksFn,
       createStackFn,
@@ -19,7 +19,7 @@ describe('getStack', function() {
       resolve({});
     });
 
-    nfx = {
+    session = {
       stackName,
       aws: {
         cf: {
@@ -36,14 +36,14 @@ describe('getStack', function() {
         resolve({});
       });
 
-      nfx.aws.cf.describeStacks = describeStacksFn;
+      session.aws.cf.describeStacks = describeStacksFn;
     });
 
     it('calls describeStacks with stackName', function() {
-      return getStack(nfx)
-        .then(function(nfx) {
-          expect(nfx).to.exist;
-          expect(nfx.state).to.equal('FETCHED_STACK');
+      return getStack(session)
+        .then(function(session) {
+          expect(session).to.exist;
+          expect(session.state).to.equal('FETCHED_STACK');
           expect(describeStacksFn).to.have.been.calledOnce;
           expect(describeStacksFn).to.have.been.calledWith({ StackName: stackName });
           expect(createStackFn).to.not.have.been.called;
@@ -57,14 +57,14 @@ describe('getStack', function() {
         reject({ message: 'does not exist' });
       });
 
-      nfx.aws.cf.describeStacks = describeStacksFn;
+      session.aws.cf.describeStacks = describeStacksFn;
     });
 
     it('makes a request to create a stack', function() {
-      return getStack(nfx)
-        .then(function(nfx) {
-          expect(nfx).to.exist;
-          expect(nfx.state).to.equal('CREATED');
+      return getStack(session)
+        .then(function(session) {
+          expect(session).to.exist;
+          expect(session.state).to.equal('CREATED');
           expect(describeStacksFn).to.have.been.calledOnce;
           expect(describeStacksFn).to.have.been.calledWith({ StackName: stackName });
 
@@ -85,11 +85,11 @@ describe('getStack', function() {
         reject({ message: 'some error' });
       });
 
-      nfx.aws.cf.describeStacks = describeStacksFn;
+      session.aws.cf.describeStacks = describeStacksFn;
     });
 
     it('returns an error', function() {
-      return getStack(nfx)
+      return getStack(session)
         .then(function() {
           fail('this promise should not have been resolved');
         })

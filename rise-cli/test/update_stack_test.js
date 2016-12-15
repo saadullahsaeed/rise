@@ -3,7 +3,7 @@
 const updateStack = require('../src/aws/updateStack');
 
 describe('updateStack', function() {
-  let nfx,
+  let session,
       updateStackFn,
       routesJSON,
       waitForFn;
@@ -21,12 +21,12 @@ describe('updateStack', function() {
       paths: {
         '/': {
           get: {
-            'x-nfx': {
+            'x-rise': {
               function: 'listTasks'
             }
           },
           put: {
-            'x-nfx': {
+            'x-rise': {
               function: 'createTasks'
             }
           }
@@ -52,7 +52,7 @@ describe('updateStack', function() {
       { functionName: 'createTasks' }
     ];
 
-    nfx = {
+    session = {
       stackName: 'my-test-stack',
       bucketName: 'my-test-bucket',
       region: 'my-test-region',
@@ -71,9 +71,9 @@ describe('updateStack', function() {
   });
 
   it('updates stack', function() {
-    return updateStack(nfx, {})
-      .then(function(nfx) {
-        expect(nfx.state).to.equal('UPDATED');
+    return updateStack(session, {})
+      .then(function(session) {
+        expect(session.state).to.equal('UPDATED');
         expect(updateStackFn).to.have.been.calledOnce;
 
         const p = updateStackFn.getCall(0).args[0];
@@ -86,12 +86,12 @@ describe('updateStack', function() {
   });
 
   it('updates stack with role', function() {
-    return updateStack(nfx, {})
-    .then(function(/* nfx */) {
+    return updateStack(session, {})
+    .then(function(/* session */) {
       const p = updateStackFn.getCall(0).args[0],
             cfTemplate = JSON.parse(p.TemplateBody);
 
-      const role = cfTemplate.Resources.NFXRole;
+      const role = cfTemplate.Resources.RiseRole;
       expect(role).to.exist;
       expect(role.Properties.AssumeRolePolicyDocument.Statement).to.have.length(1);
 
@@ -99,10 +99,10 @@ describe('updateStack', function() {
       expect(roleStatement.Principal.Service).to.deep.equal(["lambda.amazonaws.com"]);
       expect(roleStatement.Action).to.deep.equal(["sts:AssumeRole"]);
 
-      const rolePolicy = cfTemplate.Resources.NFXRolePolicy;
+      const rolePolicy = cfTemplate.Resources.RiseRolePolicy;
       expect(rolePolicy).to.exist;
       expect(rolePolicy.Properties.PolicyDocument.Statement).to.have.length(1);
-      expect(rolePolicy.Properties.Roles).to.deep.equal([{"Ref": "NFXRole"}]);
+      expect(rolePolicy.Properties.Roles).to.deep.equal([{"Ref": "RiseRole"}]);
 
       const rolePolicyStatement = rolePolicy.Properties.PolicyDocument.Statement[0];
       expect(rolePolicyStatement.Action).to.deep.equal([
@@ -116,36 +116,36 @@ describe('updateStack', function() {
 
   describe('routes', function() {
     it('updates stack with routes', function() {
-      return updateStack(nfx, {})
-      .then(function(/* nfx */) {
+      return updateStack(session, {})
+      .then(function(/* session */) {
         const p = updateStackFn.getCall(0).args[0],
               cfTemplate = JSON.parse(p.TemplateBody);
 
-        expect(cfTemplate.Resources.NFXApiResourceGET).to.exist;
-        const getMethod = cfTemplate.Resources.NFXApiResourceGET;
-        expect(getMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] });
+        expect(cfTemplate.Resources.RiseAPIResourceGET).to.exist;
+        const getMethod = cfTemplate.Resources.RiseAPIResourceGET;
+        expect(getMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['RiseAPI', 'RootResourceId'] });
 
-        expect(cfTemplate.Resources.NFXApiResourcePUT).to.exist;
-        const putMethod = cfTemplate.Resources.NFXApiResourcePUT;
-        expect(putMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] });
+        expect(cfTemplate.Resources.RiseAPIResourcePUT).to.exist;
+        const putMethod = cfTemplate.Resources.RiseAPIResourcePUT;
+        expect(putMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['RiseAPI', 'RootResourceId'] });
       });
     });
 
     context('when cors option is set', function() {
       beforeEach(function() {
-        routesJSON.paths['/']['get']['x-nfx'].cors = true;
-        nfx.routes = routesJSON;
+        routesJSON.paths['/']['get']['x-rise'].cors = true;
+        session.routes = routesJSON;
       });
 
       it('adds "OPTIONS" route', function() {
-        return updateStack(nfx, {})
-          .then(function(/* nfx */) {
+        return updateStack(session, {})
+          .then(function(/* session */) {
             const p = updateStackFn.getCall(0).args[0],
                   cfTemplate = JSON.parse(p.TemplateBody);
 
-            expect(cfTemplate.Resources.NFXApiResourceOPTIONS).to.exist;
-            const optionsMethod = cfTemplate.Resources.NFXApiResourceOPTIONS;
-            expect(optionsMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] });
+            expect(cfTemplate.Resources.RiseAPIResourceOPTIONS).to.exist;
+            const optionsMethod = cfTemplate.Resources.RiseAPIResourceOPTIONS;
+            expect(optionsMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['RiseAPI', 'RootResourceId'] });
             const responseParams = optionsMethod.Properties.Integration.IntegrationResponses[0].ResponseParameters;
             expect(responseParams["method.response.header.Access-Control-Allow-Methods"]).to.equal("'GET,OPTIONS'");
           });
@@ -154,23 +154,23 @@ describe('updateStack', function() {
 
     context('when default cors is true', function() {
       beforeEach(function() {
-        routesJSON['x-nfx'] = {
+        routesJSON['x-rise'] = {
           default: {
             cors: true
           }
         };
-        nfx.routes = routesJSON;
+        session.routes = routesJSON;
       });
 
       it('adds "OPTIONS" route for methods that does not specify cors option', function() {
-        return updateStack(nfx, {})
-          .then(function(/* nfx */) {
+        return updateStack(session, {})
+          .then(function(/* session */) {
             const p = updateStackFn.getCall(0).args[0],
                   cfTemplate = JSON.parse(p.TemplateBody);
 
-            expect(cfTemplate.Resources.NFXApiResourceOPTIONS).to.exist;
-            const optionsMethod = cfTemplate.Resources.NFXApiResourceOPTIONS;
-            expect(optionsMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] });
+            expect(cfTemplate.Resources.RiseAPIResourceOPTIONS).to.exist;
+            const optionsMethod = cfTemplate.Resources.RiseAPIResourceOPTIONS;
+            expect(optionsMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['RiseAPI', 'RootResourceId'] });
             const responseParams = optionsMethod.Properties.Integration.IntegrationResponses[0].ResponseParameters;
             expect(responseParams["method.response.header.Access-Control-Allow-Methods"]).to.equal("'GET,PUT,OPTIONS'");
           });
@@ -178,19 +178,19 @@ describe('updateStack', function() {
 
       context("when some cors options are false", function() {
         beforeEach(function() {
-          routesJSON.paths['/']['get']['x-nfx'].cors = false;
-          nfx.routes = routesJSON;
+          routesJSON.paths['/']['get']['x-rise'].cors = false;
+          session.routes = routesJSON;
         });
 
         it("excludes from options routes", function() {
-          return updateStack(nfx, {})
-            .then(function(/* nfx */) {
+          return updateStack(session, {})
+            .then(function(/* session */) {
               const p = updateStackFn.getCall(0).args[0],
                     cfTemplate = JSON.parse(p.TemplateBody);
 
-              expect(cfTemplate.Resources.NFXApiResourceOPTIONS).to.exist;
-              const optionsMethod = cfTemplate.Resources.NFXApiResourceOPTIONS;
-              expect(optionsMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] });
+              expect(cfTemplate.Resources.RiseAPIResourceOPTIONS).to.exist;
+              const optionsMethod = cfTemplate.Resources.RiseAPIResourceOPTIONS;
+              expect(optionsMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['RiseAPI', 'RootResourceId'] });
               const responseParams = optionsMethod.Properties.Integration.IntegrationResponses[0].ResponseParameters;
               expect(responseParams["method.response.header.Access-Control-Allow-Methods"]).to.equal("'PUT,OPTIONS'");
             });
@@ -200,58 +200,58 @@ describe('updateStack', function() {
 
     context('when there are nested routes', function() {
       beforeEach(function() {
-        routesJSON.paths['/items'] = { get: { 'x-nfx': { function: 'listTasks' } } };
-        routesJSON.paths['/items/list'] = { get: { 'x-nfx': { function: 'listTasks' } } };
-        routesJSON.paths['/users/about'] = { get: { 'x-nfx': { function: 'listTasks' } } };
+        routesJSON.paths['/items'] = { get: { 'x-rise': { function: 'listTasks' } } };
+        routesJSON.paths['/items/list'] = { get: { 'x-rise': { function: 'listTasks' } } };
+        routesJSON.paths['/users/about'] = { get: { 'x-rise': { function: 'listTasks' } } };
 
-        nfx.routes = routesJSON;
+        session.routes = routesJSON;
       });
 
       it("creates api resources and methods accordingly", function() {
-        return updateStack(nfx, {})
-          .then(function(/* nfx */) {
+        return updateStack(session, {})
+          .then(function(/* session */) {
             const p = updateStackFn.getCall(0).args[0],
                   cfTemplate = JSON.parse(p.TemplateBody);
 
             // routes '/'
-            expect(cfTemplate.Resources.NFXApiResourceGET).to.exist;
-            const getMethod = cfTemplate.Resources.NFXApiResourceGET;
-            expect(getMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] });
+            expect(cfTemplate.Resources.RiseAPIResourceGET).to.exist;
+            const getMethod = cfTemplate.Resources.RiseAPIResourceGET;
+            expect(getMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['RiseAPI', 'RootResourceId'] });
 
-            expect(cfTemplate.Resources.NFXApiResourcePUT).to.exist;
-            const putMethod = cfTemplate.Resources.NFXApiResourcePUT;
-            expect(putMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] });
+            expect(cfTemplate.Resources.RiseAPIResourcePUT).to.exist;
+            const putMethod = cfTemplate.Resources.RiseAPIResourcePUT;
+            expect(putMethod.Properties.ResourceId).to.deep.equal({ 'Fn::GetAtt': ['RiseAPI', 'RootResourceId'] });
 
             // routes '/items'
-            expect(cfTemplate.Resources.NFXApiResourceItems).to.exist;
-            const itemsRes = cfTemplate.Resources.NFXApiResourceItems;
-            expect(itemsRes.Properties.ParentId).to.deep.equal({ 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] });
+            expect(cfTemplate.Resources.RiseAPIResourceItems).to.exist;
+            const itemsRes = cfTemplate.Resources.RiseAPIResourceItems;
+            expect(itemsRes.Properties.ParentId).to.deep.equal({ 'Fn::GetAtt': ['RiseAPI', 'RootResourceId'] });
 
-            expect(cfTemplate.Resources.NFXApiResourceItemsGET).to.exist;
-            const getItemsMethod = cfTemplate.Resources.NFXApiResourceItemsGET;
-            expect(getItemsMethod.Properties.ResourceId).to.deep.equal({ Ref: 'NFXApiResourceItems' });
+            expect(cfTemplate.Resources.RiseAPIResourceItemsGET).to.exist;
+            const getItemsMethod = cfTemplate.Resources.RiseAPIResourceItemsGET;
+            expect(getItemsMethod.Properties.ResourceId).to.deep.equal({ Ref: 'RiseAPIResourceItems' });
 
             // routes '/items/list'
-            expect(cfTemplate.Resources.NFXApiResourceItemsList).to.exist;
-            const itemsListRes = cfTemplate.Resources.NFXApiResourceItemsList;
-            expect(itemsListRes.Properties.ParentId).to.deep.equal({ Ref: 'NFXApiResourceItems' });
+            expect(cfTemplate.Resources.RiseAPIResourceItemsList).to.exist;
+            const itemsListRes = cfTemplate.Resources.RiseAPIResourceItemsList;
+            expect(itemsListRes.Properties.ParentId).to.deep.equal({ Ref: 'RiseAPIResourceItems' });
 
-            expect(cfTemplate.Resources.NFXApiResourceItemsListGET).to.exist;
-            const getItemsListMethod = cfTemplate.Resources.NFXApiResourceItemsListGET;
-            expect(getItemsListMethod.Properties.ResourceId).to.deep.equal({ Ref: 'NFXApiResourceItemsList' });
+            expect(cfTemplate.Resources.RiseAPIResourceItemsListGET).to.exist;
+            const getItemsListMethod = cfTemplate.Resources.RiseAPIResourceItemsListGET;
+            expect(getItemsListMethod.Properties.ResourceId).to.deep.equal({ Ref: 'RiseAPIResourceItemsList' });
 
             // routes '/users/about'
-            expect(cfTemplate.Resources.NFXApiResourceUsers).to.exist;
-            const usersRes = cfTemplate.Resources.NFXApiResourceUsers;
-            expect(usersRes.Properties.ParentId).to.deep.equal({ 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] });
+            expect(cfTemplate.Resources.RiseAPIResourceUsers).to.exist;
+            const usersRes = cfTemplate.Resources.RiseAPIResourceUsers;
+            expect(usersRes.Properties.ParentId).to.deep.equal({ 'Fn::GetAtt': ['RiseAPI', 'RootResourceId'] });
 
-            expect(cfTemplate.Resources.NFXApiResourceUsersAbout).to.exist;
-            const usersAboutRes = cfTemplate.Resources.NFXApiResourceUsersAbout;
-            expect(usersAboutRes.Properties.ParentId).to.deep.equal({ 'Ref': 'NFXApiResourceUsers' });
+            expect(cfTemplate.Resources.RiseAPIResourceUsersAbout).to.exist;
+            const usersAboutRes = cfTemplate.Resources.RiseAPIResourceUsersAbout;
+            expect(usersAboutRes.Properties.ParentId).to.deep.equal({ 'Ref': 'RiseAPIResourceUsers' });
 
-            expect(cfTemplate.Resources.NFXApiResourceUsersAboutGET).to.exist;
-            const getUsersAboutMethod = cfTemplate.Resources.NFXApiResourceUsersAboutGET;
-            expect(getUsersAboutMethod.Properties.ResourceId).to.deep.equal({ Ref: 'NFXApiResourceUsersAbout' });
+            expect(cfTemplate.Resources.RiseAPIResourceUsersAboutGET).to.exist;
+            const getUsersAboutMethod = cfTemplate.Resources.RiseAPIResourceUsersAboutGET;
+            expect(getUsersAboutMethod.Properties.ResourceId).to.deep.equal({ Ref: 'RiseAPIResourceUsersAbout' });
           });
       });
     });

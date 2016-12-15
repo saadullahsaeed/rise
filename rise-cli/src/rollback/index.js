@@ -5,26 +5,26 @@ const getStack = require('../aws/getStack'),
       deployAPI = require('../aws/deployAPI'),
       getStackTemplate = require('../aws/getStackTemplate'),
       fetchVersion = require('../aws/fetchVersion'),
-      uploadNFXFiles = require('../aws/uploadNFXFiles'),
+      uploadRiseFiles = require('../aws/uploadRiseFiles'),
       handleInterrupt = require('../aws/handleInterrupt'),
       log = require('../utils/log');
 
-module.exports = function(nfx, version) {
+module.exports = function(session, version) {
   log.info('Rolling back to a previous version...');
 
-  getStack(nfx)
+  getStack(session)
     .then(fetchVersion)
-    .then(function(nfx) {
-      return rollback(nfx, version);
+    .then(function(session) {
+      return rollback(session, version);
     })
-    .then(getStackTemplate(nfx))
-    .then(function(nfx) {
-      return deployAPI(nfx, { rollback: true });
+    .then(getStackTemplate(session))
+    .then(function(session) {
+      return deployAPI(session, { rollback: true });
     })
-    .then(uploadNFXFiles)
+    .then(uploadRiseFiles)
     .catch(log.error);
 
   process.on('SIGINT', function() {
-    handleInterrupt(nfx);
+    handleInterrupt(session);
   });
 };

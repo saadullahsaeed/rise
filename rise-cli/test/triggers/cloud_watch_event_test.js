@@ -17,7 +17,7 @@ describe('CloudWatch Event trigger getResources', function() {
 
       const sha = crypto.createHash('sha1').update('rate(5 minutes)').digest('hex');
 
-      const expectedName = `NFXAppHelloIndex${sha}CloudWatchEventRule`;
+      const expectedName = `RiseAppHelloIndex${sha}CloudWatchEventRule`;
       expect(resources).to.have.property(expectedName);
     });
 
@@ -25,7 +25,7 @@ describe('CloudWatch Event trigger getResources', function() {
       const resources = getResources(trigger, funcName);
 
       const sha = crypto.createHash('sha1').update('rate(5 minutes)').digest('hex');
-      const expectedName = `NFXAppHelloIndex${sha}CloudWatchEventRule`;
+      const expectedName = `RiseAppHelloIndex${sha}CloudWatchEventRule`;
 
       const ruleResource = resources[expectedName];
       expect(ruleResource).to.deep.equal({
@@ -45,8 +45,8 @@ describe('CloudWatch Event trigger getResources', function() {
       const resources = getResources(trigger, funcName);
 
       const sha = crypto.createHash('sha1').update('rate(5 minutes)').digest('hex');
-      const ruleResourceName = `NFXAppHelloIndex${sha}CloudWatchEventRule`;
-      const permissionName = `NFXAppHelloIndex${sha}CloudWatchEventRuleTriggerLambdaPermission`;
+      const ruleResourceName = `RiseAppHelloIndex${sha}CloudWatchEventRule`;
+      const permissionName = `RiseAppHelloIndex${sha}CloudWatchEventRuleTriggerLambdaPermission`;
 
       const permissionResource = resources[permissionName];
       expect(permissionResource).to.deep.equal({

@@ -16,7 +16,7 @@ module.exports = function getResources(trigger, funcName, region) {
   const cfTriggerContent = fsReadFile(path.join(__dirname, 'cf-trigger-cloudwatch-log.json'));
   const cfFuncPermissionContent = fsReadFile(path.join(__dirname, 'cf-trigger-lambda-permission.json'));
   const groupNameHash = crypto.createHash('sha1').update(trigger.log_group_name).digest('hex');
-  const resourceName = `NFX${funcName}${groupNameHash}CloudWatchLogSubscriptionFilter`;
+  const resourceName = `Rise${funcName}${groupNameHash}CloudWatchLogSubscriptionFilter`;
   const permissionResourceName = `${resourceName}TriggerLambdaPermission`;
 
   resources[resourceName] = JSON.parse(

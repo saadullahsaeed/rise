@@ -4,25 +4,25 @@ const log = require('../utils/log'),
       cancelUpdateStack = require('../aws/cancelUpdateStack'),
       rollback = require('../aws/rollback');
 
-module.exports = function handleInterrupt(nfx) {
+module.exports = function handleInterrupt(session) {
   // remove compressed files
-  log.info(`SIGINT fired at ${nfx.state}`);
-  if (nfx.state === 'CREATING') {
+  log.info(`SIGINT fired at ${session.state}`);
+  if (session.state === 'CREATING') {
     log.info('Creating stack is still in progress.');
     process.exit(1);
-  } else if (nfx.state === 'UPDATING') {
+  } else if (session.state === 'UPDATING') {
     // Users could send Ctrl+c again.
-    nfx.state = 'REVERTING';
-    cancelUpdateStack(nfx)
-      .then(function(nfx) {
-        if (nfx.state === 'UNEXPECTEDLY_UPDATED') {
+    session.state = 'REVERTING';
+    cancelUpdateStack(session)
+      .then(function(session) {
+        if (session.state === 'UNEXPECTEDLY_UPDATED') {
           // When the stack is updated before cancelling,
           // we update the stack to previous version
           // Nothing to rollback if this is the first deployment.
-          if (nfx.version !== 'v1') {
-            const activeVersion = nfx.nfxJSON.active_version;
+          if (session.version !== 'v1') {
+            const activeVersion = session.riseJSON.active_version;
             log.info(`The deployment have been cancelled. Rolling back to "${activeVersion}"`);
-            rollback(nfx, activeVersion).then(() => {
+            rollback(session, activeVersion).then(() => {
               log.info('Successfully rolled back.');
               process.exit(1);
             }).catch(function(err) {
@@ -46,14 +46,14 @@ module.exports = function handleInterrupt(nfx) {
         }
         process.exit(1);
       });
-  } else if (nfx.state === 'DEPLOYING' /* || nfx.state === 'PINGING' */) {
-    cancelUpdateStack(nfx)
-      .then(function(nfx) {
+  } else if (session.state === 'DEPLOYING' /* || session.state === 'PINGING' */) {
+    cancelUpdateStack(session)
+      .then(function(session) {
         // Nothing to rollback if this is the first deployment.
-        if (nfx.version !== 'v1') {
-          const activeVersion = nfx.nfxJSON.active_version;
+        if (session.version !== 'v1') {
+          const activeVersion = session.riseJSON.active_version;
           log.info(`the deployment have been cancelled. Rolling back to "${activeVersion}"`);
-          return rollback(nfx, activeVersion);
+          return rollback(session, activeVersion);
         }
       })
       .then(function() {
@@ -64,7 +64,7 @@ module.exports = function handleInterrupt(nfx) {
         log.error(err);
         process.exit(1);
       });
-  } else if (nfx.state === 'CANCELLING' || nfx.state === 'UNEXPECTEDLY_UPDATED') {
+  } else if (session.state === 'CANCELLING' || session.state === 'UNEXPECTEDLY_UPDATED') {
     log.info('Reverting is in progress ... Please wait until reverting is done');
   } else {
     process.exit(1);

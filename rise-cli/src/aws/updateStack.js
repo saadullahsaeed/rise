@@ -10,56 +10,56 @@ const path = require('path'),
       getStreamTrigger = require('./triggers/stream'),
       getSNSTrigger = require('./triggers/sns');
 
-module.exports = function updateStack(nfx) {
-  const stackName = nfx.stackName,
-        bucketName = nfx.bucketName,
-        functions = nfx.functions,
-        version = nfx.version,
-        uploadedFunctions = nfx.compressedFunctions,
-        routes = nfx.routes,
-        region = nfx.region;
+module.exports = function updateStack(session) {
+  const stackName = session.stackName,
+        bucketName = session.bucketName,
+        functions = session.functions,
+        version = session.version,
+        uploadedFunctions = session.compressedFunctions,
+        routes = session.routes,
+        region = session.region;
 
-  nfx.aws.cfTemplate = getBaseTemplate(stackName);
-  nfx.aws.cfTemplate.Resources = Object.assign({}, nfx.aws.cfTemplate.Resources, getFunctionResources(bucketName, version, functions, uploadedFunctions));
-  nfx.aws.cfTemplate.Resources = Object.assign({}, nfx.aws.cfTemplate.Resources, getAPIResources(routes));
+  session.aws.cfTemplate = getBaseTemplate(stackName);
+  session.aws.cfTemplate.Resources = Object.assign({}, session.aws.cfTemplate.Resources, getFunctionResources(bucketName, version, functions, uploadedFunctions));
+  session.aws.cfTemplate.Resources = Object.assign({}, session.aws.cfTemplate.Resources, getAPIResources(routes));
 
-  const roleResource = nfx.aws.cfTemplate.Resources['NFXRole'];
-  nfx.aws.cfTemplate.Resources = Object.assign(nfx.aws.cfTemplate.Resources, getTriggerResources(functions, region, roleResource));
+  const roleResource = session.aws.cfTemplate.Resources['RiseRole'];
+  session.aws.cfTemplate.Resources = Object.assign(session.aws.cfTemplate.Resources, getTriggerResources(functions, region, roleResource));
 
-  nfx.state = 'UPDATING';
-  return nfx.aws.cf.updateStack({
-    StackName: nfx.stackName,
-    TemplateBody: JSON.stringify(nfx.aws.cfTemplate, null, 2),
+  session.state = 'UPDATING';
+  return session.aws.cf.updateStack({
+    StackName: session.stackName,
+    TemplateBody: JSON.stringify(session.aws.cfTemplate, null, 2),
     Capabilities: ['CAPABILITY_IAM']
   }).promise()
     .then(function() {
-      return waitForUpdate(nfx);
+      return waitForUpdate(session);
     })
     .catch(function(err) {
       if (err.message) {
         if (err.message.indexOf('No updates are to be performed') !== -1) {
           log.info('No updates on updating stack. Proceed to the next step');
-          return Promise.resolve(nfx);
-        } else if (nfx.state !== 'UPDATING' && err.message.indexOf('Resource is not in the state stackUpdateComplete') !== -1) {
+          return Promise.resolve(session);
+        } else if (session.state !== 'UPDATING' && err.message.indexOf('Resource is not in the state stackUpdateComplete') !== -1) {
           // If a user cancelled deploying, it might get "ResourceNotReady: Resource is not in the state stackUpdateComplete"
           // Since it is rolling back
           // We need to share a deployment state globally and ignore the error when it is on canceling
-          return Promise.resolve(nfx);
+          return Promise.resolve(session);
         }
       }
       return Promise.reject(err);
     });
 };
 
-function waitForUpdate(nfx) {
-  const cf = nfx.aws.cf;
+function waitForUpdate(session) {
+  const cf = session.aws.cf;
 
-  log.info(`Updating stack [${nfx.stackName}]...`);
-  return cf.waitFor('stackUpdateComplete', { StackName: nfx.stackName }).promise()
+  log.info(`Updating stack [${session.stackName}]...`);
+  return cf.waitFor('stackUpdateComplete', { StackName: session.stackName }).promise()
     .then(() => {
-      log.info(`Updated stack [${nfx.stackName}]...`);
-      nfx.state = 'UPDATED';
-      return Promise.resolve(nfx);
+      log.info(`Updated stack [${session.stackName}]...`);
+      session.state = 'UPDATED';
+      return Promise.resolve(session);
     });
 }
 
@@ -69,7 +69,7 @@ function getBaseTemplate(stackName) {
 
   const cfRestAPIContent = fsReadFile(path.join(__dirname, 'cf-restapi.json'));
   const cfRestAPIJSON = JSON.parse(cfRestAPIContent.replace('$NAME', `${stackName} API`));
-  cfTemplate.Resources.NFXApi = cfRestAPIJSON;
+  cfTemplate.Resources.RiseAPI = cfRestAPIJSON;
 
   return cfTemplate;
 }
@@ -125,14 +125,14 @@ function getAPIResources(routes) {
         corsMethodTemplate = fsReadFile(path.join(__dirname, 'cf-api-cors.json')),
         paths = routes.paths,
         pathTree = {
-          name: 'NFXApiResource',
+          name: 'RiseAPIResource',
           isRoot: true,
           children: {}
         };
 
   let defaultSetting = {};
-  if (routes['x-nfx'] && routes['x-nfx'].default) {
-    defaultSetting = routes['x-nfx'].default;
+  if (routes['x-rise'] && routes['x-rise'].default) {
+    defaultSetting = routes['x-rise'].default;
   }
 
   let result = {};
@@ -182,7 +182,7 @@ function createAPIResource(resourceTemplate, parent, name, p) {
   const result = {};
   const methodJSON = JSON.parse(resourceTemplate.replace('$LAST_PATH', p));
   if (parent.isRoot) {
-    methodJSON.Properties.ParentId = { 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] };
+    methodJSON.Properties.ParentId = { 'Fn::GetAtt': ['RiseAPI', 'RootResourceId'] };
   } else {
     methodJSON.Properties.ParentId = { Ref: parent.name };
   }
@@ -200,19 +200,19 @@ function createAPIMethod(methodTemplate, corsMethodTemplate, res, defaultSetting
     const method = methods[m];
     const methodJSON = JSON.parse(methodTemplate
       .replace('$METHOD', m.toUpperCase())
-      .replace('$FUNCTION_NAME', method['x-nfx'].function)
+      .replace('$FUNCTION_NAME', method['x-rise'].function)
     );
 
     if (res.isRoot) {
-      methodJSON.Properties.ResourceId = { 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] };
+      methodJSON.Properties.ResourceId = { 'Fn::GetAtt': ['RiseAPI', 'RootResourceId'] };
     } else {
       methodJSON.Properties.ResourceId = { Ref: res.name };
     }
     result[methodResourceName] = methodJSON;
 
     let cors;
-    if (method['x-nfx'].cors != null) {
-      cors = method['x-nfx'].cors;
+    if (method['x-rise'].cors != null) {
+      cors = method['x-rise'].cors;
     } else {
       cors = defaultSetting.cors;
     }
@@ -227,7 +227,7 @@ function createAPIMethod(methodTemplate, corsMethodTemplate, res, defaultSetting
     const methodResourceName = `${res.name}OPTIONS`;
     const methodJSON = JSON.parse(corsMethodTemplate.replace(/\$CORS_METHODS/g, corsMethods.join(',')));
     if (res.isRoot) {
-      methodJSON.Properties.ResourceId = { 'Fn::GetAtt': ['NFXApi', 'RootResourceId'] };
+      methodJSON.Properties.ResourceId = { 'Fn::GetAtt': ['RiseAPI', 'RootResourceId'] };
     } else {
       methodJSON.Properties.ResourceId = { Ref: res.name };
     }

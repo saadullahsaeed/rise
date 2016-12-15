@@ -4,31 +4,31 @@ const path = require('path'),
       log = require('../utils/log'),
       fsReadFile = require('../utils/fs').fsReadFile;
 
-module.exports = function getStack(nfx) {
-  nfx.state = 'FETCHING_STACK';
+module.exports = function getStack(session) {
+  session.state = 'FETCHING_STACK';
 
-  return nfx.aws.cf.describeStacks({
-    StackName: nfx.stackName
+  return session.aws.cf.describeStacks({
+    StackName: session.stackName
   }).promise()
     .then(function() {
-      nfx.state = 'FETCHED_STACK';
-      return Promise.resolve(nfx);
+      session.state = 'FETCHED_STACK';
+      return Promise.resolve(session);
     })
     .catch(function(err) {
       if (err && err.message.indexOf('does not exist') > -1) {
-        log.info(`Stack [${nfx.stackName}] could not be found. Creating...`);
-        return createStack(nfx);
+        log.info(`Stack [${session.stackName}] could not be found. Creating...`);
+        return createStack(session);
       }
 
       return Promise.reject(err);
     });
 };
 
-function createStack(nfx) {
-  const cf = nfx.aws.cf,
+function createStack(session) {
+  const cf = session.aws.cf,
         content = fsReadFile(path.join(__dirname, 'cf-base.json')),
         params = {
-          StackName: nfx.stackName,
+          StackName: session.stackName,
           TemplateBody: content,
           Capabilities: ['CAPABILITY_IAM'],
           NotificationARNs: [],
@@ -38,20 +38,20 @@ function createStack(nfx) {
   return cf.createStack(params)
         .promise()
         .then(function() {
-          return waitForCreate(nfx);
+          return waitForCreate(session);
         });
 }
 
-function waitForCreate(nfx) {
-  const cf = nfx.aws.cf;
+function waitForCreate(session) {
+  const cf = session.aws.cf;
 
-  nfx.state = 'CREATING';
-  log.info(`Creating stack [${nfx.stackName}]...`);
-  return cf.waitFor('stackCreateComplete', { StackName: nfx.stackName })
+  session.state = 'CREATING';
+  log.info(`Creating stack [${session.stackName}]...`);
+  return cf.waitFor('stackCreateComplete', { StackName: session.stackName })
     .promise()
     .then(() => {
-      log.info(`Created stack [${nfx.stackName}]...`);
-      nfx.state = 'CREATED';
-      return Promise.resolve(nfx);
+      log.info(`Created stack [${session.stackName}]...`);
+      session.state = 'CREATED';
+      return Promise.resolve(session);
     });
 }

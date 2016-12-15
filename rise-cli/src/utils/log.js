@@ -7,7 +7,7 @@ function log(type) {
     return;
   }
   const msgs = Array.from(arguments).slice(1);
-  let log = ['[nfx]'];
+  let log = ['[rise]'];
 
   switch(type) {
     case 'error':

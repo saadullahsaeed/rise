@@ -14,7 +14,7 @@ module.exports = class Session {
     this.routes = null;
     this.hasher = null;
     this.compressedFunctions = {};
-    this.nfxJSON = {};
+    this.riseJSON = {};
 
     this.aws = null;
 
@@ -22,19 +22,19 @@ module.exports = class Session {
   }
 
   static init() {
-    const project = config.read('nfx');
+    const project = config.read('rise');
     const routes  = config.read('routes');
 
     const s = {
       uuid: project.uuid,
-      stackName: `NFX-${project.stack}`,
+      stackName: `Rise-${project.stack}`,
       functions: project.functions,
       bucketName: project.profiles.default.bucket,
       provider: project.profiles.default.provider,
       region: project.profiles.default.region,
       routes,
       compressedFunctions : [],
-      nfxJSON: {}
+      riseJSON: {}
     };
 
     switch(s.provider) {

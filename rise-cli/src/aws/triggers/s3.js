@@ -16,7 +16,7 @@ module.exports = function getResources(trigger, funcName) {
   const resources = {};
   const cfTriggerContent = fsReadFile(path.join(__dirname, 'cf-trigger-s3.json'));
   const cfFuncPermissionContent = fsReadFile(path.join(__dirname, 'cf-trigger-lambda-permission.json'));
-  const resourceName = `NFX${trigger.bucket.replace(/[^0-9a-z]/gi, '')}Bucket`;
+  const resourceName = `Rise${trigger.bucket.replace(/[^0-9a-z]/gi, '')}Bucket`;
   const permissionResourceName = `${funcName}${trigger.bucket.replace(/[^0-9a-z]/gi, '')}S3TriggerLambdaPermission`;
 
   resources[resourceName] = JSON.parse(

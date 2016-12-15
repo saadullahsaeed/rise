@@ -1,10 +1,10 @@
 'use strict';
 
-module.exports = function getFunctionPhysicalResourceNames(nfx, resourcesName) {
+module.exports = function getFunctionPhysicalResourceNames(session, resourcesName) {
   const describePromises = [];
   for (let i = 0; i < resourcesName.length; ++i) {
     describePromises.push(
-      describeStackResource(nfx, resourcesName[i])
+      describeStackResource(session, resourcesName[i])
     );
   }
 
@@ -13,13 +13,13 @@ module.exports = function getFunctionPhysicalResourceNames(nfx, resourcesName) {
   });
 };
 
-function describeStackResource(nfx, resourceName) {
+function describeStackResource(session, resourceName) {
   const params = {
     LogicalResourceId: resourceName,
-    StackName: nfx.stackName
+    StackName: session.stackName
   };
 
-  return nfx.aws.cf.describeStackResource(params).promise()
+  return session.aws.cf.describeStackResource(params).promise()
     .then((data) => {
       return Promise.resolve({
         resourceName,

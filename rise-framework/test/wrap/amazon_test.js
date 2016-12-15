@@ -44,11 +44,11 @@ describe('wrap/amazon', function() {
     });
 
     context('when there is no middleware', function() {
-      it('returns a lambda function which responds to nfxTest for sanity checks after deploying', function() {
+      it('returns a lambda function which responds to riseTest for sanity checks after deploying', function() {
         const lambdaFunc = wrap(functionModule, appModule);
 
         expect(lambdaFunc.length).to.equal(3); // 3 arguments
-        lambdaFunc({ nfxTest: 1 }, null, callbackSpy);
+        lambdaFunc({ riseTest: 1 }, null, callbackSpy);
 
         expect(callbackSpy).to.have.been.calledOnce;
         expect(callbackSpy).to.have.been.calledWithExactly(null, { test: 'ok' });

@@ -2,7 +2,7 @@
   "Type": "AWS::ApiGateway::Resource",
   "Properties": {
     "RestApiId": {
-      "Ref": "NFXApi"
+      "Ref": "RiseAPI"
     },
     "ParentId": {},
     "PathPart": "$LAST_PATH"

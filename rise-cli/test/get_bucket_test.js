@@ -3,7 +3,7 @@
 const getBucket = require('../src/aws/getBucket');
 
 describe('getBucket', function() {
-  let nfx,
+  let session,
       headBucketFn,
       createBucketFn,
       region,
@@ -16,7 +16,7 @@ describe('getBucket', function() {
       resolve();
     });
 
-    nfx = {
+    session = {
       bucketName,
       region,
       aws: {
@@ -33,14 +33,14 @@ describe('getBucket', function() {
         resolve();
       });
 
-      nfx.aws.s3.headBucket = headBucketFn;
+      session.aws.s3.headBucket = headBucketFn;
     });
 
     it('calls headBucket with bucketName', function() {
-      return getBucket(nfx)
-        .then(function(nfx) {
-          expect(nfx).to.exist;
-          expect(nfx.state).to.equal('FETCHED_BUCKET');
+      return getBucket(session)
+        .then(function(session) {
+          expect(session).to.exist;
+          expect(session.state).to.equal('FETCHED_BUCKET');
           expect(headBucketFn).to.have.been.calledOnce;
           expect(headBucketFn).to.have.been.calledWith({ Bucket: bucketName });
           expect(createBucketFn).to.not.have.been.called;
@@ -54,14 +54,14 @@ describe('getBucket', function() {
         reject({ code: 'NotFound' });
       });
 
-      nfx.aws.s3.headBucket = headBucketFn;
+      session.aws.s3.headBucket = headBucketFn;
     });
 
     it('makes a request to create a bucket', function() {
-      return getBucket(nfx)
-        .then(function(nfx) {
-          expect(nfx).to.exist;
-          expect(nfx.state).to.equal('CREATED_BUCKET');
+      return getBucket(session)
+        .then(function(session) {
+          expect(session).to.exist;
+          expect(session.state).to.equal('CREATED_BUCKET');
           expect(headBucketFn).to.have.been.calledOnce;
           expect(headBucketFn).to.have.been.calledWith({ Bucket: bucketName });
           expect(createBucketFn).to.have.been.calledOnce;
@@ -82,11 +82,11 @@ describe('getBucket', function() {
         reject({ code: 'OtherError' });
       });
 
-      nfx.aws.s3.headBucket = headBucketFn;
+      session.aws.s3.headBucket = headBucketFn;
     });
 
     it('returns an error', function() {
-      return getBucket(nfx)
+      return getBucket(session)
         .then(function() {
           fail('this promise should not have been resolved');
         })

@@ -1,5 +1,4 @@
-# nfx-framework
+# rise-framework
 
 - - -
-This software is licensed under [the ISC
-License](https://raw.githubusercontent.com/nitrousfx/nfx/master/LICENSE.txt).
+This software is licensed under [the ISC License](https://raw.githubusercontent.com/rise-cloud/rise/master/LICENSE.txt).

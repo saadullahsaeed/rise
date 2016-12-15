@@ -1,7 +1,10 @@
 {
-  "name": "nfx-framework",
+  "name": "rise-framework",
   "version": "0.0.1",
-  "description": "nfx-framework",
+  "description": "Rise Framework",
+  "engines": {
+    "node": ">=4.3"
+  },
   "main": "src/index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha 'test/**/*_test.js'",
@@ -10,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nitrous-io/nfx-framework.git"
+    "url": "git+https://github.com/rise-cloud/rise.git"
   },
   "author": {
     "name": "Peter Jihoon Kim",
@@ -19,9 +22,9 @@
   },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/nitrous-io/nfx-framework/issues"
+    "url": "https://github.com/rise-cloud/rise/issues"
   },
-  "homepage": "https://github.com/nitrous-io/nfx-framework#readme",
+  "homepage": "https://github.com/rise-cloud/rise#readme",
   "devDependencies": {
     "body-parser": "^1.15.2",
     "chai": "^3.5.0",

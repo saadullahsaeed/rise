@@ -3,7 +3,7 @@
 const cancelUpdateStack = require('../src/aws/cancelUpdateStack');
 
 describe('cancelUpdateStack', function() {
-  let nfx,
+  let session,
       cancelUpdateStackFn,
       describeStacksFn;
 
@@ -16,7 +16,7 @@ describe('cancelUpdateStack', function() {
       cb(null, {Stacks: [{StackStatus: 'UPDATE_ROLLBACK_COMPLETE'}]});
     });
 
-    nfx = {
+    session = {
       stackName: 'my-stack',
       aws: {
         cf: {
@@ -28,9 +28,9 @@ describe('cancelUpdateStack', function() {
   });
 
   it('cancels updating a stack', function() {
-    return cancelUpdateStack(nfx, {})
-      .then(function(nfx) {
-        expect(nfx.state).to.equal('CANCELLED');
+    return cancelUpdateStack(session, {})
+      .then(function(session) {
+        expect(session.state).to.equal('CANCELLED');
         expect(cancelUpdateStackFn).to.have.been.calledOnce;
         const cancelStackParams = cancelUpdateStackFn.getCall(0).args[0];
         expect(cancelStackParams.StackName).to.equal('my-stack');
@@ -50,13 +50,13 @@ describe('cancelUpdateStack', function() {
         }, null);
       });
 
-      nfx.aws.cf.cancelUpdateStack = cancelUpdateStackFn;
+      session.aws.cf.cancelUpdateStack = cancelUpdateStackFn;
     });
 
     it('resolves the promise', function() {
-      return cancelUpdateStack(nfx, {})
-        .then(function(nfx) {
-          expect(nfx.state).to.equal('UNEXPECTEDLY_UPDATED');
+      return cancelUpdateStack(session, {})
+        .then(function(session) {
+          expect(session.state).to.equal('UNEXPECTEDLY_UPDATED');
           expect(cancelUpdateStackFn).to.have.been.calledOnce;
 
           expect(describeStacksFn).not.to.have.been.called;
@@ -70,11 +70,11 @@ describe('cancelUpdateStack', function() {
         cb({ message: 'error' }, null);
       });
 
-      nfx.aws.cf.cancelUpdateStack = cancelUpdateStackFn;
+      session.aws.cf.cancelUpdateStack = cancelUpdateStackFn;
     });
 
     it('resolves the promise', function() {
-      return cancelUpdateStack(nfx, {})
+      return cancelUpdateStack(session, {})
         .then(function() {
           fail('this promise should not have been resolved');
         })

@@ -4,9 +4,9 @@ profiles:
   default:
     provider: aws
     region: us-west-2
-    bucket: nfx-test-proj
+    bucket: rise-test-proj
 
-stack: nfx-test-proj
+stack: rise-test-proj
 
 functions:
   default:

@@ -13,9 +13,9 @@ describe('SNS trigger getResources', function() {
 
     it('returns an SNS resource', function() {
       const resources = getResources(trigger, funcName);
-      expect(resources).to.have.property('NFXtesttopicSNS');
+      expect(resources).to.have.property('RisetesttopicSNS');
 
-      const topicResource = resources['NFXtesttopicSNS'];
+      const topicResource = resources['RisetesttopicSNS'];
       expect(topicResource.Properties).to.deep.equal({
         TopicName: 'test-topic',
         DisplayName: 'TestTopic',
@@ -29,7 +29,7 @@ describe('SNS trigger getResources', function() {
     it('returns a permission resource', function() {
       const resources = getResources(trigger, funcName);
 
-      const permissionResourceName = `NFXtesttopicSNSTriggerLambdaPermission`;
+      const permissionResourceName = `RisetesttopicSNSTriggerLambdaPermission`;
       expect(resources).to.have.property(permissionResourceName);
 
       const permissionResource = resources[permissionResourceName];

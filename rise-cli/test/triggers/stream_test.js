@@ -15,8 +15,8 @@ describe('Stream trigger getResources', function() {
       const roleResource = {};
       const resources = getResources(trigger, funcName, roleResource);
 
-      expect(resources).to.have.property('NFXAppHelloIndexdynamodbproductsEventSourceMapping');
-      expect(resources['NFXAppHelloIndexdynamodbproductsEventSourceMapping']).to.deep.equal({
+      expect(resources).to.have.property('RiseAppHelloIndexdynamodbproductsEventSourceMapping');
+      expect(resources['RiseAppHelloIndexdynamodbproductsEventSourceMapping']).to.deep.equal({
         Type: 'AWS::Lambda::EventSourceMapping',
         Properties: {
           EventSourceArn: trigger.arn,
@@ -30,12 +30,12 @@ describe('Stream trigger getResources', function() {
       const roleResource = {};
       const resources = getResources(trigger, funcName, roleResource);
 
-      expect(resources).to.have.property('NFXRole');
+      expect(resources).to.have.property('RiseRole');
 
-      const policies = resources['NFXRole'].Properties.Policies;
+      const policies = resources['RiseRole'].Properties.Policies;
       expect(policies).to.have.lengthOf(1);
       const policy = policies[0];
-      expect(policy).to.have.property('PolicyName', 'NFXAppHelloIndexdynamodbproductsEventSourceMapping-access');
+      expect(policy).to.have.property('PolicyName', 'RiseAppHelloIndexdynamodbproductsEventSourceMapping-access');
 
       expect(policy).to.deep.have.property('PolicyDocument.Statement');
       const stmt = policy.PolicyDocument.Statement;
@@ -60,8 +60,8 @@ describe('Stream trigger getResources', function() {
         const roleResource = {};
         const resources = getResources(newTrigger, funcName, roleResource);
 
-        expect(resources).to.have.property('NFXAppHelloIndexdynamodbproductsEventSourceMapping');
-        expect(resources['NFXAppHelloIndexdynamodbproductsEventSourceMapping']).to.deep.equal({
+        expect(resources).to.have.property('RiseAppHelloIndexdynamodbproductsEventSourceMapping');
+        expect(resources['RiseAppHelloIndexdynamodbproductsEventSourceMapping']).to.deep.equal({
           Type: 'AWS::Lambda::EventSourceMapping',
           Properties: {
             EventSourceArn: trigger.arn,
@@ -84,8 +84,8 @@ describe('Stream trigger getResources', function() {
       const roleResource = {};
       const resources = getResources(trigger, funcName, roleResource);
 
-      expect(resources).to.have.property('NFXAppHelloIndexkinesistweetsEventSourceMapping');
-      expect(resources['NFXAppHelloIndexkinesistweetsEventSourceMapping']).to.deep.equal({
+      expect(resources).to.have.property('RiseAppHelloIndexkinesistweetsEventSourceMapping');
+      expect(resources['RiseAppHelloIndexkinesistweetsEventSourceMapping']).to.deep.equal({
         Type: 'AWS::Lambda::EventSourceMapping',
         Properties: {
           EventSourceArn: trigger.arn,
@@ -99,12 +99,12 @@ describe('Stream trigger getResources', function() {
       const roleResource = {};
       const resources = getResources(trigger, funcName, roleResource);
 
-      expect(resources).to.have.property('NFXRole');
+      expect(resources).to.have.property('RiseRole');
 
-      const policies = resources['NFXRole'].Properties.Policies;
+      const policies = resources['RiseRole'].Properties.Policies;
       expect(policies).to.have.lengthOf(1);
       const policy = policies[0];
-      expect(policy).to.have.property('PolicyName', 'NFXAppHelloIndexkinesistweetsEventSourceMapping-access');
+      expect(policy).to.have.property('PolicyName', 'RiseAppHelloIndexkinesistweetsEventSourceMapping-access');
 
       expect(policy).to.deep.have.property('PolicyDocument.Statement');
       const stmt = policy.PolicyDocument.Statement;
@@ -129,8 +129,8 @@ describe('Stream trigger getResources', function() {
         const roleResource = {};
         const resources = getResources(newTrigger, funcName, roleResource);
 
-        expect(resources).to.have.property('NFXAppHelloIndexkinesistweetsEventSourceMapping');
-        expect(resources['NFXAppHelloIndexkinesistweetsEventSourceMapping']).to.deep.equal({
+        expect(resources).to.have.property('RiseAppHelloIndexkinesistweetsEventSourceMapping');
+        expect(resources['RiseAppHelloIndexkinesistweetsEventSourceMapping']).to.deep.equal({
           Type: 'AWS::Lambda::EventSourceMapping',
           Properties: {
             EventSourceArn: trigger.arn,

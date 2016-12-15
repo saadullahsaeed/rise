@@ -3,22 +3,22 @@
 const fs = require('fs'),
       log = require('../utils/log');
 
-module.exports = function uploadFunctions(nfx) {
+module.exports = function uploadFunctions(session) {
   const uploadPromises = [];
-  for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
-    const compressFunction = nfx.compressedFunctions[i];
+  for (let i = 0; i < session.compressedFunctions.length; ++i) {
+    const compressFunction = session.compressedFunctions[i];
     uploadPromises.push(
-      upload(nfx.aws.s3, nfx.bucketName, compressFunction)
+      upload(session.aws.s3, session.bucketName, compressFunction)
     );
   }
 
-  nfx.state = 'UPLOADING';
+  session.state = 'UPLOADING';
   return Promise.all(uploadPromises).then(() => {
-    nfx.state = 'UPLOADED';
+    session.state = 'UPLOADED';
     log.info('All functions have been uploaded.');
-    return Promise.resolve(nfx);
+    return Promise.resolve(session);
   }, (err) => {
-    nfx.state = 'UPLOAD_FAILED';
+    session.state = 'UPLOAD_FAILED';
     return Promise.reject(err);
   });
 };

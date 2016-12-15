@@ -2,33 +2,33 @@
 
 const log = require('../utils/log');
 
-module.exports = function fetchVersion(nfx) {
+module.exports = function fetchVersion(session) {
   const params = {
-    Bucket: nfx.bucketName,
-    Key: 'nfx.json'
+    Bucket: session.bucketName,
+    Key: 'rise.json'
   };
 
-  nfx.state = 'FETCHING_VERSION';
-  return nfx.aws.s3.getObject(params).promise()
+  session.state = 'FETCHING_VERSION';
+  return session.aws.s3.getObject(params).promise()
     .then(function(data) {
-      log.info("nfx.json found.");
-      const nfxJSON = JSON.parse(data.Body);
+      log.info("rise.json found.");
+      const riseJSON = JSON.parse(data.Body);
 
-      if (nfx.uuid !== nfxJSON.uuid) {
+      if (session.uuid !== riseJSON.uuid) {
         return Promise.reject('The uuid does not match. Please check your bucket name.');
       }
 
-      nfx.state = 'FETCHED_VERSION';
-      nfx.nfxJSON = nfxJSON;
-      return Promise.resolve(nfx);
+      session.state = 'FETCHED_VERSION';
+      session.riseJSON = riseJSON;
+      return Promise.resolve(session);
     })
     .catch(function(err) {
       if (err.message && err.message.indexOf('does not exist') > -1) {
-        log.info('nfx.json does not exist.');
-        nfx.nfxJSON.version_hashes = {};
-        nfx.nfxJSON.uuid = nfx.uuid;
-        nfx.state = 'FETCHED_VERSION';
-        return Promise.resolve(nfx);
+        log.info('rise.json does not exist.');
+        session.riseJSON.version_hashes = {};
+        session.riseJSON.uuid = session.uuid;
+        session.state = 'FETCHED_VERSION';
+        return Promise.resolve(session);
       } else {
         return Promise.reject(err);
       }

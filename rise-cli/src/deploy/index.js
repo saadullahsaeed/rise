@@ -9,27 +9,27 @@ const log = require('../utils/log'),
       updateStack = require('../aws/updateStack'),
       deployAPI = require('../aws/deployAPI'),
       pingFunctions = require('../aws/pingFunctions'),
-      uploadNFXFiles = require('../aws/uploadNFXFiles'),
+      uploadRiseFiles = require('../aws/uploadRiseFiles'),
       handleInterrupt = require('../aws/handleInterrupt');
 
-module.exports = function(nfx) {
-  getBucket(nfx)
+module.exports = function(session) {
+  getBucket(session)
     .then(getStack)
     .then(fetchVersion)
     .then(compressAndCompare)
     .then(uploadFunctions)
     .then(updateStack)
     .then(pingFunctions)
-    .then(function(nfx) {
-      return deployAPI(nfx, {});
+    .then(function(session) {
+      return deployAPI(session, {});
     })
-    .then(uploadNFXFiles)
+    .then(uploadRiseFiles)
     .catch(function(err) {
       log.error(err);
-      handleInterrupt(nfx);
+      handleInterrupt(session);
     });
 
   process.on('SIGINT', function() {
-    handleInterrupt(nfx);
+    handleInterrupt(session);
   });
 };

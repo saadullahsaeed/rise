@@ -7,7 +7,7 @@ const uploadFunctions = require('../src/aws/uploadFunctions'),
       tmp = require('tmp');
 
 describe('uploadFunctions', function() {
-  let nfx,
+  let session,
       tmpDir,
       tempFileName1,
       tempFileName2,
@@ -32,7 +32,7 @@ describe('uploadFunctions', function() {
     fs.writeFileSync(funcFilePath1, 'zip content');
     fs.writeFileSync(funcFilePath2, 'zip content');
 
-    nfx = {
+    session = {
       state: '',
       compressedFunctions: [{
         functionPath: '/',
@@ -55,15 +55,15 @@ describe('uploadFunctions', function() {
 
   context('when upload success', function() {
     it('updates state to UPLOADING', function() {
-      return uploadFunctions(nfx)
-        .then(function(nfx) {
-          expect(nfx.state).to.equal('UPLOADED');
+      return uploadFunctions(session)
+        .then(function(session) {
+          expect(session.state).to.equal('UPLOADED');
         });
     });
 
     it('cleans up temp function zip file', function() {
-      return uploadFunctions(nfx)
-        .then(function(/* nfx */) {
+      return uploadFunctions(session)
+        .then(function(/* session */) {
           expect(fsStat(funcFilePath1)).to.equal(false);
           expect(fsStat(funcFilePath2)).to.equal(false);
         });
@@ -72,21 +72,21 @@ describe('uploadFunctions', function() {
 
   context('when upload failed', function() {
     beforeEach(function() {
-      nfx.aws.s3.putObject = putObjectErrFn;
+      session.aws.s3.putObject = putObjectErrFn;
     });
 
     it('updates state to UPLOAD_FAILED', function() {
-      return uploadFunctions(nfx)
+      return uploadFunctions(session)
         .then(function() {
           fail('this promise should not have been resolved');
         })
         .catch(function() {
-          expect(nfx.state).to.equal('UPLOAD_FAILED');
+          expect(session.state).to.equal('UPLOAD_FAILED');
         });
     });
 
     it('cleans up temp function zip file', function() {
-      return uploadFunctions(nfx)
+      return uploadFunctions(session)
         .then(function() {
           fail('this promise should not have been resolved');
         })

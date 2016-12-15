@@ -10,7 +10,7 @@ const compressAndCompare = require('../src/aws/compressAndCompare'),
       fsReadFile = require('../src/utils/fs').fsReadFile;
 
 describe('compressAndCompare', function() {
-  let nfx,
+  let session,
       cwdOrig,
       tmpDir,
       funcFiles;
@@ -35,12 +35,12 @@ describe('compressAndCompare', function() {
       paths: {
         '/': {
           get: {
-            'x-nfx': {
+            'x-rise': {
               function: 'listTasks'
             }
           },
           put: {
-            'x-nfx': {
+            'x-rise': {
               function: 'createTasks'
             }
           }
@@ -72,7 +72,7 @@ describe('compressAndCompare', function() {
 
     // config yaml files
     writeFile(path.join(tmpDir.name, 'routes.yaml'), yaml.safeDump(routesJSON));
-    writeFile(path.join(tmpDir.name, 'nfx.yaml'), yaml.safeDump({
+    writeFile(path.join(tmpDir.name, 'rise.yaml'), yaml.safeDump({
       profiles: profilesJSON,
       functions: funcsJSON
     }));
@@ -99,11 +99,11 @@ describe('compressAndCompare', function() {
     // CHANGELOG.md
     writeFile(path.join(tmpDir.name, 'CHANGELOG.md'), "# No updates");
 
-    nfx = {
+    session = {
       functions: funcsJSON,
       compressedFunctions: [],
       hasher: crypto.createHash('sha256'),
-      nfxJSON: {
+      riseJSON: {
         active_version: 'v1',
         version_hashes: {}
       }
@@ -112,8 +112,8 @@ describe('compressAndCompare', function() {
 
   afterEach(function() {
     process.chdir(cwdOrig);
-    for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
-      const p = nfx.compressedFunctions[i].filePath;
+    for (let i = 0; i < session.compressedFunctions.length; ++i) {
+      const p = session.compressedFunctions[i].filePath;
       fs.unlinkSync(p);
     }
 
@@ -132,13 +132,13 @@ describe('compressAndCompare', function() {
   });
 
   it('updates version and hash for next version', function() {
-    return compressAndCompare(nfx)
-      .then(function(nfx) {
-        expect(nfx).to.exist;
-        expect(nfx.state).to.equal('COMPRESSED');
-        expect(nfx.version).to.equal('v2');
-        expect(nfx.nfxJSON.active_version).to.equal('v1');
-        expect(nfx.nfxJSON.version_hashes['v2']).to.not.be.null;
+    return compressAndCompare(session)
+      .then(function(session) {
+        expect(session).to.exist;
+        expect(session.state).to.equal('COMPRESSED');
+        expect(session.version).to.equal('v2');
+        expect(session.riseJSON.active_version).to.equal('v1');
+        expect(session.riseJSON.version_hashes['v2']).to.not.be.null;
       });
   });
 
@@ -147,7 +147,7 @@ describe('compressAndCompare', function() {
       listTasks: [
         "functions/listTasks/index.js",
         "routes.yaml",
-        "nfx.yaml",
+        "rise.yaml",
         "index.js",
         "lib/",
         "lib/lib.js"
@@ -155,7 +155,7 @@ describe('compressAndCompare', function() {
       createTasks: [
         "functions/createTasks/create.js",
         "routes.yaml",
-        "nfx.yaml",
+        "rise.yaml",
         "index.js",
         "lib/",
         "lib/lib.js",
@@ -163,11 +163,11 @@ describe('compressAndCompare', function() {
       ]
     };
 
-    return compressAndCompare(nfx)
-      .then(function(nfx) {
-        expect(nfx.compressedFunctions).to.have.length(2);
-        for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
-          const p = nfx.compressedFunctions[i];
+    return compressAndCompare(session)
+      .then(function(session) {
+        expect(session.compressedFunctions).to.have.length(2);
+        for (let i = 0; i < session.compressedFunctions.length; ++i) {
+          const p = session.compressedFunctions[i];
           expect(p.filePath).to.exist;
           expect(fs.statSync(p.filePath)).to.not.be.null;
           expect(p.uploadPath).to.exist;
@@ -182,12 +182,12 @@ describe('compressAndCompare', function() {
               expect(fsReadFile(entries[j].entryName)).to.equal(content);
             } else if (entries[j].entryName === 'index.js') {
               const expected = `
-const nfx = require('nfx-framework');
+const rise = require('rise-framework');
 
 const appModule = require('./app'),
       functionModule = require('./functions/${p.functionName}');
 
-exports.handle = nfx.wrap.amazon(functionModule, appModule, {});`;
+exports.handle = rise.wrap.amazon(functionModule, appModule, {});`;
               expect(content).to.equal(expected);
             }
             paths.push(entries[j].entryName);
@@ -202,58 +202,58 @@ exports.handle = nfx.wrap.amazon(functionModule, appModule, {});`;
       const checksum = require('../src/utils/checksum');
       return checksum('CHANGELOG.md')
         .then(function(checksumResult) {
-          nfx.nfxJSON.version_hashes['v1'] = checksumResult;
+          session.riseJSON.version_hashes['v1'] = checksumResult;
         });
     });
 
     it("does not continue to compress files", function() {
-      return compressAndCompare(nfx)
+      return compressAndCompare(session)
         .then(function() {
           fail('this promise should not have been resolved');
         })
         .catch(function(err) {
           expect(err).to.contain('No change is present');
-          expect(nfx.compressedFunctions).to.have.length(0);
+          expect(session.compressedFunctions).to.have.length(0);
         });
     });
   });
 
   context("when the checksum is not same as current version", function() {
     beforeEach(function() {
-      nfx.nfxJSON.version_hashes['v1'] = '123456';
+      session.riseJSON.version_hashes['v1'] = '123456';
     });
 
     it("does not continue to compress files", function() {
-      return compressAndCompare(nfx)
-        .then(function(nfx) {
-          expect(nfx.compressedFunctions).to.have.length(2);
+      return compressAndCompare(session)
+        .then(function(session) {
+          expect(session.compressedFunctions).to.have.length(2);
         });
     });
   });
 
   context("when there are no functions", function() {
     beforeEach(function() {
-      nfx.functions = {};
+      session.functions = {};
     });
 
     it("returns an error", function() {
-      return compressAndCompare(nfx)
+      return compressAndCompare(session)
         .then(function() {
           fail('this promise should not have been resolved');
         })
         .catch(function(err) {
-          expect(err).to.contain('No functions found in nfx.yaml');
+          expect(err).to.contain('No functions found in rise.yaml');
         });
     });
   });
 
   context("when folders don't exist for functions", function() {
     beforeEach(function() {
-      nfx.functions.thisIsNotFunc = null;
+      session.functions.thisIsNotFunc = null;
     });
 
     it("returns an error", function() {
-      return compressAndCompare(nfx)
+      return compressAndCompare(session)
         .then(function() {
           fail('this promise should not have been resolved');
         })

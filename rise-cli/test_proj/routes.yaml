@@ -1,33 +1,33 @@
-# NFX routes definition is a subset of Swagger spec
-x-nfx:
+# Rise routes definition is a subset of Swagger spec
+x-rise:
   default:
     cors: true
 
 paths:
   /:
     get:
-      x-nfx:
+      x-rise:
         function: home
         cors: false
 
   /tasks:
     get:
-      x-nfx:
+      x-rise:
         function: listTasks
 
     post:
-      x-nfx:
+      x-rise:
         function: createTask
 
   /tasks/{taskId}:
     delete:
-      x-nfx:
+      x-rise:
         function: deleteTask
 
     put:
-      x-nfx:
+      x-rise:
         function: updateTask
 
     patch:
-      x-nfx:
+      x-rise:
         function: updateTask

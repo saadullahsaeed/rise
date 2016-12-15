@@ -51,7 +51,7 @@ module.exports = function(stackName, options) {
   let region = options.region,
       bucket = options.bucketName;
 
-  const projectPath   = path.join(stackName, 'nfx.yaml'),
+  const projectPath   = path.join(stackName, 'rise.yaml'),
         routesPath = path.join(stackName, 'routes.yaml'),
         appJSPath = path.join(stackName, 'app.js'),
         awsCredPath   = path.join(os.homedir(), '.aws', 'credentials');
@@ -125,7 +125,7 @@ module.exports = function(stackName, options) {
   };
 
   const routes = {
-    'x-nfx': {},
+    'x-rise': {},
     paths: {}
   };
 

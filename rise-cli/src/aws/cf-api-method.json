@@ -2,7 +2,7 @@
   "Type": "AWS::ApiGateway::Method",
   "Properties": {
     "RestApiId": {
-      "Ref": "NFXApi"
+      "Ref": "RiseAPI"
     },
     "ResourceId": {},
     "HttpMethod": "$METHOD",

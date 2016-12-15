@@ -18,8 +18,8 @@ describe('CloudWatch Logs trigger getResources', function() {
       const resources = getResources(trigger, funcName, region);
 
       const sha = crypto.createHash('sha1').update('test-log-group').digest('hex');
-      const resourceName = `NFXAppHelloIndex${sha}CloudWatchLogSubscriptionFilter`;
-      const permissionName = `NFXAppHelloIndex${sha}CloudWatchLogSubscriptionFilterTriggerLambdaPermission`;
+      const resourceName = `RiseAppHelloIndex${sha}CloudWatchLogSubscriptionFilter`;
+      const permissionName = `RiseAppHelloIndex${sha}CloudWatchLogSubscriptionFilterTriggerLambdaPermission`;
 
       expect(resources).to.have.property(resourceName);
       expect(resources).to.have.property(permissionName);

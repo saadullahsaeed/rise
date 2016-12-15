@@ -1,8 +1,8 @@
 {
   "AWSTemplateFormatVersion" : "2010-09-09",
-  "Description": "NFX stack",
+  "Description": "Rise Stack",
   "Resources": {
-    "NFXRole": {
+    "RiseRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -16,7 +16,7 @@
         "Path": "/"
       }
     },
-    "NFXRolePolicy": {
+    "RiseRolePolicy": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyName": "cloudwatch-logs-access",
@@ -32,10 +32,10 @@
             "Resource": "arn:aws:logs:*:*:*"
           }]
         },
-        "Roles": [ { "Ref": "NFXRole" } ]
+        "Roles": [ { "Ref": "RiseRole" } ]
       }
     },
-    "NFXRoleDynamodbPolicy": {
+    "RiseRoleDynamodbPolicy": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyName": "dynamodb-access",
@@ -81,7 +81,7 @@
             "Resource": "arn:aws:dynamodb:*:*:*"
           }]
         },
-        "Roles": [ { "Ref": "NFXRole" } ]
+        "Roles": [ { "Ref": "RiseRole" } ]
       }
     }
   },

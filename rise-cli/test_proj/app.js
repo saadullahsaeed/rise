@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser'),
 
 exports.setup = (app) => {
   // you should not use any asynchronous calls here
-  app.set('tableName', 'my-nfx-todo');
+  app.set('tableName', 'my-rise-todo');
   app.locals.title = 'My Todo';
 };
 

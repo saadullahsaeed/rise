@@ -3,7 +3,7 @@
 const pingFunctions = require('../src/aws/pingFunctions');
 
 describe('pingFunctions', function() {
-  let nfx,
+  let session,
       listFunctionsFn,
       invokeFn;
 
@@ -21,7 +21,7 @@ describe('pingFunctions', function() {
       resolve({ StatusCode: 200, Payload: '{"test":"ok"}' });
     });
 
-    nfx = {
+    session = {
       stackName: 'foo-stack',
       compressedFunctions:[
         { functionName: 'AppIndex' },
@@ -37,19 +37,19 @@ describe('pingFunctions', function() {
   });
 
   it('pings deployed functions', function() {
-    return pingFunctions(nfx)
-      .then(function(nfx) {
-        expect(nfx).to.not.be.null;
+    return pingFunctions(session)
+      .then(function(session) {
+        expect(session).to.not.be.null;
         expect(listFunctionsFn).to.have.been.calledOnce;
         expect(listFunctionsFn).to.have.been.calledWith({});
         expect(invokeFn).to.have.been.calledTwice;
         expect(invokeFn).to.have.been.calledWith({
           FunctionName: 'foo-stack-AppIndex-123456',
-          Payload: JSON.stringify({nfxTest: 1})
+          Payload: JSON.stringify({riseTest: 1})
         });
         expect(invokeFn).to.have.been.calledWith({
           FunctionName: 'foo-stack-AppCreate-789012',
-          Payload: JSON.stringify({nfxTest: 1})
+          Payload: JSON.stringify({riseTest: 1})
         });
       });
   });

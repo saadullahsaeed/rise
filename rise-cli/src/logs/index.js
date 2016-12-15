@@ -6,14 +6,14 @@ const log = require('../utils/log'),
 
 let functionPhysicalResourceNamesMap;
 
-module.exports = function(nfx, functionName, options) {
-  if (functionName && Object.keys(nfx.functions).indexOf(functionName) === -1) {
+module.exports = function(session, functionName, options) {
+  if (functionName && Object.keys(session.functions).indexOf(functionName) === -1) {
     log.error(`Function "${functionName}" doesn't exist.`);
     process.exit(1);
   }
   let functionNames = [];
   if (typeof functionName === 'undefined') {
-    const allFunctionNames = Object.keys(nfx.functions);
+    const allFunctionNames = Object.keys(session.functions);
     for (let i = 0; i < allFunctionNames.length; i++) {
       if (allFunctionNames[i] === 'default') {
         continue;
@@ -21,26 +21,26 @@ module.exports = function(nfx, functionName, options) {
       functionNames.push(allFunctionNames[i]);
     }
   } else {
-    functionNames = [functionName]
+    functionNames = [functionName];
   }
 
   let functionPhysicalResourceNames;
-  getFunctionPhysicalResourceNames(nfx, functionNames)
+  getFunctionPhysicalResourceNames(session, functionNames)
     .then((names) => {
       functionPhysicalResourceNamesMap = names;
       functionPhysicalResourceNames = names.map((n) => {
         return n.physicalResourceName;
       });
-      return functionLogs(nfx, functionPhysicalResourceNames, options.since);
+      return functionLogs(session, functionPhysicalResourceNames, options.since);
     })
     .then((logs) => {
-      handleLogs(nfx, logs, functionPhysicalResourceNames, options.follow, options.since);
+      handleLogs(session, logs, functionPhysicalResourceNames, options.follow, options.since);
     })
     .catch(log.error);
 };
 
 function sortAndPrint(logs) {
-  const mappedLog = []
+  const mappedLog = [];
   logs.forEach((log) => {
     log.allLogs.forEach((l) => {
       let functionName;
@@ -74,23 +74,23 @@ function sortByTimestamp(l1, l2) {
   return l1.timestamp - l2.timestamp;
 }
 
-function followLog(nfx, functionPhysicalResourceNames, lastEventTime) {
+function followLog(session, functionPhysicalResourceNames, lastEventTime) {
   setTimeout(() => {
-    functionLogs(nfx, functionPhysicalResourceNames, lastEventTime)
+    functionLogs(session, functionPhysicalResourceNames, lastEventTime)
       .then((logs) => {
-        handleLogs(nfx, logs, functionPhysicalResourceNames, true, lastEventTime);
+        handleLogs(session, logs, functionPhysicalResourceNames, true, lastEventTime);
       })
       .catch(log.error);
   }, 3000);
 }
 
-function handleLogs(nfx, logs, functionPhysicalResourceNames, follow, startTime) {
+function handleLogs(session, logs, functionPhysicalResourceNames, follow, startTime) {
   const sortedLogs = sortAndPrint(logs);
   if (sortedLogs.length > 0) {
     startTime = sortedLogs[sortedLogs.length - 1].timestamp + 1;
   }
 
   if (follow) {
-    followLog(nfx, functionPhysicalResourceNames, startTime);
+    followLog(session, functionPhysicalResourceNames, startTime);
   }
 }

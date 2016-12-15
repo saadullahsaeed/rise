@@ -13,7 +13,7 @@ exports.handle = (req, res, next) => {
 };`;
 
 module.exports = function generateFunction(functionName) {
-  const project = config.read('nfx'),
+  const project = config.read('rise'),
         routes = config.read('routes');
 
   if (functionName.length < 3) {
@@ -52,11 +52,11 @@ module.exports = function generateFunction(functionName) {
 
   project.functions = project.functions || {};
   project.functions[functionName] = project.functions[functionName] || {};
-  config.write('nfx', project);
+  config.write('rise', project);
 
   routes.paths[`/${functionName}`] = routes.paths[`/${functionName}`] || {
     get: {
-      'x-nfx': {
+      'x-rise': {
         'function': functionName
       }
     }

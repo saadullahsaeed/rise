@@ -13,9 +13,9 @@ describe('S3 trigger getResources', function() {
 
     it('returns an S3 bucket resource and a permission resource', function() {
       const resources = getResources(trigger, funcName);
-      expect(resources).to.have.property('NFXimageuploadsBucket');
+      expect(resources).to.have.property('RiseimageuploadsBucket');
 
-      const bucketResource = resources['NFXimageuploadsBucket'];
+      const bucketResource = resources['RiseimageuploadsBucket'];
       expect(bucketResource).to.have.property('Type', 'AWS::S3::Bucket');
       expect(bucketResource).to.have.property('Properties');
 
@@ -70,7 +70,7 @@ describe('S3 trigger getResources', function() {
     it('defaults to the s3:ObjectCreated:* event', function() {
       const resources = getResources(trigger, funcName);
 
-      expect(resources['NFXimageuploadsBucket']).to.have.deep.property(
+      expect(resources['RiseimageuploadsBucket']).to.have.deep.property(
         'Properties.NotificationConfiguration.LambdaConfigurations[0].Event',
         's3:ObjectCreated:*'
       );
@@ -86,9 +86,9 @@ describe('S3 trigger getResources', function() {
 
     it('includes a filter rule on the S3 bucket resource', function() {
       const resources = getResources(trigger, funcName);
-      expect(resources).to.have.property('NFXimageuploadsBucket');
+      expect(resources).to.have.property('RiseimageuploadsBucket');
 
-      const bucketResource = resources['NFXimageuploadsBucket'];
+      const bucketResource = resources['RiseimageuploadsBucket'];
       expect(bucketResource).to.have.property('Type', 'AWS::S3::Bucket');
       expect(bucketResource).to.have.property('Properties');
 
@@ -122,9 +122,9 @@ describe('S3 trigger getResources', function() {
 
     it('includes a filter rule on the S3 bucket resource', function() {
       const resources = getResources(trigger, funcName);
-      expect(resources).to.have.property('NFXimageuploadsBucket');
+      expect(resources).to.have.property('RiseimageuploadsBucket');
 
-      const bucketResource = resources['NFXimageuploadsBucket'];
+      const bucketResource = resources['RiseimageuploadsBucket'];
       expect(bucketResource).to.have.property('Type', 'AWS::S3::Bucket');
       expect(bucketResource).to.have.property('Properties');
 
@@ -159,9 +159,9 @@ describe('S3 trigger getResources', function() {
 
     it('includes filter rules on the S3 bucket resource', function() {
       const resources = getResources(trigger, funcName);
-      expect(resources).to.have.property('NFXimageuploadsBucket');
+      expect(resources).to.have.property('RiseimageuploadsBucket');
 
-      const bucketResource = resources['NFXimageuploadsBucket'];
+      const bucketResource = resources['RiseimageuploadsBucket'];
       expect(bucketResource).to.have.property('Type', 'AWS::S3::Bucket');
       expect(bucketResource).to.have.property('Properties');
 

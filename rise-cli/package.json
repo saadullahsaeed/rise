@@ -1,9 +1,9 @@
 {
-  "name": "nfx",
+  "name": "rise",
   "version": "0.0.1",
-  "description": "nfx",
+  "description": "Rise CLI",
   "engines": {
-    "node": ">=4.0"
+    "node": ">=4.3"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha 'test/**/*_test.js'",
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nitrous-io/nfx.git"
+    "url": "git+https://github.com/rise-cloud/rise.git"
   },
   "author": {
     "name": "Peter Jihoon Kim",
@@ -20,9 +20,9 @@
   },
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/nitrous-io/nfx/issues"
+    "url": "https://github.com/rise-cloud/rise/issues"
   },
-  "homepage": "https://github.com/nitrous-io/nfx#readme",
+  "homepage": "https://github.com/rise-cloud/rise#readme",
   "dependencies": {
     "archiver": "^1.1.0",
     "aws-sdk": "^2.6.4",

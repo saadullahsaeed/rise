@@ -1,16 +1,16 @@
 'use strict';
 
-module.exports = function pingFunctions(nfx) {
-  const lambda = nfx.aws.lambda,
-        stackName = nfx.stackName;
+module.exports = function pingFunctions(session) {
+  const lambda = session.aws.lambda,
+        stackName = session.stackName;
 
-  nfx.state = 'PINGING';
+  session.state = 'PINGING';
   return lambda.listFunctions({}).promise()
     .then(function(data) {
-      return pingPromiseAll(lambda, stackName, nfx.compressedFunctions, data.Functions).
+      return pingPromiseAll(lambda, stackName, session.compressedFunctions, data.Functions).
         then(function() {
-          nfx.state = 'PINGED';
-          return Promise.resolve(nfx);
+          session.state = 'PINGED';
+          return Promise.resolve(session);
         });
     });
 };
@@ -36,7 +36,7 @@ function pingPromiseAll(lambda, stackName, uploadedFunctions, functions) {
 function pingPromise(lambda, functionName) {
   return lambda.invoke({
     FunctionName: functionName,
-    Payload: JSON.stringify({nfxTest: 1})
+    Payload: JSON.stringify({riseTest: 1})
   }).promise()
     .then(function(data) {
       if (data.StatusCode !== 200 || data.Payload !== '{"test":"ok"}') {

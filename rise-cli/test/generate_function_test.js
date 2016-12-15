@@ -18,7 +18,7 @@ describe('compressAndCompare', function() {
 
     process.chdir(tmpDir.name);
     routes = {
-      'x-nfx': {},
+      'x-rise': {},
       paths: {}
     };
 
@@ -32,7 +32,7 @@ describe('compressAndCompare', function() {
 
     // config yaml files
     fs.writeFileSync(path.join(tmpDir.name, 'routes.yaml'), yaml.safeDump(routes), { encoding: 'utf8'});
-    fs.writeFileSync(path.join(tmpDir.name, 'nfx.yaml'), yaml.safeDump({
+    fs.writeFileSync(path.join(tmpDir.name, 'rise.yaml'), yaml.safeDump({
       profiles,
       stack: 'my-test-stack',
       functions: {}
@@ -44,7 +44,7 @@ describe('compressAndCompare', function() {
     fs.removeSync(tmpDir.name);
   });
 
-  it('creates index.js file and updates nfx.yaml and routes.yaml file', function() {
+  it('creates index.js file and updates rise.yaml and routes.yaml file', function() {
     const err = generateFunction('testfunction');
     expect(err).not.to.exist;
 
@@ -55,13 +55,13 @@ exports.handle = (req, res, next) => {
   res.send({status: 'ok'});
   next();
 };`);
-    const nfxYAML = yaml.safeLoad(fs.readFileSync(path.join('nfx.yaml'), { encoding: 'utf8' }));
-    expect(nfxYAML.functions.testfunction).to.exist;
+    const riseYAML = yaml.safeLoad(fs.readFileSync(path.join('rise.yaml'), { encoding: 'utf8' }));
+    expect(riseYAML.functions.testfunction).to.exist;
 
     const routesYAML = yaml.safeLoad(fs.readFileSync(path.join('routes.yaml'), { encoding: 'utf8' }));
     expect(routesYAML.paths['/testfunction']).to.deep.equal({
       get: {
-        'x-nfx': {
+        'x-rise': {
           'function': 'testfunction'
         }
       }
@@ -74,7 +74,7 @@ exports.handle = (req, res, next) => {
       fs.mkdirSync(path.join('functions', 'testfunction'));
     });
 
-    it('creates index.js file in the existing folder and updates nfx.yaml file', function() {
+    it('creates index.js file in the existing folder and updates rise.yaml file', function() {
       const err = generateFunction('testfunction');
       expect(err).not.to.exist;
 
@@ -86,8 +86,8 @@ exports.handle = (req, res, next) => {
   next();
 };`);
 
-      const nfxYAML = yaml.safeLoad(fs.readFileSync(path.join('nfx.yaml'), {encoding: 'utf8'}));
-      expect(nfxYAML.functions.testfunction).to.exist;
+      const riseYAML = yaml.safeLoad(fs.readFileSync(path.join('rise.yaml'), {encoding: 'utf8'}));
+      expect(riseYAML.functions.testfunction).to.exist;
     });
 
     context('when the index file exist', function() {
@@ -104,15 +104,15 @@ exports.handle = (req, res, next) => {
         expect(indexFileContent).to.exist;
         expect(indexFileContent).to.equal('console.log("exisiting function");');
 
-        const nfxYAML = yaml.safeLoad(fs.readFileSync(path.join('nfx.yaml'), {encoding: 'utf8'}));
-        expect(nfxYAML.functions.testfunction).to.exist;
+        const riseYAML = yaml.safeLoad(fs.readFileSync(path.join('rise.yaml'), {encoding: 'utf8'}));
+        expect(riseYAML.functions.testfunction).to.exist;
       });
     });
   });
 
-  context('when the function exists in nfx.yaml', function() {
+  context('when the function exists in rise.yaml', function() {
     beforeEach(function() {
-      fs.writeFileSync(path.join(tmpDir.name, 'nfx.yaml'), yaml.safeDump({
+      fs.writeFileSync(path.join(tmpDir.name, 'rise.yaml'), yaml.safeDump({
         profiles,
         stack: 'my-test-stack',
         functions: {
@@ -123,7 +123,7 @@ exports.handle = (req, res, next) => {
       }), { encoding: 'utf8' });
     });
 
-    it("does not the settting in nfx.yaml", function() {
+    it("does not the settting in rise.yaml", function() {
       const err = generateFunction('testfunction');
       expect(err).not.to.exist;
 
@@ -135,8 +135,8 @@ exports.handle = (req, res, next) => {
   next();
 };`);
 
-      const nfxYAML = yaml.safeLoad(fs.readFileSync(path.join('nfx.yaml'), { encoding: 'utf8' }));
-      expect(nfxYAML.functions.testfunction).to.deep.equal({ timeout: 8 });
+      const riseYAML = yaml.safeLoad(fs.readFileSync(path.join('rise.yaml'), { encoding: 'utf8' }));
+      expect(riseYAML.functions.testfunction).to.deep.equal({ timeout: 8 });
     });
   });
 
@@ -146,7 +146,7 @@ exports.handle = (req, res, next) => {
         paths: {
           '/testfunction': {
             put: {
-              'x-nfx': {
+              'x-rise': {
                 'function': 'testfunction',
                 cors: true
               }
@@ -156,7 +156,7 @@ exports.handle = (req, res, next) => {
       }), { encoding: 'utf8' });
     });
 
-    it("does not the settting in nfx.yaml", function() {
+    it("does not the settting in rise.yaml", function() {
       const err = generateFunction('testfunction');
       expect(err).not.to.exist;
 
@@ -171,7 +171,7 @@ exports.handle = (req, res, next) => {
       const routesYAML = yaml.safeLoad(fs.readFileSync(path.join('routes.yaml'), { encoding: 'utf8' }));
       expect(routesYAML.paths['/testfunction']).to.deep.equal({
         put: {
-          'x-nfx': {
+          'x-rise': {
             'function': 'testfunction',
             cors: true
           }
@@ -190,8 +190,8 @@ exports.handle = (req, res, next) => {
 
       expect(stat).to.be.null;
 
-      const nfxYAML = yaml.safeLoad(fs.readFileSync(path.join('nfx.yaml'), {encoding: 'utf8'}));
-      expect(nfxYAML.functions.testfunction).not.to.exist;
+      const riseYAML = yaml.safeLoad(fs.readFileSync(path.join('rise.yaml'), {encoding: 'utf8'}));
+      expect(riseYAML.functions.testfunction).not.to.exist;
     };
 
     it("returns an error when the name is too short", function() {

@@ -9,21 +9,21 @@ const fs = require('fs'),
       checksum = require('../utils/checksum'),
       fsStat = require('../utils/fs').fsStat;
 
-const nfxIndexJSTemplate = `
-const nfx = require('nfx-framework');
+const riseIndexJSTemplate = `
+const rise = require('rise-framework');
 
 const appModule = require('./app'),
       functionModule = require('./#{FUNCTION_PATH}');
 
-exports.handle = nfx.wrap.amazon(functionModule, appModule, {});`;
+exports.handle = rise.wrap.amazon(functionModule, appModule, {});`;
 
-module.exports = function compressAndCompare(nfx) {
-  if (!nfx.functions || Object.keys(nfx.functions).length === 0) {
-    return Promise.reject("No functions found in nfx.yaml.");
+module.exports = function compressAndCompare(session) {
+  if (!session.functions || Object.keys(session.functions).length === 0) {
+    return Promise.reject("No functions found in rise.yaml.");
   }
 
-  const funcNames = Object.keys(nfx.functions),
-        defaultFuncSetting = nfx.functions.default;
+  const funcNames = Object.keys(session.functions),
+        defaultFuncSetting = session.functions.default;
 
   let globalExcludePattern = null;
 
@@ -31,30 +31,30 @@ module.exports = function compressAndCompare(nfx) {
     globalExcludePattern = defaultFuncSetting.exclude;
   }
 
-  nfx.state = 'VERIFYING';
+  session.state = 'VERIFYING';
   return checksum(globalExcludePattern)
     .then((checksumHex) => {
-      const activeVersion = nfx.nfxJSON.active_version,
-            activeVersionHash = nfx.nfxJSON.version_hashes[nfx.nfxJSON.active_version],
+      const activeVersion = session.riseJSON.active_version,
+            activeVersionHash = session.riseJSON.version_hashes[session.riseJSON.active_version],
             compressPromises = [];
 
       if (activeVersionHash === checksumHex) {
-        for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
-          fs.unlinkSync(nfx.compressedFunctions[i].filePath);
+        for (let i = 0; i < session.compressedFunctions.length; ++i) {
+          fs.unlinkSync(session.compressedFunctions[i].filePath);
         }
         return Promise.reject("No change is present");
       }
 
       if (!activeVersion) {
         log.info('Deploying the first version');
-        nfx.version = 'v1';
+        session.version = 'v1';
       } else {
-        nfx.previousVersion = activeVersion;
-        nfx.version = `v${(parseInt(activeVersion.substr(1) || 0) + 1)}`;
-        log.info(`Current active version is "${activeVersion}". Uploading "${nfx.version}"...`);
+        session.previousVersion = activeVersion;
+        session.version = `v${(parseInt(activeVersion.substr(1) || 0) + 1)}`;
+        log.info(`Current active version is "${activeVersion}". Uploading "${session.version}"...`);
       }
 
-      nfx.nfxJSON.version_hashes[nfx.version] = checksumHex;
+      session.riseJSON.version_hashes[session.version] = checksumHex;
 
       for (let i = 0; i < funcNames.length; ++i) {
         const funcName = funcNames[i],
@@ -68,30 +68,30 @@ module.exports = function compressAndCompare(nfx) {
           excludePatterns.push(globalExcludePattern);
         }
 
-        if (nfx.functions[funcName] && typeof nfx.functions[funcName].exclude === 'string') {
-          excludePatterns.push(nfx.functions[funcName].exclude);
+        if (session.functions[funcName] && typeof session.functions[funcName].exclude === 'string') {
+          excludePatterns.push(session.functions[funcName].exclude);
         }
 
-        nfx.state = 'COMPRESSING';
-        compressPromises.push(compress(nfx, funcName, excludePatterns));
+        session.state = 'COMPRESSING';
+        compressPromises.push(compress(session, funcName, excludePatterns));
       }
 
       return Promise.all(compressPromises);
     })
     .then(() => {
-      for (let i = 0; i < nfx.compressedFunctions.length; ++i) {
-        const fileName = nfx.compressedFunctions[i].fileName,
-              uploadPath = `versions/${nfx.version}/functions/${fileName}`;
+      for (let i = 0; i < session.compressedFunctions.length; ++i) {
+        const fileName = session.compressedFunctions[i].fileName,
+              uploadPath = `versions/${session.version}/functions/${fileName}`;
 
-        nfx.compressedFunctions[i].uploadPath = uploadPath;
+        session.compressedFunctions[i].uploadPath = uploadPath;
       }
 
-      nfx.state = 'COMPRESSED';
-      return Promise.resolve(nfx);
+      session.state = 'COMPRESSED';
+      return Promise.resolve(session);
     });
 };
 
-function compress(nfx, functionName, excludePatterns) {
+function compress(session, functionName, excludePatterns) {
   return new Promise((resolve, reject) => {
     process.nextTick(function() {
       log.info(`Compressing ${functionName}...`);
@@ -118,7 +118,7 @@ function compress(nfx, functionName, excludePatterns) {
         reject(err);
       });
 
-      nfx.compressedFunctions.push({
+      session.compressedFunctions.push({
         functionName,
         fileName,
         filePath: tempFileName
@@ -128,7 +128,7 @@ function compress(nfx, functionName, excludePatterns) {
       zipArchive.directory(functionPath);
       zipArchive.glob("**/*", { ignore: excludePatterns.concat(['functions/**']) });
 
-      const indexJS = nfxIndexJSTemplate.replace(/\#\{FUNCTION_PATH\}/, functionPath);
+      const indexJS = riseIndexJSTemplate.replace(/\#\{FUNCTION_PATH\}/, functionPath);
 
       zipArchive.append(indexJS, { name: 'index.js' });
       zipArchive.finalize();

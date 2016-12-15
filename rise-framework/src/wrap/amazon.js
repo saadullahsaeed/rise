@@ -41,7 +41,7 @@ module.exports = function wrap(functionModule, appModule) {
   app.freeze();
 
   return function lambdaFunc(event, context, callback) {
-    if (event.nfxTest === 1) {
+    if (event.riseTest === 1) {
       callback(null, {
         test: 'ok'
       });

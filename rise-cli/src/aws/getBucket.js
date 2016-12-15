@@ -2,37 +2,37 @@
 
 const log = require('../utils/log');
 
-module.exports = function getBucket(nfx) {
-  nfx.state = 'FETCHING_BUCKET';
-  return nfx.aws.s3.headBucket({ Bucket: nfx.bucketName })
+module.exports = function getBucket(session) {
+  session.state = 'FETCHING_BUCKET';
+  return session.aws.s3.headBucket({ Bucket: session.bucketName })
     .promise()
     .then(function(/* data */) {
-      nfx.state = 'FETCHED_BUCKET';
-      log.info(`Existing bucket "${nfx.bucketName}" found.`);
-      return Promise.resolve(nfx);
+      session.state = 'FETCHED_BUCKET';
+      log.info(`Existing bucket "${session.bucketName}" found.`);
+      return Promise.resolve(session);
     })
     .catch(function(err) {
       if (err.code === 'NotFound') {
-        log.info(`A bucket with the name "${nfx.bucketName}" doesn't already exist. Creating...`);
-        return create(nfx);
+        log.info(`A bucket with the name "${session.bucketName}" doesn't already exist. Creating...`);
+        return create(session);
       } else {
         return Promise.reject(err);
       }
     });
 };
 
-function create(nfx) {
+function create(session) {
   const params = {
-    Bucket: nfx.bucketName,
+    Bucket: session.bucketName,
     CreateBucketConfiguration: {
-      LocationConstraint: nfx.region
+      LocationConstraint: session.region
     }
   };
 
-  nfx.state = 'CREATING_BUCKET';
-  return nfx.aws.s3.createBucket(params).promise()
+  session.state = 'CREATING_BUCKET';
+  return session.aws.s3.createBucket(params).promise()
     .then(function() {
-      nfx.state = 'CREATED_BUCKET';
-      return Promise.resolve(nfx);
+      session.state = 'CREATED_BUCKET';
+      return Promise.resolve(session);
     });
 }

@@ -3,7 +3,7 @@
 const fetchVersion = require('../src/aws/fetchVersion');
 
 describe('fetchVersion', function() {
-  let nfx,
+  let session,
       getObjectFn,
       bucketName;
 
@@ -15,10 +15,10 @@ describe('fetchVersion', function() {
       });
     });
 
-    nfx = {
+    session = {
       uuid: 'a1b2c3',
       bucketName,
-      nfxJSON: {},
+      riseJSON: {},
       aws: {
         s3: {
           getObject: getObjectFn
@@ -27,17 +27,17 @@ describe('fetchVersion', function() {
     };
   });
 
-  context('when a nfx file exists', function() {
-    it('fetch the file and set it to nfxJSON', function() {
-      return fetchVersion(nfx)
-        .then(function(nfx) {
-          expect(nfx.nfxJSON).to.deep.equal({
+  context('when a rise file exists', function() {
+    it('fetch the file and set it to riseJSON', function() {
+      return fetchVersion(session)
+        .then(function(session) {
+          expect(session.riseJSON).to.deep.equal({
             uuid: 'a1b2c3',
             active_version: 'v2',
             version_hashes: { v1: '12345', v2: '67890' }
           });
           expect(getObjectFn).to.have.been.calledOnce;
-          expect(getObjectFn).to.have.been.calledWith({ Bucket: bucketName, Key: 'nfx.json' });
+          expect(getObjectFn).to.have.been.calledWith({ Bucket: bucketName, Key: 'rise.json' });
         });
     });
 
@@ -49,11 +49,11 @@ describe('fetchVersion', function() {
           });
         });
 
-        nfx.aws.s3.getObject = getObjectFn;
+        session.aws.s3.getObject = getObjectFn;
       });
 
       it('returns an error', function() {
-        return fetchVersion(nfx)
+        return fetchVersion(session)
           .then(function() {
             fail('this promise should not have been resolved');
           })
@@ -64,46 +64,46 @@ describe('fetchVersion', function() {
     });
   });
 
-  context('when a nfx file does not exist', function() {
+  context('when a session file does not exist', function() {
     beforeEach(function() {
       getObjectFn = spyWithPromise(function(resolve, reject) { // eslint-disable-line no-unused-vars
         reject({message: 'does not exist'});
       });
-      nfx.aws.s3.getObject = getObjectFn;
+      session.aws.s3.getObject = getObjectFn;
     });
 
-    it('sets empty object to nfxJSON.version_hashes', function() {
-      return fetchVersion(nfx)
-        .then(function(nfx) {
-          expect(nfx.nfxJSON).to.deep.equal({
+    it('sets empty object to riseJSON.version_hashes', function() {
+      return fetchVersion(session)
+        .then(function(session) {
+          expect(session.riseJSON).to.deep.equal({
             uuid: 'a1b2c3',
             version_hashes: {}
           });
           expect(getObjectFn).to.have.been.calledOnce;
-          expect(getObjectFn).to.have.been.calledWith({ Bucket: bucketName, Key: 'nfx.json' });
+          expect(getObjectFn).to.have.been.calledWith({ Bucket: bucketName, Key: 'rise.json' });
         });
     });
   });
 
-  context('when fails to fetch a nfx file', function() {
+  context('when fails to fetch a rise file', function() {
     beforeEach(function() {
       getObjectFn = spyWithPromise(function(resolve, reject) { // eslint-disable-line no-unused-vars
         reject({ message: 'some error' });
       });
 
-      nfx.aws.s3.getObject = getObjectFn;
+      session.aws.s3.getObject = getObjectFn;
     });
 
     it('returns an error', function() {
-      return fetchVersion(nfx)
+      return fetchVersion(session)
         .then(function() {
           fail('this promise should not have been resolved');
         })
         .catch(function(err) {
           expect(err).to.not.be.null;
-          expect(nfx.nfxJSON).to.deep.equal({});
+          expect(session.riseJSON).to.deep.equal({});
           expect(getObjectFn).to.have.been.calledOnce;
-          expect(getObjectFn).to.have.been.calledWith({ Bucket: bucketName, Key: 'nfx.json' });
+          expect(getObjectFn).to.have.been.calledWith({ Bucket: bucketName, Key: 'rise.json' });
         });
     });
   });
