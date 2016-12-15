@@ -5,6 +5,9 @@
   "engines": {
     "node": ">=4.3"
   },
+  "bin": {
+    "rise": "bin/rise.js"
+  },
   "scripts": {
     "test": "./node_modules/.bin/mocha 'test/**/*_test.js'",
     "lint": "./node_modules/.bin/eslint 'src/**/*.js' 'test/**/*.js'"
